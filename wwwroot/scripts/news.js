@@ -22,7 +22,7 @@ function showArticles(articles) {
     container.innerHTML = "";
 
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-
+    articles.reverse();
     for (const article of articles) {
         const image = article.imageUrl
             ? `<img src="${article.imageUrl}" style="max-height:200px;">`
