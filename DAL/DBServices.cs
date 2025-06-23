@@ -1,0 +1,246 @@
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using NewsSite1.Models;
+using System;
+using System.Collections.Generic;
+using System.Data;
+
+namespace NewsSite1.DAL
+{
+    public class DBServices
+    {
+        public DBServices() { }
+
+        // --- התחברות למסד נתונים ---
+        public SqlConnection connect()
+        {
+            string cStr;
+            try
+            {
+                IConfigurationRoot configuration = new ConfigurationBuilder()
+                    .SetBasePath(AppContext.BaseDirectory)
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                    .Build();
+
+                cStr = configuration.GetConnectionString("myProjDB");
+            }
+            catch { cStr = null; }
+
+            if (string.IsNullOrEmpty(cStr))
+            {
+                cStr = "Data Source=Media.ruppin.ac.il;Initial Catalog=igroup113_test2;User ID=igroup113;Password=igroup113_82421;TrustServerCertificate=True;";
+            }
+
+            SqlConnection con = new SqlConnection(cStr);
+            con.Open();
+            return con;
+        }
+
+        // --- רישום משתמש ---
+        public bool RegisterUser(User user)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_RegisterUser", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Name", user.Name);
+                cmd.Parameters.AddWithValue("@Email", user.Email);
+                cmd.Parameters.AddWithValue("@Password", user.Password);
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // --- התחברות משתמש ---
+        public User LoginUser(string email, string password)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_LoginUser", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@Email", email);
+                cmd.Parameters.AddWithValue("@Password", password);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return new User
+                    {
+                        Id = (int)reader["id"],
+                        Name = (string)reader["name"],
+                        Email = (string)reader["email"],
+                        Active = (bool)reader["active"]
+                    };
+                }
+
+                return null;
+            }
+        }
+
+        // --- הוספת תגית למשתמש ---
+        public void AddUserTag(int userId, int tagId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddUserTag", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<User> GetAllUsers()
+        {
+            List<User> users = new List<User>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllUsers", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlDataReader reader = cmd.ExecuteReader(); 
+
+                while (reader.Read())
+                {
+                    users.Add(new User
+                    {
+                        Id = (int)reader["id"],
+                        Name = (string)reader["name"],
+                        Email = (string)reader["email"],
+                        Active = (bool)reader["active"]
+                    });
+                }
+            }
+
+            return users;
+        }
+
+
+        public void AddArticle(Article article)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@Title", article.Title);
+                cmd.Parameters.AddWithValue("@Description", article.Description);
+                cmd.Parameters.AddWithValue("@Content", article.Content);
+                cmd.Parameters.AddWithValue("@Author", article.Author);
+                cmd.Parameters.AddWithValue("@SourceName", article.SourceName);
+                cmd.Parameters.AddWithValue("@SourceUrl", article.SourceUrl);
+                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl);
+                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<Article> GetAllArticles()
+        {
+            List<Article> articles = new List<Article>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllArticles", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Article a = new Article
+                    {
+                        Id = (int)reader["id"],
+                        Title = reader["title"]?.ToString(),
+                        Description = reader["description"]?.ToString(),
+                        Content = reader["content"]?.ToString(),
+                        Author = reader["author"]?.ToString(),
+                        SourceName = reader["sourceName"]?.ToString(),
+                        SourceUrl = reader["url"]?.ToString(),
+                        ImageUrl = reader["imageUrl"]?.ToString(),
+                        PublishedAt = (DateTime)reader["publishedAt"]
+                    };
+                    articles.Add(a);
+                }
+            }
+
+            return articles;
+        }
+
+        public List<Article> FilterArticles(string sourceName, string title, DateTime? from, DateTime? to)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_FilterArticles", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@SourceName", (object?)sourceName ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Title", (object?)title ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@FromDate", (object?)from ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@ToDate", (object?)to ?? DBNull.Value);
+
+                List<Article> list = new List<Article>();
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    Article a = new Article
+                    {
+                        Id = (int)reader["id"],
+                        Title = (string)reader["title"],
+                        Description = (string)reader["description"],
+                        Content = (string)reader["content"],
+                        Author = (string)reader["author"],
+                        SourceName = (string)reader["sourceName"],
+                        SourceUrl = (string)reader["url"],
+                        ImageUrl = (string)reader["imageUrl"],
+                        PublishedAt = (DateTime)reader["publishedAt"]
+                    };
+                    list.Add(a);
+                }
+
+                return list;
+            }
+        }
+
+
+
+
+        // --- שליפת תגיות של משתמש ---
+        public List<Tag> GetUserTags(int userId)
+        {
+            List<Tag> tags = new List<Tag>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetUserTags", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    tags.Add(new Tag
+                    {
+                        Id = (int)reader["id"],
+                        Name = (string)reader["name"]
+                    });
+                }
+            }
+
+            return tags;
+        }
+    }
+}
