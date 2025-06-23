@@ -1,43 +1,63 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿let allSavedArticles = [];
+
+document.addEventListener("DOMContentLoaded", () => {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    if (!user) {
-        document.getElementById("savedArticlesContainer").innerHTML = `
-            <div class="alert alert-warning text-center">
-                You must be logged in to view your saved articles.
-            </div>`;
-        return;
-    }
+    if (!user?.id) return;
 
     fetch(`https://localhost:7084/api/Users/GetSavedArticles/${user.id}`)
-        .then(response => response.json())
-        .then(articles => renderSavedArticles(articles))
+        .then(res => res.json())
+        .then(data => {
+            allSavedArticles = data;
+            renderSavedArticles(data);
+        })
         .catch(() => {
-            document.getElementById("savedArticlesContainer").innerHTML = `
-                <div class="alert alert-danger text-center">An error occurred while loading saved articles.</div>`;
+            document.getElementById("savedArticlesContainer").innerHTML =
+                `<div class="alert alert-danger">Error loading saved articles</div>`;
         });
+
+    document.getElementById("searchForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        filterArticles();
+    });
 });
+
+function filterArticles() {
+    const title = document.getElementById("searchTitle").value.toLowerCase();
+    const from = document.getElementById("searchFrom").value;
+    const to = document.getElementById("searchTo").value;
+
+    const filtered = allSavedArticles.filter(article => {
+        const matchTitle = article.title?.toLowerCase().includes(title);
+        const published = new Date(article.publishedAt);
+        const matchFrom = !from || published >= new Date(from);
+        const matchTo = !to || published <= new Date(to);
+        return matchTitle && matchFrom && matchTo;
+    });
+
+    renderSavedArticles(filtered);
+}
 
 function renderSavedArticles(articles) {
     const container = document.getElementById("savedArticlesContainer");
     container.innerHTML = "";
 
     if (articles.length === 0) {
-        container.innerHTML = `
-            <div class="alert alert-info text-center">You haven't saved any articles yet.</div>`;
+        container.innerHTML = `<div class="alert alert-warning">No articles found.</div>`;
         return;
     }
 
-    articles.forEach(article => {
+    for (const article of articles) {
         container.innerHTML += `
             <div class="col-md-4">
-                <div class="card h-100">
-                    ${article.imageUrl ? `<img src="${article.imageUrl}" class="card-img-top" style="max-height:200px; object-fit:cover;">` : ""}
-                    <div class="card-body d-flex flex-column">
+                <div class="card">
+                    <img src="${article.imageUrl}" class="card-img-top" alt="Article Image">
+                    <div class="card-body">
                         <h5 class="card-title">${article.title}</h5>
                         <p class="card-text">${article.description}</p>
-                        <a href="${article.sourceUrl}" target="_blank" class="btn btn-primary mt-auto">Read Full Article</a>
+                        <a href="${article.sourceUrl}" target="_blank" class="btn btn-primary">Read</a>
                     </div>
                 </div>
-            </div>`;
-    });
+            </div>
+        `;
+    }
 }
