@@ -13,7 +13,7 @@
             };
 
             $.ajax({
-                url: apiBase + "/user/Login",
+                url: apiBase + "/Users/Login",
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify(requestData),

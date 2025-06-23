@@ -3,12 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <title>Register</title>
-
-    <script src="../scripts/register.js"></script>
     <link href="../css/register.css" rel="stylesheet" />
 </head>
 <body>
-    <!-- טופס הרשמה -->
     <form id="signupForm">
         <input type="text" id="fullName" placeholder="Full Name" required />
         <input type="email" id="signupEmail" placeholder="Email" required />
@@ -16,8 +13,10 @@
         <button type="submit">Sign Up</button>
     </form>
 
-    <!-- הצגת שגיאה -->
     <div id="signupError"></div>
 
+    <!-- 🟢 הכי בטוח – נטען בסוף -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../scripts/register.js"></script>
 </body>
 </html>

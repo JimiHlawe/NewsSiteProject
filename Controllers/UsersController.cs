@@ -64,6 +64,35 @@ namespace NewsSite1.Controllers
             var tags = db.GetUserTags(userId);
             return Ok(tags);
         }
+
+        [HttpPost("SaveArticle")]
+        public IActionResult SaveArticle([FromBody] SaveArticleRequest request)
+        {
+            try
+            {
+                db.SaveArticle(request.UserId, request.ArticleId);
+                return Ok("Article saved");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "שגיאה בשרת: " + ex.Message);
+            }
+        }
+
+
+        [HttpGet("GetSavedArticles/{userId}")]
+        public IActionResult GetSavedArticles(int userId)
+        {
+            var articles = db.GetSavedArticles(userId);
+            return Ok(articles);
+        }
+
+    }
+
+    public class SaveArticleRequest
+    {
+        public int UserId { get; set; }
+        public int ArticleId { get; set; }
     }
     public class AddTagRequest
     {

@@ -1,14 +1,13 @@
 ﻿const apiBase = "https://localhost:7084/api";
 
-// --- On page load ---
 $(document).ready(function () {
     $("#signupForm").submit(function (e) {
         e.preventDefault();
 
-        // --- Get form values ---
-        var name = $("#name").val();
-        var email = $("#email").val();
-        var password = $("#password").val();
+        // 🟢 עדכון IDs
+        var name = $("#fullName").val();
+        var email = $("#signupEmail").val();
+        var password = $("#signupPassword").val();
 
         // --- Validate inputs ---
         var nameRegex = /^[A-Za-z0-9]{2,}$/;
@@ -24,7 +23,6 @@ $(document).ready(function () {
             return;
         }
 
-        // --- Create user object ---
         var user = {
             name: name,
             email: email,
@@ -32,14 +30,13 @@ $(document).ready(function () {
             active: true
         };
 
-        // --- Send register request ---
         $.ajax({
-            url: apiBase + "/user/Register",
+            url: apiBase + "/Users/Register",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(user),
             success: function () {
-                alert("Registered Sucesfully");
+                alert("Registered successfully");
                 window.location.href = "Login.html";
             },
             error: function () {

@@ -214,6 +214,95 @@ namespace NewsSite1.DAL
             }
         }
 
+        public void SaveArticle(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_SaveArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public List<Article> GetSavedArticles(int userId)
+        {
+            List<Article> articles = new List<Article>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetSavedArticles", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Article a = new Article
+                    {
+                        Id = (int)reader["id"],
+                        Title = reader["title"]?.ToString(),
+                        Description = reader["description"]?.ToString(),
+                        Content = reader["content"]?.ToString(),
+                        Author = reader["author"]?.ToString(),
+                        SourceName = reader["sourceName"]?.ToString(),
+                        SourceUrl = reader["url"]?.ToString(),
+                        ImageUrl = reader["imageUrl"]?.ToString(),
+                        PublishedAt = (DateTime)reader["publishedAt"]
+                    };
+                    articles.Add(a);
+                }
+            }
+
+            return articles;
+        }
+
+
+        public int SaveArticleAndGetId(Article article)
+        {
+            int articleId = 0;
+
+            using (SqlConnection con = connect())
+            {
+                if (con.State != ConnectionState.Open)
+                {
+                    con.Open(); // רק אם לא פתוח
+                }
+
+                SqlCommand cmd = new SqlCommand("NewsSP_AddOrGetArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@title", article.Title ?? "");
+                cmd.Parameters.AddWithValue("@description", article.Description ?? "");
+                cmd.Parameters.AddWithValue("@content", article.Content ?? "");
+                cmd.Parameters.AddWithValue("@author", article.Author ?? "");
+                cmd.Parameters.AddWithValue("@url", article.SourceUrl ?? "");
+                cmd.Parameters.AddWithValue("@imageUrl", article.ImageUrl ?? "");
+                cmd.Parameters.AddWithValue("@publishedAt", article.PublishedAt);
+
+
+                SqlParameter outId = new SqlParameter("@articleId", SqlDbType.Int)
+                {
+                    Direction = ParameterDirection.Output
+                };
+                cmd.Parameters.Add(outId);
+
+                cmd.ExecuteNonQuery();
+                articleId = (int)outId.Value;
+            }
+
+            return articleId;
+        }
+
+
+        public List<Article> GetAllSavedArticles()
+        {
+            return GetAllArticles(); // פשוט מפנה לפונקציה הקיימת
+        }
+
+
+
 
 
 

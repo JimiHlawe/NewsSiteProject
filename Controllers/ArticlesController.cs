@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using NewsSite1.Controllers;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 
@@ -40,3 +41,4 @@ public class ArticlesController : ControllerBase
     }
 
 }
+
