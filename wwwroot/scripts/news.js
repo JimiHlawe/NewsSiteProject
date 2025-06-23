@@ -1,101 +1,70 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
-    // נסה לייבא כתבות חיצוניות, אבל אל תעצור אם נכשל
-    fetch("/api/News/ImportExternal", {
-        method: "POST"
-    })
-        .then(res => {
-            if (!res.ok) throw new Error(`Import failed: ${res.status}`);
-            return res.json();
-        })
-        .then(data => {
-            console.log("✅ כתבות חיצוניות יובאו:", data);
-        })
-        .catch(err => {
-            console.warn("⚠️ לא ניתן לייבא כתבות חיצוניות (לא נורא):", err);
-        })
-        .finally(() => {
-            // תמיד נמשיך לטעון מה-DB
-            fetch("/api/News")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP Error: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => renderNews(data))
-                .catch(err => {
-                    console.error("שגיאה בטעינת חדשות:", err);
-                    const container = document.getElementById("articlesContainer");
-                    container.innerHTML = `<div class="alert alert-danger">אירעה שגיאה בטעינת חדשות</div>`;
-                });
-        });
+    // Try importing external articles (non-blocking)
+    fetch("/api/Articles/ImportExternal", { method: "POST" })
+        .finally(loadArticles); // Always load articles from DB
 });
 
+function loadArticles() {
+    fetch("/api/Articles/All")
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(showArticles)
+        .catch(() => {
+            document.getElementById("articlesContainer").innerHTML = `
+                <div class="alert alert-danger">An error occurred while loading the articles.</div>`;
+        });
+}
 
-
-function renderNews(articles) {
+function showArticles(articles) {
     const container = document.getElementById("articlesContainer");
     container.innerHTML = "";
 
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    articles.forEach(article => {
-        console.log("🔍 כתבה:", article);
+    for (const article of articles) {
+        const image = article.imageUrl
+            ? `<img src="${article.imageUrl}" style="max-height:200px;">`
+            : "";
 
-        // בדיקה שהכתבה כוללת ID תקני
-        if (!article.id || article.id === 0) {
-            console.warn("⚠️ כתבה עם ID חסר או שגוי:", article);
-        }
+        const saveButton = (user && article.id)
+            ? `<button onclick="saveArticle(${article.id})">Save</button>`
+            : "";
 
         container.innerHTML += `
-        <div>
-            ${article.imageUrl ? `<img src="${article.imageUrl}" style="max-height:200px;">` : ""}
-            <h3>${article.title}</h3>
-            <p>${article.description}</p>
-            <a href="${article.sourceUrl}" target="_blank">לכתבה המלאה</a>
-            ${user && article.id
-                ? `<button onclick="saveArticle(${article.id})">💾 שמור</button>`
-                : ""
-            }
-            <hr/>
-        </div>`;
-    });
+            <div>
+                ${image}
+                <h3>${article.title}</h3>
+                <p>${article.description}</p>
+                <a href="${article.sourceUrl}" target="_blank">Read Full Article</a>
+                ${saveButton}
+                <hr/>
+            </div>`;
+    }
 }
 
 function saveArticle(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    // בדיקת תקינות נתונים לפני שליחה
-    if (!user || !user.id || !articleId) {
-        console.error("❌ נתונים חסרים:", { user, articleId });
-        alert("⚠️ נתונים לא תקינים. התחבר מחדש ונסה שוב.");
+    if (!user?.id || !articleId) {
+        alert("Invalid data. Please log in again and try.");
         return;
     }
 
-    const data = {
-        userId: user.id,
-        articleId: articleId
-    };
-
-    console.log("📤 שולח שמירת כתבה:", data);
-
     fetch("https://localhost:7084/api/Users/SaveArticle", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(data)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, articleId })
     })
-        .then(response => {
-            if (response.ok) {
-                alert("✅ הכתבה נשמרה למועדפים");
+        .then(res => {
+            if (res.ok) {
+                alert("Article saved to favorites.");
             } else {
-                console.error("❌ שגיאה בשמירה:", response.status);
-                alert("⚠️ לא ניתן לשמור את הכתבה");
+                alert("Failed to save the article.");
             }
         })
-        .catch(err => {
-            console.error("⚠️ שגיאה ברשת:", err);
-            alert("⚠️ שגיאה כללית בשליחה");
+        .catch(() => {
+            alert("Network error occurred.");
         });
 }

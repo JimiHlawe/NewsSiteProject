@@ -36,13 +36,16 @@ namespace NewsSite1.DAL
             return con;
         }
 
-        // --- רישום משתמש ---
+        // ===================== USERS =====================
+
         public bool RegisterUser(User user)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_RegisterUser", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_RegisterUser", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@Name", user.Name);
                 cmd.Parameters.AddWithValue("@Email", user.Email);
                 cmd.Parameters.AddWithValue("@Password", user.Password);
@@ -59,13 +62,14 @@ namespace NewsSite1.DAL
             }
         }
 
-        // --- התחברות משתמש ---
         public User LoginUser(string email, string password)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_LoginUser", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_LoginUser", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@Email", email);
                 cmd.Parameters.AddWithValue("@Password", password);
 
@@ -86,30 +90,18 @@ namespace NewsSite1.DAL
             }
         }
 
-        // --- הוספת תגית למשתמש ---
-        public void AddUserTag(int userId, int tagId)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddUserTag", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@TagId", tagId);
-
-                cmd.ExecuteNonQuery();
-            }
-        }
-
         public List<User> GetAllUsers()
         {
             List<User> users = new List<User>();
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetAllUsers", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllUsers", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
-                SqlDataReader reader = cmd.ExecuteReader(); 
+                SqlDataReader reader = cmd.ExecuteReader();
 
                 while (reader.Read())
                 {
@@ -126,13 +118,30 @@ namespace NewsSite1.DAL
             return users;
         }
 
+        public void AddUserTag(int userId, int tagId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddUserTag", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // ===================== ARTICLES =====================
 
         public void AddArticle(Article article)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_AddArticle", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
                 cmd.Parameters.AddWithValue("@Title", article.Title);
                 cmd.Parameters.AddWithValue("@Description", article.Description);
@@ -153,8 +162,10 @@ namespace NewsSite1.DAL
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetAllArticles", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllArticles", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -182,8 +193,10 @@ namespace NewsSite1.DAL
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_FilterArticles", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_FilterArticles", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
                 cmd.Parameters.AddWithValue("@SourceName", (object?)sourceName ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Title", (object?)title ?? DBNull.Value);
@@ -218,8 +231,10 @@ namespace NewsSite1.DAL
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_SaveArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_SaveArticle", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
                 cmd.ExecuteNonQuery();
@@ -232,8 +247,10 @@ namespace NewsSite1.DAL
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetSavedArticles", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_GetSavedArticles", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@UserId", userId);
 
                 SqlDataReader reader = cmd.ExecuteReader();
@@ -258,63 +275,23 @@ namespace NewsSite1.DAL
             return articles;
         }
 
-
-        public int SaveArticleAndGetId(Article article)
-        {
-            int articleId = 0;
-
-            using (SqlConnection con = connect())
-            {
-                if (con.State != ConnectionState.Open)
-                {
-                    con.Open(); // רק אם לא פתוח
-                }
-
-                SqlCommand cmd = new SqlCommand("NewsSP_AddOrGetArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                cmd.Parameters.AddWithValue("@title", article.Title ?? "");
-                cmd.Parameters.AddWithValue("@description", article.Description ?? "");
-                cmd.Parameters.AddWithValue("@content", article.Content ?? "");
-                cmd.Parameters.AddWithValue("@author", article.Author ?? "");
-                cmd.Parameters.AddWithValue("@url", article.SourceUrl ?? "");
-                cmd.Parameters.AddWithValue("@imageUrl", article.ImageUrl ?? "");
-                cmd.Parameters.AddWithValue("@publishedAt", article.PublishedAt);
-
-
-                SqlParameter outId = new SqlParameter("@articleId", SqlDbType.Int)
-                {
-                    Direction = ParameterDirection.Output
-                };
-                cmd.Parameters.Add(outId);
-
-                cmd.ExecuteNonQuery();
-                articleId = (int)outId.Value;
-            }
-
-            return articleId;
-        }
-
-
         public List<Article> GetAllSavedArticles()
         {
-            return GetAllArticles(); // פשוט מפנה לפונקציה הקיימת
+            return GetAllArticles();
         }
 
+        // ===================== TAGS =====================
 
-
-
-
-
-        // --- שליפת תגיות של משתמש ---
         public List<Tag> GetUserTags(int userId)
         {
             List<Tag> tags = new List<Tag>();
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetUserTags", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_GetUserTags", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@UserId", userId);
 
                 SqlDataReader reader = cmd.ExecuteReader();

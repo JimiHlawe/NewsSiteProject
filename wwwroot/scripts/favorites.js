@@ -3,7 +3,7 @@
     if (!user) {
         document.getElementById("savedArticlesContainer").innerHTML = `
             <div class="alert alert-warning text-center">
-                עליך להתחבר כדי לצפות במועדפים שלך
+                You must be logged in to view your saved articles.
             </div>`;
         return;
     }
@@ -11,10 +11,9 @@
     fetch(`https://localhost:7084/api/Users/GetSavedArticles/${user.id}`)
         .then(response => response.json())
         .then(articles => renderSavedArticles(articles))
-        .catch(err => {
-            console.error("שגיאה בטעינת מועדפים:", err);
+        .catch(() => {
             document.getElementById("savedArticlesContainer").innerHTML = `
-                <div class="alert alert-danger text-center">אירעה שגיאה בטעינת הכתבות</div>`;
+                <div class="alert alert-danger text-center">An error occurred while loading saved articles.</div>`;
         });
 });
 
@@ -24,7 +23,7 @@ function renderSavedArticles(articles) {
 
     if (articles.length === 0) {
         container.innerHTML = `
-            <div class="alert alert-info text-center">לא שמרת עדיין כתבות</div>`;
+            <div class="alert alert-info text-center">You haven't saved any articles yet.</div>`;
         return;
     }
 
@@ -36,7 +35,7 @@ function renderSavedArticles(articles) {
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">${article.title}</h5>
                         <p class="card-text">${article.description}</p>
-                        <a href="${article.sourceUrl}" target="_blank" class="btn btn-primary mt-auto">לכתבה המלאה</a>
+                        <a href="${article.sourceUrl}" target="_blank" class="btn btn-primary mt-auto">Read Full Article</a>
                     </div>
                 </div>
             </div>`;

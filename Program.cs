@@ -11,6 +11,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DBServices>();
 builder.Services.AddSingleton<NewsApiService>();
+builder.Services.AddSingleton<ArticleService>(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var connStr = config.GetConnectionString("myProjDB")
+        ?? "Data Source=Media.ruppin.ac.il;Initial Catalog=igroup113_test2;User ID=igroup113;Password=igroup113_82421;TrustServerCertificate=True;";
+    return new ArticleService(connStr);
+});
+
 
 var app = builder.Build();
 
