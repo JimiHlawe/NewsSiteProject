@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 using NewsSite1.Services;
@@ -48,6 +49,36 @@ public class ArticlesController : ControllerBase
         List<Article> savedArticles = _db.GetAllSavedArticles();
         return Ok(savedArticles);
     }
+
+    [HttpPost("Share")]
+    public IActionResult ShareArticle([FromBody] SharedArticleRequest request)
+    {
+        if (request == null ||
+            string.IsNullOrEmpty(request.SenderUsername) ||
+            string.IsNullOrEmpty(request.ToUsername))
+            return BadRequest("Invalid request");
+
+        try
+        {
+            _db.ShareArticleByUsernames(request.SenderUsername, request.ToUsername, request.ArticleId, request.Comment);
+            return Ok("Article shared successfully");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Server error: " + ex.Message);
+        }
+    }
+
+
+
+    [HttpGet("SharedWithMe/{userId}")]
+    public IActionResult GetSharedArticles(int userId)
+    {
+        var result = _db.GetArticlesSharedWithUser(userId);
+        return Ok(result);
+    }
+
+
 
     [HttpPost("ImportExternal")]
     public async Task<IActionResult> ImportExternalArticles()

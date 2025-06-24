@@ -275,6 +275,79 @@ namespace NewsSite1.DAL
             return articles;
         }
 
+
+        public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticleByUsernames", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@SenderUsername", senderUsername);
+                cmd.Parameters.AddWithValue("@TargetUsername", targetUsername);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+
+
+
+
+        public int? GetUserIdByUsername(string username)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT id FROM News_Users WHERE name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", username);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                    return Convert.ToInt32(result);
+
+                return null;
+            }
+        }
+
+        public List<SharedArticle> GetArticlesSharedWithUser(int userId)
+        {
+            List<SharedArticle> sharedArticles = new List<SharedArticle>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesSharedWithUser", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@userId", userId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    SharedArticle article = new SharedArticle
+                    {
+                        Id = (int)reader["articleId"],
+                        Title = reader["title"].ToString(),
+                        Description = reader["description"].ToString(),
+                        Content = reader["content"].ToString(),
+                        Author = reader["author"].ToString(),
+                        SourceUrl = reader["sourceUrl"].ToString(),
+                        ImageUrl = reader["imageUrl"].ToString(),
+                        PublishedAt = (DateTime)reader["publishedAt"],
+                        Comment = reader["comment"].ToString(),
+                        SharedAt = (DateTime)reader["sharedAt"],
+                        SenderName = reader["senderName"].ToString()
+                    };
+
+                    sharedArticles.Add(article);
+                }
+            }
+
+            return sharedArticles;
+        }
+
+
         public List<Article> GetAllSavedArticles()
         {
             return GetAllArticles();
