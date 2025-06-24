@@ -2,23 +2,69 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="/scripts/login.js"></script>
+    <title>Auth Page</title>
     <link href="../css/login.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="../scripts/login.js"></script>
 </head>
 <body>
+    <!-- Floating Particles -->
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
 
-    <!-- טופס התחברות -->
-    <form id="loginForm">
-        <input type="email" id="email" placeholder="Email" required />
-        <input type="password" id="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-    </form>
+    <div class="auth-container">
+        <!-- Sign In Form -->
+        <div class="form-container signin-form" id="signinForm">
+            <h1 class="form-title">Welcome Back</h1>
+            <p class="form-subtitle">Sign in to your account</p>
 
-    <!-- הצגת שגיאה -->
-    <div id="loginError"></div>
+            <form id="signinFormSubmit">
+                <div class="form-group">
+                    <input type="email" id="signinEmail" class="form-input" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signinPassword" class="form-input" placeholder="Password" required>
+                </div>
+                <div class="remember-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="checkmark"></span>
+                        <span class="checkbox-label">Remember me</span>
+                    </label>
+                </div>
+                <button type="submit" class="form-button">Sign In</button>
+                <div class="error-message" id="signinError"></div>
+                <p class="switch-form">
+                    Don't have an account?
+                    <a href="#" class="switch-link" onclick="switchToSignup()">Sign up</a>
+                </p>
+            </form>
+        </div>
 
+        <!-- Sign Up Form -->
+        <div class="form-container signup-form" id="signupForm" style="display: none;">
+            <h1 class="form-title">Create Account</h1>
+            <p class="form-subtitle">Sign up for a new account</p>
+
+            <form id="signupFormSubmit">
+                <div class="form-group">
+                    <input type="text" id="signupName" class="form-input" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" id="signupEmail" class="form-input" placeholder="Email Address" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="signupPassword" class="form-input" placeholder="Password" required>
+                </div>
+                <button type="submit" class="form-button">Sign Up</button>
+                <div class="error-message" id="signupError"></div>
+                <p class="switch-form">
+                    Already have an account?
+                    <a href="#" class="switch-link" onclick="switchToSignin()">Sign in</a>
+                </p>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
