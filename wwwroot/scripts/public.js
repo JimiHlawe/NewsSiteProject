@@ -45,8 +45,8 @@ function renderPublicArticles(articles) {
 }
 
 function sendComment(articleId) {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const commentText = document.getElementById(`comment-input-${articleId}`).value.trim();
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
     if (!user || !user.name || !commentText) {
         alert("Please log in and enter a comment.");
@@ -69,6 +69,6 @@ function sendComment(articleId) {
         .then(() => location.reload())
         .catch(err => {
             console.error("Error posting comment:", err);
-            alert("Failed to send comment.");
+            alert("Failed to post comment.");
         });
 }
