@@ -397,18 +397,23 @@ namespace NewsSite1.DAL
         }
 
 
-        public void AddCommentToPublicArticle(int publicArticleId, int userId, string comment)
+        // במקום השם הישן AddCommentToPublicArticle
+        public void AddPublicComment(int articleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con);
+                SqlCommand cmd = new SqlCommand("NewsSP_AddPublicComment", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@Comment", comment);
                 cmd.ExecuteNonQuery();
             }
         }
+
+
+
+
 
 
         public List<(string commenterName, string comment)> GetCommentsForPublicArticle(int publicArticleId)
