@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 using NewsSite1.Services;
+using NewsSite1.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -78,6 +79,63 @@ public class ArticlesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("SharePublic")]
+    public IActionResult ShareArticlePublic([FromBody] PublicArticleShareRequest request)
+    {
+        try
+        {
+            int? senderUserId = _db.GetUserIdByUsername(request.Username);
+
+            if (senderUserId == null)
+                return BadRequest("User not found.");
+
+            _db.ShareArticlePublic(senderUserId.Value, request.ArticleId, request.Comment);
+            return Ok("Public share succeeded");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error: " + ex.Message);
+        }
+    }
+
+
+
+
+
+
+    [HttpGet("Public")]
+    public IActionResult GetPublicArticles()
+    {
+        try
+        {
+            var articles = _db.GetAllPublicArticles(); // ← ודא שזו המתודה שקיימת
+            return Ok(articles);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Server error: {ex.Message}");
+        }
+    }
+
+
+
+    [HttpPost("AddPublicComment")]
+    public IActionResult AddPublicComment([FromBody] PublicArticleComment req)
+    {
+        if (req == null || req.UserId == 0 || req.PublicArticleId == 0)
+            return BadRequest("Invalid input");
+
+        _db.AddCommentToPublicArticle(req.PublicArticleId, req.UserId, req.Comment);
+        return Ok();
+    }
+
+
+    [HttpGet("GetComments/{publicArticleId}")]
+    public IActionResult GetPublicComments(int publicArticleId)
+    {
+        var comments = _db.GetCommentsForPublicArticle(publicArticleId);
+        return Ok(comments);
+    }
 
 
     [HttpPost("ImportExternal")]

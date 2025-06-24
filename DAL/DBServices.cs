@@ -347,6 +347,103 @@ namespace NewsSite1.DAL
             return sharedArticles;
         }
 
+        public void ShareArticlePublic(int senderUserId, int articleId, string comment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublic", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+        public List<PublicArticle> GetAllPublicArticles()
+        {
+            List<PublicArticle> list = new List<PublicArticle>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllPublicArticles", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new PublicArticle
+                    {
+                        PublicArticleId = (int)reader["publicArticleId"],
+                        ArticleId = (int)reader["id"],
+                        Title = reader["title"].ToString(),
+                        Description = reader["description"].ToString(),
+                        Content = reader["content"].ToString(),
+                        Author = reader["author"].ToString(),
+                        SourceUrl = reader["sourceUrl"].ToString(),
+                        ImageUrl = reader["imageUrl"].ToString(),
+                        PublishedAt = (DateTime)reader["publishedAt"],
+                        SenderName = reader["senderName"].ToString(),
+                        InitialComment = reader["initialComment"].ToString(),
+                        SharedAt = (DateTime)reader["sharedAt"]
+                    });
+                }
+            }
+
+            return list;
+        }
+
+
+        public void AddCommentToPublicArticle(int publicArticleId, int userId, string comment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Comment", comment);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+        public List<(string commenterName, string comment)> GetCommentsForPublicArticle(int publicArticleId)
+        {
+            var list = new List<(string, string)>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetCommentsForPublicArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add((reader["commenterName"].ToString(), reader["comment"].ToString()));
+                }
+            }
+            return list;
+        }
+
+        public void ShareArticlePublicly(int userId, int articleId, string comment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublicly", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@Comment", comment);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
         public List<Article> GetAllSavedArticles()
         {

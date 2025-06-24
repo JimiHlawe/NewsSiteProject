@@ -37,12 +37,20 @@ function showArticles(articles) {
             : "";
 
         const shareForm = `
-            <div id="shareForm-${article.id}" class="share-form mt-2" style="display:none;">
-                <input type="text" placeholder="Target username" id="targetUser-${article.id}" class="form-control mb-1" />
-                <textarea placeholder="Add a comment" id="comment-${article.id}" class="form-control mb-1"></textarea>
-                <button onclick="sendShare(${article.id})" class="btn btn-primary btn-sm">Send</button>
-            </div>
-        `;
+    <div id="shareForm-${article.id}" class="share-form mt-2" style="display:none;">
+        <select class="form-select mb-2" id="shareType-${article.id}" onchange="toggleShareType(${article.id})">
+            <option value="private">📤 Share with user</option>
+            <option value="public">🌍 Share with everyone</option>
+        </select>
+
+        <input type="text" placeholder="Target username" id="targetUser-${article.id}" class="form-control mb-2" />
+
+        <textarea placeholder="Add a comment" id="comment-${article.id}" class="form-control mb-2"></textarea>
+
+        <button onclick="sendShare(${article.id})" class="btn btn-primary btn-sm">Send</button>
+    </div>
+`;
+
 
         container.innerHTML += `
             <div class="article-card mb-4 p-3 border rounded bg-white shadow-sm">
@@ -131,7 +139,7 @@ function saveArticle(articleId) {
         });
 }
 
-// פונקציה לפתיחת וסגירת טופס שיתוף
+
 function toggleShare(articleId) {
     const form = document.getElementById(`shareForm-${articleId}`);
     if (form) {
@@ -139,41 +147,63 @@ function toggleShare(articleId) {
     }
 }
 
+// פונקציה לפתיחת וסגירת טופס שיתוף
+function toggleShareType(articleId) {
+    const type = document.getElementById(`shareType-${articleId}`).value;
+    const targetInput = document.getElementById(`targetUser-${articleId}`);
+    targetInput.style.display = type === "public" ? "none" : "block";
+}
+
+
 // פונקציית שליחת השיתוף
 function sendShare(articleId) {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    const toUsername = document.getElementById(`targetUser-${articleId}`).value.trim();
+    const type = document.getElementById(`shareType-${articleId}`).value;
     const comment = document.getElementById(`comment-${articleId}`).value.trim();
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    if (!user || !user.name || !toUsername) {
-        alert("Missing sender or recipient username.");
+    if (!user || !user.name) {
+        alert("Please log in.");
         return;
     }
 
-    const payload = {
-        senderUsername: user.name,  // ✅ זה חייב להיות name
-        toUsername: toUsername,
-        articleId: articleId,
-        comment: comment
-    };
+    if (type === "private") {
+        const toUsername = document.getElementById(`targetUser-${articleId}`).value.trim();
+        if (!toUsername) {
+            alert("Please enter a username.");
+            return;
+        }
 
-    console.log("Sending payload:", payload);
-
-    fetch("https://localhost:7084/api/Articles/Share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-        .then(res => {
-            if (res.ok) {
-                alert("Article shared successfully.");
-                document.getElementById(`shareForm-${articleId}`).style.display = "none";
-            } else {
-                return res.text().then(text => { throw new Error(text); });
-            }
+        // שיתוף פרטי
+        fetch("/api/Articles/Share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                senderUsername: user.name,
+                toUsername,
+                articleId,
+                comment
+            })
         })
-        .catch(err => {
-            console.error("Share error:", err);
-            alert("Failed to share the article.");
-        });
+            .then(res => {
+                if (res.ok) alert("Shared with user!");
+                else throw new Error("Failed");
+            })
+            .catch(() => alert("Error sharing."));
+    } else {
+        // שיתוף ציבורי
+        fetch("/api/Articles/SharePublic", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                username: user.name,
+                articleId,
+                comment
+            })
+        })
+            .then(res => {
+                if (res.ok) alert("Publicly shared!");
+                else throw new Error("Failed");
+            })
+            .catch(() => alert("Error sharing publicly."));
+    }
 }
