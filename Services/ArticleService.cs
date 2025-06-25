@@ -23,6 +23,27 @@ namespace NewsSite1.Services
             return con;
         }
 
+        public List<Article> GetAllArticles()
+        {
+            List<Article> list = new List<Article>();
+            using (SqlConnection con = Connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT id, title, content FROM News_Articles", con);
+                SqlDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    list.Add(new Article
+                    {
+                        Id = Convert.ToInt32(dr["id"]),
+                        Title = dr["title"].ToString(),
+                        Content = dr["content"].ToString()
+                    });
+                }
+            }
+            return list;
+        }
+
+
         public int SaveArticleAndGetId(Article article)
         {
             int articleId = 0;
