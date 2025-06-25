@@ -451,6 +451,19 @@ namespace NewsSite1.DAL
             return comments;
         }
 
+        public void RemoveSavedArticle(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_RemoveSavedArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
         // ===================== TAGS =====================
 
         public List<Tag> GetUserTags(int userId)

@@ -55,9 +55,32 @@ function renderSavedArticles(articles) {
                         <h5 class="card-title">${article.title}</h5>
                         <p class="card-text">${article.description}</p>
                         <a href="${article.sourceUrl}" target="_blank" class="btn btn-primary">Read</a>
+                        <button onclick="removeFavorite(${article.id})" class="btn btn-danger btn-sm">Remove</button>
                     </div>
                 </div>
             </div>
         `;
     }
+}
+
+
+function removeFavorite(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) return;
+
+    fetch("/api/Users/RemoveSavedArticle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, articleId })
+    })
+        .then(res => {
+            if (res.ok) {
+                alert("Removed from favorites.");
+                allSavedArticles = allSavedArticles.filter(a => a.id !== articleId);
+                renderSavedArticles(allSavedArticles);
+            } else {
+                alert("Failed to remove.");
+            }
+        })
+        .catch(() => alert("Network error."));
 }

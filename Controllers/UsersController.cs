@@ -79,6 +79,20 @@ namespace NewsSite1.Controllers
             }
         }
 
+        [HttpPost("RemoveSavedArticle")]
+        public IActionResult RemoveSavedArticle([FromBody] SaveArticleRequest request)
+        {
+            try
+            {
+                db.RemoveSavedArticle(request.UserId, request.ArticleId);
+                return Ok("Removed successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error: " + ex.Message);
+            }
+        }
+
 
         [HttpGet("GetSavedArticles/{userId}")]
         public IActionResult GetSavedArticles(int userId)
@@ -88,6 +102,8 @@ namespace NewsSite1.Controllers
         }
 
     }
+
+
 
     public class SaveArticleRequest
     {

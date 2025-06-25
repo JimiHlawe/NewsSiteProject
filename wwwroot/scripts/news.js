@@ -1,7 +1,10 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
-    // Try importing external articles (non-blocking)
+﻿let currentPage = 1;
+const pageSize = 10;
+let allArticles = [];
+
+document.addEventListener("DOMContentLoaded", () => {
     fetch("/api/Articles/ImportExternal", { method: "POST" })
-        .finally(loadArticles); // Always load articles from DB
+        .finally(loadArticles);
 });
 
 function loadArticles() {
@@ -10,20 +13,28 @@ function loadArticles() {
             if (!res.ok) throw new Error();
             return res.json();
         })
-        .then(showArticles)
+        .then(articles => {
+            articles.reverse(); // סדר מהעדכניות לישנות
+            allArticles = articles;
+            renderPage(currentPage);
+        })
         .catch(() => {
             document.getElementById("articlesContainer").innerHTML = `
                 <div class="alert alert-danger">An error occurred while loading the articles.</div>`;
         });
 }
 
-function showArticles(articles) {
+function renderPage(page) {
     const container = document.getElementById("articlesContainer");
     container.innerHTML = "";
 
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+    const pageArticles = allArticles.slice(start, end);
+
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    for (const article of articles) {
+    for (const article of pageArticles) {
         const image = article.imageUrl
             ? `<img src="${article.imageUrl}" style="max-height:200px;" class="img-fluid mb-2">`
             : "";
@@ -44,13 +55,10 @@ function showArticles(articles) {
         </select>
 
         <input type="text" placeholder="Target username" id="targetUser-${article.id}" class="form-control mb-2" />
-
         <textarea placeholder="Add a comment" id="comment-${article.id}" class="form-control mb-2"></textarea>
-
         <button onclick="sendShare(${article.id})" class="btn btn-primary btn-sm">Send</button>
     </div>
 `;
-
 
         container.innerHTML += `
             <div class="article-card mb-4 p-3 border rounded bg-white shadow-sm">
@@ -63,9 +71,27 @@ function showArticles(articles) {
                 ${shareForm}
             </div>`;
     }
+
+    renderPagination(Math.ceil(allArticles.length / pageSize));
 }
 
-// מציג את טופס השיתוף לכתבה מסוימת
+function renderPagination(totalPages) {
+    const container = document.getElementById("articlesContainer");
+    let html = `<div class="text-center mt-3">`;
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button onclick="goToPage(${i})" class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} mx-1">${i}</button>`;
+    }
+    html += `</div>`;
+    container.innerHTML += html;
+}
+
+function goToPage(page) {
+    currentPage = page;
+    renderPage(page);
+}
+
+// שאר הפונקציות: saveArticle, toggleShare וכו' – ללא שינוי
+
 function openShareForm(articleId) {
     const form = document.getElementById(`shareForm-${articleId}`);
     if (form) {
@@ -98,7 +124,6 @@ function saveArticle(articleId) {
         });
 }
 
-
 function toggleShare(articleId) {
     const form = document.getElementById(`shareForm-${articleId}`);
     if (form) {
@@ -106,17 +131,14 @@ function toggleShare(articleId) {
     }
 }
 
-// פונקציה לפתיחת וסגירת טופס שיתוף
 function toggleShareType(articleId) {
     const type = document.getElementById(`shareType-${articleId}`).value;
     const targetInput = document.getElementById(`targetUser-${articleId}`);
     targetInput.style.display = type === "public" ? "none" : "block";
 }
 
-
 function sendShare(articleId) {
-    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser")); // ✅ חובה לוודא
-
+    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
     const type = document.getElementById(`shareType-${articleId}`).value;
     const comment = document.getElementById(`comment-${articleId}`).value.trim();
 
@@ -132,7 +154,6 @@ function sendShare(articleId) {
             return;
         }
 
-        // שליחת שיתוף פרטי
         fetch("/api/Articles/Share", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -149,14 +170,11 @@ function sendShare(articleId) {
             })
             .catch(() => alert("Error sharing."));
     } else {
-        // שליחת שיתוף ציבורי
         const payload = {
             userId: loggedUser.id,
             articleId,
             comment
         };
-
-        console.log("⬆️ Sending to SharePublic:", payload);
 
         fetch("/api/Articles/SharePublic", {
             method: "POST",
@@ -179,4 +197,3 @@ function sendShare(articleId) {
             });
     }
 }
-
