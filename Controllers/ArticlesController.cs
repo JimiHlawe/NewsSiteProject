@@ -84,12 +84,7 @@ public class ArticlesController : ControllerBase
     {
         try
         {
-            int? senderUserId = _db.GetUserIdByUsername(request.Username);
-
-            if (senderUserId == null)
-                return BadRequest("User not found.");
-
-            _db.ShareArticlePublic(senderUserId.Value, request.ArticleId, request.Comment);
+            _db.ShareArticlePublic(request.UserId, request.ArticleId, request.Comment);
             return Ok("Public share succeeded");
         }
         catch (Exception ex)
@@ -97,6 +92,8 @@ public class ArticlesController : ControllerBase
             return StatusCode(500, "Error: " + ex.Message);
         }
     }
+
+
 
 
 
@@ -119,24 +116,24 @@ public class ArticlesController : ControllerBase
 
 
     [HttpPost("AddPublicComment")]
-    public IActionResult AddPublicComment([FromBody] PublicArticleComment comment)
+    public IActionResult AddPublicComment([FromBody] PublicCommentRequest req)
     {
-        if (comment == null || string.IsNullOrEmpty(comment.Username) || string.IsNullOrEmpty(comment.Comment))
-            return BadRequest("Invalid comment data.");
-
         try
         {
-            int? userId = _db.GetUserIdByUsername(comment.Username);
-            if (userId == null)
-                return NotFound("User not found.");
-
-            _db.AddPublicComment(comment.ArticleId, userId.Value, comment.Comment); // ← סדר נכון
-            return Ok("Comment added.");
+            _db.AddPublicComment(req.ArticleId, req.UserId, req.Comment);
+            return Ok("Comment added");
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Server error: " + ex.Message);
+            return StatusCode(500, $"Server error: {ex.Message}");
         }
+    }
+
+    public class PublicCommentRequest
+    {
+        public int ArticleId { get; set; }
+        public int UserId { get; set; }
+        public string Comment { get; set; }
     }
 
 

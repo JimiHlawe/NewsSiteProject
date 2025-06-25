@@ -44,11 +44,11 @@ function renderPublicArticles(articles) {
     });
 }
 
-function sendComment(articleId) {
-    const commentText = document.getElementById(`comment-input-${articleId}`).value.trim();
+function sendComment(publicArticleId) {
+    const commentText = document.getElementById(`comment-input-${publicArticleId}`).value.trim();
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    if (!user || !user.name || !commentText) {
+    if (!user || !user.id || !commentText) {
         alert("Please log in and enter a comment.");
         return;
     }
@@ -57,8 +57,8 @@ function sendComment(articleId) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            articleId: articleId,
-            username: user.name,
+            articleId: publicArticleId,
+            userId: user.id,
             comment: commentText
         })
     })

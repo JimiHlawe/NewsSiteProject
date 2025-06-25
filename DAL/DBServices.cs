@@ -347,20 +347,19 @@ namespace NewsSite1.DAL
             return sharedArticles;
         }
 
-        public void ShareArticlePublic(int senderUserId, int articleId, string comment)
+        public void ShareArticlePublic(int userId, int articleId, string comment)
         {
             using (SqlConnection con = connect())
             {
                 SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublic", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-
-                cmd.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                cmd.Parameters.AddWithValue("@UserId", userId);        // ← שים לב לשם המדויק!
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
-
+                cmd.Parameters.AddWithValue("@Comment", comment ?? ""); // ← null-safe
                 cmd.ExecuteNonQuery();
             }
         }
+
 
 
         public List<PublicArticle> GetAllPublicArticles()
@@ -375,7 +374,7 @@ namespace NewsSite1.DAL
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    list.Add(new PublicArticle
+                    var article = new PublicArticle
                     {
                         PublicArticleId = (int)reader["publicArticleId"],
                         ArticleId = (int)reader["id"],
@@ -389,7 +388,12 @@ namespace NewsSite1.DAL
                         SenderName = reader["senderName"].ToString(),
                         InitialComment = reader["initialComment"].ToString(),
                         SharedAt = (DateTime)reader["sharedAt"]
-                    });
+                    };
+
+                    // כאן מתווספת שליפת התגובות לכל כתבה
+                    article.PublicComments = GetCommentsForPublicArticle(article.PublicArticleId);
+
+                    list.Add(article);
                 }
             }
 
@@ -397,7 +401,7 @@ namespace NewsSite1.DAL
         }
 
 
-        // במקום השם הישן AddCommentToPublicArticle
+
         public void AddPublicComment(int articleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
@@ -409,29 +413,6 @@ namespace NewsSite1.DAL
                 cmd.Parameters.AddWithValue("@Comment", comment);
                 cmd.ExecuteNonQuery();
             }
-        }
-
-
-
-
-
-
-        public List<(string commenterName, string comment)> GetCommentsForPublicArticle(int publicArticleId)
-        {
-            var list = new List<(string, string)>();
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetCommentsForPublicArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
-
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    list.Add((reader["commenterName"].ToString(), reader["comment"].ToString()));
-                }
-            }
-            return list;
         }
 
         public void ShareArticlePublicly(int userId, int articleId, string comment)
@@ -447,6 +428,29 @@ namespace NewsSite1.DAL
 
                 cmd.ExecuteNonQuery();
             }
+        }
+
+
+        public List<PublicComment> GetCommentsForPublicArticle(int publicArticleId)
+        {
+            var list = new List<PublicComment>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetCommentsForPublicArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new PublicComment
+                    {
+                        Username = reader["commenterName"].ToString(),
+                        Comment = reader["comment"].ToString()
+                    });
+                }
+            }
+            return list;
         }
 
 

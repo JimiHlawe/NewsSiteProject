@@ -155,13 +155,13 @@ function toggleShareType(articleId) {
 }
 
 
-// פונקציית שליחת השיתוף
 function sendShare(articleId) {
+    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser")); // ✅ חובה לוודא
+
     const type = document.getElementById(`shareType-${articleId}`).value;
     const comment = document.getElementById(`comment-${articleId}`).value.trim();
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    if (!user || !user.name) {
+    if (!loggedUser || !loggedUser.name || !loggedUser.id) {
         alert("Please log in.");
         return;
     }
@@ -173,12 +173,12 @@ function sendShare(articleId) {
             return;
         }
 
-        // שיתוף פרטי
+        // שליחת שיתוף פרטי
         fetch("/api/Articles/Share", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                senderUsername: user.name,
+                senderUsername: loggedUser.name,
                 toUsername,
                 articleId,
                 comment
@@ -190,20 +190,34 @@ function sendShare(articleId) {
             })
             .catch(() => alert("Error sharing."));
     } else {
-        // שיתוף ציבורי
+        // שליחת שיתוף ציבורי
+        const payload = {
+            userId: loggedUser.id,
+            articleId,
+            comment
+        };
+
+        console.log("⬆️ Sending to SharePublic:", payload);
+
         fetch("/api/Articles/SharePublic", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                username: user.name,
-                articleId,
-                comment
-            })
+            body: JSON.stringify(payload)
         })
             .then(res => {
-                if (res.ok) alert("Publicly shared!");
-                else throw new Error("Failed");
+                if (res.ok) {
+                    alert("Publicly shared!");
+                } else {
+                    return res.text().then(text => {
+                        console.error("❌ SharePublic error response:", text);
+                        throw new Error(text);
+                    });
+                }
             })
-            .catch(() => alert("Error sharing publicly."));
+            .catch((err) => {
+                alert("Error sharing publicly.");
+                console.error(err);
+            });
     }
 }
+

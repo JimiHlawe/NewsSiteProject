@@ -2,8 +2,8 @@
 
 public class PublicArticleShareRequest
 {
-    [JsonPropertyName("username")]
-    public string Username { get; set; }
+    [JsonPropertyName("userId")]
+    public int UserId { get; set; }
 
     [JsonPropertyName("articleId")]
     public int ArticleId { get; set; }

@@ -12,4 +12,7 @@
     public string SenderName { get; set; }
     public string InitialComment { get; set; }
     public DateTime SharedAt { get; set; }
+
+    // חדש
+    public List<PublicComment> PublicComments { get; set; } = new List<PublicComment>();
 }
