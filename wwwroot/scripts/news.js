@@ -73,47 +73,6 @@ function openShareForm(articleId) {
     }
 }
 
-
-// שולח את הנתונים לשיתוף כתבה לשרת
-function sendShare(articleId) {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    const toUsername = document.getElementById(`targetUser-${articleId}`).value.trim();
-    const comment = document.getElementById(`comment-${articleId}`).value.trim();
-
-    if (!user || !user.name || !toUsername) {
-        alert("Missing sender or recipient username.");
-        return;
-    }
-
-    const payload = {
-        senderUsername: user.name,  // ✅ כאן התיקון
-        toUsername: toUsername,
-        articleId: articleId,
-        comment: comment
-    };
-
-    console.log("✅ Payload:", payload);
-
-    fetch("https://localhost:7084/api/Articles/Share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-        .then(res => {
-            if (res.ok) {
-                alert("Article shared successfully.");
-                document.getElementById(`shareForm-${articleId}`).style.display = "none";
-            } else {
-                return res.text().then(text => { throw new Error(text); });
-            }
-        })
-        .catch(err => {
-            console.error("Share error:", err);
-            alert("Failed to share the article.");
-        });
-}
-
-
 function saveArticle(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 

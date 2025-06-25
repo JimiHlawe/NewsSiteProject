@@ -44,12 +44,6 @@ public class ArticlesController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("Saved")]
-    public IActionResult GetSaved()
-    {
-        List<Article> savedArticles = _db.GetAllSavedArticles();
-        return Ok(savedArticles);
-    }
 
     [HttpPost("Share")]
     public IActionResult ShareArticle([FromBody] SharedArticleRequest request)

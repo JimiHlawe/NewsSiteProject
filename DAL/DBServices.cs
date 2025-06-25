@@ -416,23 +416,6 @@ namespace NewsSite1.DAL
         }
 
 
-
-        public void ShareArticlePublicly(int userId, int articleId, string comment)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublicly", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment);
-
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-
         public List<PublicComment> GetCommentsForPublicArticle(int articleId)
         {
             List<PublicComment> comments = new List<PublicComment>();
@@ -466,13 +449,6 @@ namespace NewsSite1.DAL
             }
 
             return comments;
-        }
-
-
-
-        public List<Article> GetAllSavedArticles()
-        {
-            return GetAllArticles();
         }
 
         // ===================== TAGS =====================
