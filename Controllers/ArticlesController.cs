@@ -105,47 +105,50 @@ public class ArticlesController : ControllerBase
     {
         try
         {
-            var articles = _db.GetAllPublicArticles(); // ← ודא שזו המתודה שקיימת
-            return Ok(articles);
+            var result = _db.GetAllPublicArticles();
+            return Ok(result);
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Server error: {ex.Message}");
+            return BadRequest("DB Error: " + ex.Message); // ← כדי לראות את השגיאה בדפדפן
         }
     }
+
+
+
 
 
     [HttpPost("AddPublicComment")]
-    public IActionResult AddPublicComment([FromBody] PublicCommentRequest req)
+    public IActionResult AddPublicComment([FromBody] PublicCommentRequest comment)
     {
         try
         {
-            _db.AddPublicComment(req.ArticleId, req.UserId, req.Comment);
-            return Ok("Comment added");
+            _db.AddPublicComment(comment.PublicArticleId, comment.UserId, comment.Comment);
+            return Ok("Comment added successfully");
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"Server error: {ex.Message}");
+            return StatusCode(500, "Error: " + ex.Message); // ← חשוב להדפיס את השגיאה
         }
     }
 
-    public class PublicCommentRequest
+
+
+
+    [HttpGet("GetPublicComments/{articleId}")]
+    public IActionResult GetPublicComments(int articleId)
     {
-        public int ArticleId { get; set; }
-        public int UserId { get; set; }
-        public string Comment { get; set; }
+        try
+        {
+            var comments = _db.GetCommentsForPublicArticle(articleId);
+            return Ok(comments);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error: " + ex.Message);
+        }
     }
 
-
-
-
-
-    [HttpGet("GetComments/{publicArticleId}")]
-    public IActionResult GetPublicComments(int publicArticleId)
-    {
-        var comments = _db.GetCommentsForPublicArticle(publicArticleId);
-        return Ok(comments);
-    }
 
 
     [HttpPost("ImportExternal")]

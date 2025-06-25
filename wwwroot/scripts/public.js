@@ -20,12 +20,9 @@ function renderPublicArticles(articles) {
     container.innerHTML = "";
 
     articles.forEach(article => {
+        const id = article.publicArticleId; // ← שימוש נכון במזהה
         const articleCard = document.createElement("div");
         articleCard.className = "article-card p-3 mb-3 border rounded bg-light";
-
-        const commentsSection = (article.publicComments || []).map(c => `
-            <div class="mb-2"><strong>${c.username}:</strong> ${c.comment}</div>
-        `).join("");
 
         articleCard.innerHTML = `
             <h5>${article.title}</h5>
@@ -34,41 +31,69 @@ function renderPublicArticles(articles) {
             <div class="mb-2"><strong>Shared by:</strong> ${article.senderName}</div>
 
             <h6>💬 Comments:</h6>
-            <div id="comments-${article.articleId}">${commentsSection}</div>
+            <div id="comments-${id}"></div>
 
-            <textarea id="comment-input-${article.articleId}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
-            <button class="btn btn-sm btn-primary" onclick="sendComment(${article.articleId})">Send</button>
+            <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
+            <button class="btn btn-sm btn-primary" onclick="sendComment(${id})">Send</button>
         `;
 
         container.appendChild(articleCard);
+
+        loadComments(id); // ← שימוש נכון
     });
 }
 
-function sendComment(publicArticleId) {
-    const commentText = document.getElementById(`comment-input-${publicArticleId}`).value.trim();
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+function sendComment(articleId) {
+    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const commentText = document.getElementById(`commentBox-${articleId}`).value.trim();
 
-    if (!user || !user.id || !commentText) {
-        alert("Please log in and enter a comment.");
-        return;
-    }
+    if (!commentText) return alert("Please enter a comment.");
+
+    console.log("📤 Sending comment:", {
+        publicArticleId: articleId,
+        userId: loggedUser.id,
+        comment: commentText
+    });
 
     fetch("/api/Articles/AddPublicComment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-            articleId: publicArticleId,
-            userId: user.id,
+            publicArticleId: articleId,
+            userId: loggedUser.id,
             comment: commentText
         })
     })
         .then(res => {
-            if (!res.ok) throw new Error("Failed to post comment");
-            return res.text();
+            if (res.ok) {
+                console.log("✅ Comment posted successfully");
+                document.getElementById(`commentBox-${articleId}`).value = "";
+                loadComments(articleId);
+            } else {
+                console.error("❌ Failed to post comment: HTTP Error", res.status);
+                throw new Error();
+            }
         })
-        .then(() => location.reload())
         .catch(err => {
-            console.error("Error posting comment:", err);
-            alert("Failed to post comment.");
+            console.error("💥 Error posting comment", err);
+            alert("Error posting comment");
         });
+}
+
+function loadComments(articleId) {
+    console.log("🔄 Loading comments for article:", articleId);
+    fetch(`/api/Articles/GetPublicComments/${articleId}`)
+        .then(res => res.json())
+        .then(comments => {
+            const container = document.getElementById(`comments-${articleId}`);
+            container.innerHTML = "";
+
+            for (const c of comments) {
+                container.innerHTML += `
+                    <div class="border rounded p-2 mb-1">
+                        <strong>${c.username}</strong>: ${c.comment}
+                    </div>`;
+            }
+        })
+        .catch(() => console.error("💥 Error loading comments"));
 }

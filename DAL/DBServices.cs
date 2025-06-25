@@ -402,18 +402,20 @@ namespace NewsSite1.DAL
 
 
 
-        public void AddPublicComment(int articleId, int userId, string comment)
+        public void AddPublicComment(int publicArticleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddPublicComment", con);
+                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@Comment", comment);
                 cmd.ExecuteNonQuery();
             }
         }
+
+
 
         public void ShareArticlePublicly(int userId, int articleId, string comment)
         {
@@ -431,27 +433,41 @@ namespace NewsSite1.DAL
         }
 
 
-        public List<PublicComment> GetCommentsForPublicArticle(int publicArticleId)
+        public List<PublicComment> GetCommentsForPublicArticle(int articleId)
         {
-            var list = new List<PublicComment>();
+            List<PublicComment> comments = new List<PublicComment>();
+
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetCommentsForPublicArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                SqlCommand cmd = new SqlCommand(@"
+    SELECT c.*, u.name AS username
+    FROM News_PublicComments c
+    JOIN News_Users u ON c.userId = u.id
+    WHERE c.publicArticleId = @ArticleId
+    ORDER BY c.createdAt ASC", con);
+
+
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
 
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    list.Add(new PublicComment
+                    PublicComment c = new PublicComment
                     {
-                        Username = reader["commenterName"].ToString(),
-                        Comment = reader["comment"].ToString()
-                    });
+                        Id = (int)reader["id"],
+                        PublicArticleId = (int)reader["publicArticleId"],
+                        UserId = (int)reader["userId"],
+                        Comment = reader["comment"].ToString(),
+                        CreatedAt = (DateTime)reader["createdAt"],
+                        Username = reader["username"].ToString()
+                    };
+                    comments.Add(c);
                 }
             }
-            return list;
+
+            return comments;
         }
+
 
 
         public List<Article> GetAllSavedArticles()
