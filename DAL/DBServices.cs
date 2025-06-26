@@ -9,9 +9,9 @@ namespace NewsSite1.DAL
 {
     public class DBServices
     {
+        // ===================== CONSTRUCTOR + CONNECTION =====================
         public DBServices() { }
 
-        // --- התחברות למסד נתונים ---
         public SqlConnection connect()
         {
             string cStr;
@@ -118,17 +118,18 @@ namespace NewsSite1.DAL
             return users;
         }
 
-        public void AddUserTag(int userId, int tagId)
+        public int? GetUserIdByUsername(string username)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddUserTag", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@TagId", tagId);
-                cmd.ExecuteNonQuery();
+                SqlCommand cmd = new SqlCommand("SELECT id FROM News_Users WHERE name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", username);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                    return Convert.ToInt32(result);
+
+                return null;
             }
         }
 
@@ -275,13 +276,68 @@ namespace NewsSite1.DAL
             return articles;
         }
 
+        public void RemoveSavedArticle(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_RemoveSavedArticle", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
 
+        public List<ArticleWithTags> GetArticlesWithTags()
+        {
+            List<ArticleWithTags> articles = new List<ArticleWithTags>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesWithTags", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                using (SqlDataReader rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        ArticleWithTags article = new ArticleWithTags
+                        {
+                            Id = Convert.ToInt32(rdr["Id"]),
+                            Title = rdr["Title"].ToString(),
+                            Description = rdr["Description"]?.ToString(),
+                            ImageUrl = rdr["ImageUrl"]?.ToString(),
+                            SourceUrl = rdr["Url"]?.ToString(),
+                            Tags = new List<string>() // נוסיף תגיות אחרי הלולאה
+                        };
+
+                        articles.Add(article);
+                    }
+                }
+
+                // טוען את התגיות לכל כתבה
+                foreach (var article in articles)
+                {
+                    article.Tags = GetTagsForArticle(article.Id);
+                }
+            }
+
+            return articles;
+        }
+
+        // ===================== SHARING =====================
         public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticleByUsernames", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticleByUsernames", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
                 cmd.Parameters.AddWithValue("@SenderUsername", senderUsername);
                 cmd.Parameters.AddWithValue("@TargetUsername", targetUsername);
@@ -292,34 +348,16 @@ namespace NewsSite1.DAL
             }
         }
 
-
-
-
-
-
-        public int? GetUserIdByUsername(string username)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("SELECT id FROM News_Users WHERE name = @Name", con);
-                cmd.Parameters.AddWithValue("@Name", username);
-
-                object result = cmd.ExecuteScalar();
-                if (result != null)
-                    return Convert.ToInt32(result);
-
-                return null;
-            }
-        }
-
         public List<SharedArticle> GetArticlesSharedWithUser(int userId)
         {
             List<SharedArticle> sharedArticles = new List<SharedArticle>();
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesSharedWithUser", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesSharedWithUser", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@userId", userId);
 
                 SqlDataReader reader = cmd.ExecuteReader();
@@ -351,8 +389,10 @@ namespace NewsSite1.DAL
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublic", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublic", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@UserId", userId);        // ← שים לב לשם המדויק!
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
                 cmd.Parameters.AddWithValue("@Comment", comment ?? ""); // ← null-safe
@@ -360,16 +400,16 @@ namespace NewsSite1.DAL
             }
         }
 
-
-
         public List<PublicArticle> GetAllPublicArticles()
         {
             List<PublicArticle> list = new List<PublicArticle>();
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetAllPublicArticles", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllPublicArticles", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -400,21 +440,22 @@ namespace NewsSite1.DAL
             return list;
         }
 
-
+        // ===================== PUBLIC COMMENTS =====================
 
         public void AddPublicComment(int publicArticleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@Comment", comment);
                 cmd.ExecuteNonQuery();
             }
         }
-
 
         public List<PublicComment> GetCommentsForPublicArticle(int articleId)
         {
@@ -451,20 +492,21 @@ namespace NewsSite1.DAL
             return comments;
         }
 
-        public void RemoveSavedArticle(int userId, int articleId)
+        // ===================== TAGS =====================
+
+        public void AddUserTag(int userId, int tagId)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_RemoveSavedArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_AddUserTag", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
                 cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
                 cmd.ExecuteNonQuery();
             }
         }
-
-
-        // ===================== TAGS =====================
 
         public List<Tag> GetUserTags(int userId)
         {
@@ -492,45 +534,6 @@ namespace NewsSite1.DAL
 
             return tags;
         }
-
-        public List<ArticleWithTags> GetArticlesWithTags()
-        {
-            List<ArticleWithTags> articles = new List<ArticleWithTags>();
-
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesWithTags", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                using (SqlDataReader rdr = cmd.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        ArticleWithTags article = new ArticleWithTags
-                        {
-                            Id = Convert.ToInt32(rdr["Id"]),
-                            Title = rdr["Title"].ToString(),
-                            Description = rdr["Description"]?.ToString(),
-                            ImageUrl = rdr["ImageUrl"]?.ToString(),
-                            SourceUrl = rdr["Url"]?.ToString(),
-                            Tags = new List<string>() // נוסיף תגיות אחרי הלולאה
-                        };
-
-                        articles.Add(article);
-                    }
-                }
-
-                // טוען את התגיות לכל כתבה
-                foreach (var article in articles)
-                {
-                    article.Tags = GetTagsForArticle(article.Id);
-                }
-            }
-
-            return articles;
-        }
-
-
 
         public List<string> GetTagsForArticle(int articleId)
         {
