@@ -360,9 +360,9 @@ namespace NewsSite1.DAL
             {
                 SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublic", con);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@UserId", userId);       
+                cmd.Parameters.AddWithValue("@UserId", userId);        // ← שים לב לשם המדויק!
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment ?? ""); 
+                cmd.Parameters.AddWithValue("@Comment", comment ?? ""); // ← null-safe
                 cmd.ExecuteNonQuery();
             }
         }
@@ -511,13 +511,14 @@ namespace NewsSite1.DAL
                             Description = rdr["Description"]?.ToString(),
                             ImageUrl = rdr["ImageUrl"]?.ToString(),
                             SourceUrl = rdr["Url"]?.ToString(),
-                            Tags = new List<string>() 
+                            Tags = new List<string>() // נוסיף תגיות אחרי הלולאה
                         };
 
                         articles.Add(article);
                     }
                 }
 
+                // טוען את התגיות לכל כתבה
                 foreach (var article in articles)
                 {
                     article.Tags = GetTagsForArticle(article.Id);
