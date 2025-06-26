@@ -9,11 +9,13 @@ public class ArticlesController : ControllerBase
 {
     private readonly DBServices _db;
     private readonly NewsApiService _newsApiService;
+    private readonly ArticleService _articleService;
 
-    public ArticlesController(DBServices db, NewsApiService newsApiService)
+    public ArticlesController(DBServices db, NewsApiService newsApiService, ArticleService articleService)
     {
         _db = db;
         _newsApiService = newsApiService;
+        _articleService = articleService;
     }
 
     [HttpPost("Add")]
@@ -22,10 +24,8 @@ public class ArticlesController : ControllerBase
         if (article == null)
             return BadRequest("Invalid article data");
 
-        int id = _db.AddOrGetArticle(article);
-        article.Id = id;
-
-        return Ok(article); // מחזיר את הכתבה עם ID, גם אם הייתה קיימת
+        _db.AddArticle(article);
+        return Ok("Article added successfully");
     }
 
     [HttpGet("All")]
@@ -49,7 +49,7 @@ public class ArticlesController : ControllerBase
 
         foreach (var article in externalArticles)
         {
-            int id = _db.AddOrGetArticle(article); // במקום _articleService.SaveArticleAndGetId
+            int id = _articleService.SaveArticleAndGetId(article);
             article.Id = id;
         }
 

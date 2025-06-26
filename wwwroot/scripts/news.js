@@ -1,5 +1,4 @@
-﻿
-// ✅ משתנים גלובליים
+﻿// ✅ משתנים גלובליים
 let currentPage = 1;
 const pageSize = 10;
 let allArticles = [];
@@ -25,23 +24,24 @@ function getShareForm(articleId) {
 }
 
 // ✅ טעינה ראשונית
+
 document.addEventListener("DOMContentLoaded", () => {
     fetch("/api/Articles/ImportExternal", { method: "POST" })
         .finally(loadArticles);
 });
 
 function loadArticles() {
-    fetch("/api/Tags/AllArticles") // ודא שקיים Route כזה בשרת
+    fetch("/api/Articles/WithTags")
         .then(res => {
-            if (!res.ok) throw new Error("Failed to fetch articles");
+            if (!res.ok) throw new Error();
             return res.json();
         })
         .then(articles => {
-            allArticles = articles.reverse(); // מהעדכניות לישנות
+            articles.reverse(); // מהעדכניות לישנות
+            allArticles = articles;
             renderPage(currentPage);
         })
-        .catch(err => {
-            console.error("Error loading articles:", err);
+        .catch(() => {
             document.getElementById("articlesContainer").innerHTML = `
                 <div class="alert alert-danger">An error occurred while loading the articles.</div>`;
         });
@@ -68,9 +68,8 @@ function renderPage(page) {
                <button onclick="toggleShare(${article.id})" class="btn btn-secondary btn-sm">🔗 Share</button>`
             : "";
 
-        const tags = article.tags || article.Tags || [];
-        const tagHtml = tags.length > 0
-            ? tags.map(tag => `<span class="badge bg-secondary me-1">${tag.name || tag}<\/span>`).join("")
+        const tagHtml = article.tags && article.tags.length > 0
+            ? article.tags.map(tag => `<span class="badge bg-secondary me-1">${tag.name || tag}</span>`).join("")
             : `<span class="text-muted">No tags</span>`;
 
         html += `
@@ -112,7 +111,7 @@ function saveArticle(articleId) {
         return;
     }
 
-    fetch("/api/Users/SaveArticle", {
+    fetch("https://localhost:7084/api/Users/SaveArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })

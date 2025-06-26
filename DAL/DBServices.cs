@@ -132,7 +132,44 @@ namespace NewsSite1.DAL
             }
         }
 
+        public int? GetUserIdByUsername(string username)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT id FROM News_Users WHERE name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", username);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                    return Convert.ToInt32(result);
+
+                return null;
+            }
+        }
+
         // ===================== ARTICLES =====================
+
+        public void AddArticle(Article article)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddArticle", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.AddWithValue("@Title", article.Title);
+                cmd.Parameters.AddWithValue("@Description", article.Description);
+                cmd.Parameters.AddWithValue("@Content", article.Content);
+                cmd.Parameters.AddWithValue("@Author", article.Author);
+                cmd.Parameters.AddWithValue("@SourceName", article.SourceName);
+                cmd.Parameters.AddWithValue("@SourceUrl", article.SourceUrl);
+                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl);
+                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
 
         public List<Article> GetAllArticles()
         {
@@ -252,36 +289,6 @@ namespace NewsSite1.DAL
 
             return articles;
         }
-
-        public int AddOrGetArticle(Article article)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddOrGetArticle", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                cmd.Parameters.AddWithValue("@title", article.Title ?? "");
-                cmd.Parameters.AddWithValue("@description", article.Description ?? "");
-                cmd.Parameters.AddWithValue("@content", article.Content ?? "");
-                cmd.Parameters.AddWithValue("@author", article.Author ?? "");
-                cmd.Parameters.AddWithValue("@url", article.SourceUrl ?? "");
-                cmd.Parameters.AddWithValue("@imageUrl", article.ImageUrl ?? "");
-                cmd.Parameters.AddWithValue("@publishedAt", article.PublishedAt);
-
-                SqlParameter outId = new SqlParameter("@articleId", SqlDbType.Int)
-                {
-                    Direction = ParameterDirection.Output
-                };
-                cmd.Parameters.Add(outId);
-
-                cmd.ExecuteNonQuery();
-
-                return (int)outId.Value;
-            }
-        }
-
 
         public void RemoveSavedArticle(int userId, int articleId)
         {
