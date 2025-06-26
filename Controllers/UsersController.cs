@@ -15,6 +15,7 @@ namespace NewsSite1.Controllers
             this.db = db;
         }
 
+        // --- POST: api/Users/Register
         [HttpPost("Register")]
         public IActionResult Register([FromBody] User user)
         {
@@ -22,9 +23,21 @@ namespace NewsSite1.Controllers
                 return BadRequest("Invalid user data");
 
             bool success = db.RegisterUser(user);
-            return success ? Ok("User registered successfully") : Conflict("Email already exists");
+            if (success)
+                return Ok("User registered successfully");
+            else
+                return Conflict("Email already exists");
         }
 
+        [HttpGet("AllUsers")]
+        public IActionResult GetAllUsers()
+        {
+            var users = db.GetAllUsers();
+            return Ok(users);
+        }
+
+
+        // --- POST: api/Users/Login
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest loginUser)
         {
@@ -35,12 +48,72 @@ namespace NewsSite1.Controllers
             return user != null ? Ok(user) : Unauthorized("Invalid email or password");
         }
 
-        [HttpGet("All")]
-        public IActionResult GetAllUsers()
+
+        // --- POST: api/Users/AddTag
+        [HttpPost("AddTag")]
+        public IActionResult AddTag([FromBody] AddTagRequest data)
         {
-            var users = db.GetAllUsers();
-            return Ok(users);
+            db.AddUserTag(data.UserId, data.TagId);
+            return Ok("Tag added to user");
         }
+
+        // --- GET: api/Users/GetTags/5
+        [HttpGet("GetTags/{userId}")]
+        public IActionResult GetTags(int userId)
+        {
+            var tags = db.GetUserTags(userId);
+            return Ok(tags);
+        }
+
+        [HttpPost("SaveArticle")]
+        public IActionResult SaveArticle([FromBody] SaveArticleRequest request)
+        {
+            try
+            {
+                db.SaveArticle(request.UserId, request.ArticleId);
+                return Ok("Article saved");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "שגיאה בשרת: " + ex.Message);
+            }
+        }
+
+        [HttpPost("RemoveSavedArticle")]
+        public IActionResult RemoveSavedArticle([FromBody] SaveArticleRequest request)
+        {
+            try
+            {
+                db.RemoveSavedArticle(request.UserId, request.ArticleId);
+                return Ok("Removed successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error: " + ex.Message);
+            }
+        }
+
+
+        [HttpGet("GetSavedArticles/{userId}")]
+        public IActionResult GetSavedArticles(int userId)
+        {
+            var articles = db.GetSavedArticles(userId);
+            return Ok(articles);
+        }
+
+    }
+
+
+
+    public class SaveArticleRequest
+    {
+        public int UserId { get; set; }
+        public int ArticleId { get; set; }
+    }
+    public class AddTagRequest
+    {
+        public int UserId { get; set; }
+        public int TagId { get; set; }
     }
 
     public class LoginRequest
