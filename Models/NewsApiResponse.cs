@@ -1,21 +1,66 @@
-﻿public class NewsApiResponse
+﻿namespace NewsSite1.Models
 {
-    public List<NewsApiArticle> Articles { get; set; }
-}
+    public class NewsApiResponse
+    {
+        private List<NewsApiArticle> articles = new List<NewsApiArticle>();
 
-public class NewsApiArticle
-{
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public string Content { get; set; }
-    public string Author { get; set; }
-    public NewsApiSource Source { get; set; }
-    public string Url { get; set; }
-    public string UrlToImage { get; set; }
-    public string PublishedAt { get; set; }
-}
+        public NewsApiResponse() { }
 
-public class NewsApiSource
-{
-    public string Name { get; set; }
+        public NewsApiResponse(List<NewsApiArticle> articles)
+        {
+            this.articles = articles;
+        }
+
+        public List<NewsApiArticle> Articles { get => articles; set => articles = value; }
+    }
+
+    public class NewsApiArticle
+    {
+        private string title = "";
+        private string description = "";
+        private string content = "";
+        private string author = "";
+        private NewsApiSource source = new NewsApiSource();
+        private string url = "";
+        private string urlToImage = "";
+        private string publishedAt = "";
+
+        public NewsApiArticle() { }
+
+        public NewsApiArticle(string title, string description, string content, string author,
+                              NewsApiSource source, string url, string urlToImage, string publishedAt)
+        {
+            this.title = title;
+            this.description = description;
+            this.content = content;
+            this.author = author;
+            this.source = source;
+            this.url = url;
+            this.urlToImage = urlToImage;
+            this.publishedAt = publishedAt;
+        }
+
+        public string Title { get => title; set => title = value; }
+        public string Description { get => description; set => description = value; }
+        public string Content { get => content; set => content = value; }
+        public string Author { get => author; set => author = value; }
+        public NewsApiSource Source { get => source; set => source = value; }
+        public string Url { get => url; set => url = value; }
+        public string UrlToImage { get => urlToImage; set => urlToImage = value; }
+        public string PublishedAt { get => publishedAt; set => publishedAt = value; }
+    }
+
+    public class NewsApiSource
+    {
+        private string name = "";
+
+        public NewsApiSource() { }
+
+        public NewsApiSource(string name)
+        {
+            this.name = name;
+        }
+
+        public string Name { get => name; set => name = value; }
+    }
 }

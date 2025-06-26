@@ -1,16 +1,34 @@
 ﻿using System.Text.Json.Serialization;
 
-public class SharedArticleRequest
+namespace NewsSite1.Models
 {
-    [JsonPropertyName("senderUsername")]
-    public string SenderUsername { get; set; }
+    public class SharedArticleRequest
+    {
+        private string senderUsername = "";
+        private string toUsername = "";
+        private int articleId;
+        private string comment = "";
 
-    [JsonPropertyName("toUsername")]
-    public string ToUsername { get; set; }
+        public SharedArticleRequest() { }
 
-    [JsonPropertyName("articleId")]
-    public int ArticleId { get; set; }
+        public SharedArticleRequest(string senderUsername, string toUsername, int articleId, string comment)
+        {
+            this.senderUsername = senderUsername;
+            this.toUsername = toUsername;
+            this.articleId = articleId;
+            this.comment = comment;
+        }
 
-    [JsonPropertyName("comment")]
-    public string Comment { get; set; }
+        [JsonPropertyName("senderUsername")]
+        public string SenderUsername { get => senderUsername; set => senderUsername = value; }
+
+        [JsonPropertyName("toUsername")]
+        public string ToUsername { get => toUsername; set => toUsername = value; }
+
+        [JsonPropertyName("articleId")]
+        public int ArticleId { get => articleId; set => articleId = value; }
+
+        [JsonPropertyName("comment")]
+        public string Comment { get => comment; set => comment = value; }
+    }
 }

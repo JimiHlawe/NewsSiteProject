@@ -1,4 +1,4 @@
-﻿const apiBase = "https://localhost:7084/api";
+﻿var apiBase = "https://localhost:7084/api";
 
 function switchToSignup() {
     document.getElementById("signinForm").style.display = "none";
@@ -11,14 +11,14 @@ function switchToSignin() {
 }
 
 $(document).ready(function () {
-    // Check if email is remembered
+    // בדיקה אם כתובת מייל שמורה בלוקל סטורג'
     var savedEmail = localStorage.getItem("rememberedEmail");
     if (savedEmail) {
         $("#signinEmail").val(savedEmail);
         $("#rememberMe").prop("checked", true);
     }
 
-    // ✅ SIGN IN
+    // התחברות
     $("#signinFormSubmit").submit(function (e) {
         e.preventDefault();
 
@@ -57,7 +57,7 @@ $(document).ready(function () {
         });
     });
 
-    // ✅ SIGN UP
+    // הרשמה
     $("#signupFormSubmit").submit(function (e) {
         e.preventDefault();
 

@@ -495,44 +495,42 @@ namespace NewsSite1.DAL
 
         public List<ArticleWithTags> GetArticlesWithTags()
         {
-            List<ArticleWithTags> list = new List<ArticleWithTags>();
+            List<ArticleWithTags> articles = new List<ArticleWithTags>();
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand(@"
-            SELECT A.id, A.title, A.content, T.name AS tag
-            FROM News_Articles A
-            LEFT JOIN News_ArticleTags AT ON A.id = AT.articleId
-            LEFT JOIN News_Tags T ON AT.tagId = T.id", con);
+                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesWithTags", con);
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                SqlDataReader reader = cmd.ExecuteReader();
-
-                Dictionary<int, ArticleWithTags> dict = new Dictionary<int, ArticleWithTags>();
-
-                while (reader.Read())
+                using (SqlDataReader rdr = cmd.ExecuteReader())
                 {
-                    int id = (int)reader["id"];
-
-                    if (!dict.ContainsKey(id))
+                    while (rdr.Read())
                     {
-                        dict[id] = new ArticleWithTags
+                        ArticleWithTags article = new ArticleWithTags
                         {
-                            Id = id,
-                            Title = reader["title"].ToString(),
-                            Content = reader["content"].ToString(),
-                            Tags = new List<string>()
+                            Id = Convert.ToInt32(rdr["Id"]),
+                            Title = rdr["Title"].ToString(),
+                            Description = rdr["Description"]?.ToString(),
+                            ImageUrl = rdr["ImageUrl"]?.ToString(),
+                            SourceUrl = rdr["Url"]?.ToString(),
+                            Tags = new List<string>() // נוסיף תגיות אחרי הלולאה
                         };
-                    }
 
-                    if (reader["tag"] != DBNull.Value)
-                        dict[id].Tags.Add(reader["tag"].ToString());
+                        articles.Add(article);
+                    }
                 }
 
-                list = dict.Values.ToList();
+                // טוען את התגיות לכל כתבה
+                foreach (var article in articles)
+                {
+                    article.Tags = GetTagsForArticle(article.Id);
+                }
             }
 
-            return list;
+            return articles;
         }
+
+
 
         public List<string> GetTagsForArticle(int articleId)
         {

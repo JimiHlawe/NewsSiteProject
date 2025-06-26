@@ -1,99 +1,109 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", function () {
     fetch("/api/Articles/Public")
-        .then(res => {
+        .then(function (res) {
             if (!res.ok) throw new Error("Failed to fetch articles");
             return res.json();
         })
-        .then(data => {
+        .then(function (data) {
             console.log("📦 Articles from DB:", data);
             renderPublicArticles(data);
         })
-        .catch(err => {
+        .catch(function (err) {
             console.error("Failed to load public articles:", err);
-            document.getElementById("publicContainer").innerHTML =
-                `<div class="alert alert-danger">Failed to load articles</div>`;
+            showError("publicContainer", "Failed to load articles");
         });
 });
 
 function renderPublicArticles(articles) {
-    const container = document.getElementById("publicContainer");
+    var container = document.getElementById("publicContainer");
     container.innerHTML = "";
 
-    articles.forEach(article => {
-        const id = article.publicArticleId; // ← שימוש נכון במזהה
-        const articleCard = document.createElement("div");
-        articleCard.className = "article-card p-3 mb-3 border rounded bg-light";
+    for (var i = 0; i < articles.length; i++) {
+        var article = articles[i];
+        var id = article.publicArticleId;
 
-        articleCard.innerHTML = `
-            <h5>${article.title}</h5>
-            <p>${article.description || ""}</p>
-            <p><em>${article.initialComment || ""}</em></p>
-            <div class="mb-2"><strong>Shared by:</strong> ${article.senderName}</div>
+        var card = createArticleCard(article);
+        container.appendChild(card);
 
-            <h6>💬 Comments:</h6>
-            <div id="comments-${id}"></div>
+        loadComments(id);
+    }
+}
 
-            <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
-            <button class="btn btn-sm btn-primary" onclick="sendComment(${id})">Send</button>
-        `;
+function createArticleCard(article) {
+    var id = article.publicArticleId;
+    var div = document.createElement("div");
+    div.className = "article-card p-3 mb-3 border rounded bg-light";
 
-        container.appendChild(articleCard);
+    var html = "";
+    html += "<h5>" + article.title + "</h5>";
+    html += "<p>" + (article.description || "") + "</p>";
+    html += "<p><em>" + (article.initialComment || "") + "</em></p>";
+    html += "<div class='mb-2'><strong>Shared by:</strong> " + article.senderName + "</div>";
+    html += "<h6>💬 Comments:</h6>";
+    html += "<div id='comments-" + id + "'></div>";
+    html += "<textarea id='commentBox-" + id + "' class='form-control mb-2' placeholder='Write a comment...'></textarea>";
+    html += "<button class='btn btn-sm btn-primary' onclick='sendComment(" + id + ")'>Send</button>";
 
-        loadComments(id); // ← שימוש נכון
-    });
+    div.innerHTML = html;
+    return div;
 }
 
 function sendComment(articleId) {
-    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
-    const commentText = document.getElementById(`commentBox-${articleId}`).value.trim();
+    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    var commentInput = document.getElementById("commentBox-" + articleId);
+    var commentText = commentInput.value.trim();
 
-    if (!commentText) return alert("Please enter a comment.");
+    if (!commentText) {
+        alert("Please enter a comment.");
+        return;
+    }
 
-    console.log("📤 Sending comment:", {
+    var payload = {
         publicArticleId: articleId,
-        userId: loggedUser.id,
+        userId: user.id,
         comment: commentText
-    });
+    };
+
+    console.log("📤 Sending comment:", payload);
 
     fetch("/api/Articles/AddPublicComment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            publicArticleId: articleId,
-            userId: loggedUser.id,
-            comment: commentText
-        })
+        body: JSON.stringify(payload)
     })
-        .then(res => {
-            if (res.ok) {
-                console.log("✅ Comment posted successfully");
-                document.getElementById(`commentBox-${articleId}`).value = "";
-                loadComments(articleId);
-            } else {
-                console.error("❌ Failed to post comment: HTTP Error", res.status);
-                throw new Error();
-            }
+        .then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            commentInput.value = "";
+            loadComments(articleId);
         })
-        .catch(err => {
+        .catch(function (err) {
             console.error("💥 Error posting comment", err);
             alert("Error posting comment");
         });
 }
 
 function loadComments(articleId) {
-    console.log("🔄 Loading comments for article:", articleId);
-    fetch(`/api/Articles/GetPublicComments/${articleId}`)
-        .then(res => res.json())
-        .then(comments => {
-            const container = document.getElementById(`comments-${articleId}`);
+    fetch("/api/Articles/GetPublicComments/" + articleId)
+        .then(function (res) {
+            return res.json();
+        })
+        .then(function (comments) {
+            var container = document.getElementById("comments-" + articleId);
             container.innerHTML = "";
 
-            for (const c of comments) {
-                container.innerHTML += `
-                    <div class="border rounded p-2 mb-1">
-                        <strong>${c.username}</strong>: ${c.comment}
-                    </div>`;
+            for (var i = 0; i < comments.length; i++) {
+                var c = comments[i];
+                var html = "<div class='border rounded p-2 mb-1'><strong>" +
+                    c.username + "</strong>: " + c.comment + "</div>";
+                container.innerHTML += html;
             }
         })
-        .catch(() => console.error("💥 Error loading comments"));
+        .catch(function () {
+            console.error("💥 Error loading comments");
+        });
+}
+
+function showError(containerId, message) {
+    var container = document.getElementById(containerId);
+    container.innerHTML = "<div class='alert alert-danger'>" + message + "</div>";
 }
