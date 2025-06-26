@@ -11,7 +11,7 @@ namespace NewsSite1.DAL
     {
         public DBServices() { }
 
-        // ===================== CONSTRUCTOR + CONNECTION =====================
+        // --- התחברות למסד נתונים ---
         public SqlConnection connect()
         {
             string cStr;
@@ -129,21 +129,6 @@ namespace NewsSite1.DAL
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@TagId", tagId);
                 cmd.ExecuteNonQuery();
-            }
-        }
-
-        public int? GetUserIdByUsername(string username)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("SELECT id FROM News_Users WHERE name = @Name", con);
-                cmd.Parameters.AddWithValue("@Name", username);
-
-                object result = cmd.ExecuteScalar();
-                if (result != null)
-                    return Convert.ToInt32(result);
-
-                return null;
             }
         }
 
@@ -290,19 +275,7 @@ namespace NewsSite1.DAL
             return articles;
         }
 
-        public void RemoveSavedArticle(int userId, int articleId)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_RemoveSavedArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.ExecuteNonQuery();
-            }
-        }
 
-        // ===================== SHARING =====================
         public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
         {
             using (SqlConnection con = connect())
@@ -316,6 +289,26 @@ namespace NewsSite1.DAL
                 cmd.Parameters.AddWithValue("@Comment", comment ?? "");
 
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+
+
+
+
+
+        public int? GetUserIdByUsername(string username)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT id FROM News_Users WHERE name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", username);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                    return Convert.ToInt32(result);
+
+                return null;
             }
         }
 
@@ -408,7 +401,6 @@ namespace NewsSite1.DAL
         }
 
 
-        // ===================== PUBLIC COMMENTS =====================
 
         public void AddPublicComment(int publicArticleId, int userId, string comment)
         {
@@ -459,7 +451,17 @@ namespace NewsSite1.DAL
             return comments;
         }
 
-  
+        public void RemoveSavedArticle(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_RemoveSavedArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
 
 
         // ===================== TAGS =====================
