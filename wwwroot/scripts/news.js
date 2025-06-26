@@ -48,32 +48,56 @@ function renderPage(page) {
             : "";
 
         const shareForm = `
-    <div id="shareForm-${article.id}" class="share-form mt-2" style="display:none;">
-        <select class="form-select mb-2" id="shareType-${article.id}" onchange="toggleShareType(${article.id})">
-            <option value="private">📤 Share with user</option>
-            <option value="public">🌍 Share with everyone</option>
-        </select>
+            <div id="shareForm-${article.id}" class="share-form mt-2" style="display:none;">
+                <select class="form-select mb-2" id="shareType-${article.id}" onchange="toggleShareType(${article.id})">
+                    <option value="private">📤 Share with user</option>
+                    <option value="public">🌍 Share with everyone</option>
+                </select>
+                <input type="text" placeholder="Target username" id="targetUser-${article.id}" class="form-control mb-2" />
+                <textarea placeholder="Add a comment" id="comment-${article.id}" class="form-control mb-2"></textarea>
+                <button onclick="sendShare(${article.id})" class="btn btn-primary btn-sm">Send</button>
+            </div>
+        `;
 
-        <input type="text" placeholder="Target username" id="targetUser-${article.id}" class="form-control mb-2" />
-        <textarea placeholder="Add a comment" id="comment-${article.id}" class="form-control mb-2"></textarea>
-        <button onclick="sendShare(${article.id})" class="btn btn-primary btn-sm">Send</button>
-    </div>
-`;
+        const cardId = `article-card-${article.id}`;
 
         container.innerHTML += `
-            <div class="article-card mb-4 p-3 border rounded bg-white shadow-sm">
+            <div id="${cardId}" class="article-card mb-4 p-3 border rounded bg-white shadow-sm">
                 ${image}
                 <h5>${article.title}</h5>
                 <p>${article.description || ""}</p>
+                <div class="mb-2 tags-container"><span class="text-muted">Loading tags...</span></div>
                 <a href="${article.sourceUrl}" target="_blank" class="btn btn-outline-primary btn-sm mb-2">Read Full Article</a><br/>
                 ${saveButton}
                 ${shareButton}
                 ${shareForm}
             </div>`;
+
+        // שליפת תגיות לכתבה
+        fetch(`/api/Articles/GetTagsForArticle/${article.id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Tag API not found");
+                return res.json();
+            })
+            .then(tags => {
+                const tagHtml = tags.length > 0
+                    ? tags.map(t => `<span class="badge bg-secondary me-1">${t.name || t}</span>`).join("")
+                    : `<span class="text-muted">No tags</span>`;
+                const card = document.getElementById(cardId);
+                const tagContainer = card.querySelector(".tags-container");
+                tagContainer.innerHTML = tagHtml;
+            })
+            .catch(err => {
+                console.warn(`❌ Failed loading tags for article ${article.id}`, err);
+                const card = document.getElementById(cardId);
+                const tagContainer = card.querySelector(".tags-container");
+                tagContainer.innerHTML = `<span class="text-danger">Error loading tags</span>`;
+            });
     }
 
     renderPagination(Math.ceil(allArticles.length / pageSize));
 }
+
 
 function renderPagination(totalPages) {
     const container = document.getElementById("articlesContainer");
@@ -197,3 +221,4 @@ function sendShare(articleId) {
             });
     }
 }
+

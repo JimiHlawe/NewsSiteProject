@@ -158,4 +158,24 @@ public class ArticlesController : ControllerBase
 
         return Ok(externalArticles);
     }
+
+    [HttpGet("WithTags")]
+    public IActionResult GetArticlesWithTags()
+    {
+        DBServices dbs = new DBServices();
+        var articles = dbs.GetArticlesWithTags();
+        return Ok(articles);
+    }
+
+
+    [HttpGet("GetTagsForArticle/{articleId}")]
+    public IActionResult GetTagsForArticle(int articleId)
+    {
+        DBServices db = new DBServices();
+        var tags = db.GetTagsForArticle(articleId);
+        return Ok(tags);
+    }
+
+
+
 }

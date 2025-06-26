@@ -492,5 +492,72 @@ namespace NewsSite1.DAL
 
             return tags;
         }
+
+        public List<ArticleWithTags> GetArticlesWithTags()
+        {
+            List<ArticleWithTags> list = new List<ArticleWithTags>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT A.id, A.title, A.content, T.name AS tag
+            FROM News_Articles A
+            LEFT JOIN News_ArticleTags AT ON A.id = AT.articleId
+            LEFT JOIN News_Tags T ON AT.tagId = T.id", con);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                Dictionary<int, ArticleWithTags> dict = new Dictionary<int, ArticleWithTags>();
+
+                while (reader.Read())
+                {
+                    int id = (int)reader["id"];
+
+                    if (!dict.ContainsKey(id))
+                    {
+                        dict[id] = new ArticleWithTags
+                        {
+                            Id = id,
+                            Title = reader["title"].ToString(),
+                            Content = reader["content"].ToString(),
+                            Tags = new List<string>()
+                        };
+                    }
+
+                    if (reader["tag"] != DBNull.Value)
+                        dict[id].Tags.Add(reader["tag"].ToString());
+                }
+
+                list = dict.Values.ToList();
+            }
+
+            return list;
+        }
+
+        public List<string> GetTagsForArticle(int articleId)
+        {
+            List<string> tags = new List<string>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT T.name
+            FROM News_ArticleTags AT
+            JOIN News_Tags T ON AT.tagId = T.id
+            WHERE AT.articleId = @ArticleId", con);
+
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    tags.Add(reader["name"].ToString());
+                }
+            }
+
+            return tags;
+        }
+
+
     }
 }
