@@ -1,15 +1,21 @@
-﻿// ✅ משתנים גלובליים
+﻿
+// ✅ משתנים גלובליים
 let currentPage = 1;
-const pageSize = 10;
-let allArticles = [];
+const pageSize = 6;
+let lastPageReached = false;
 
-// ✅ עוזר: קבלת משתמש מחובר
+let allArticles = [];
+let currentVisibleCount = 10;
+const loadStep = 5;
+
+
+// ✅ קבלת משתמש מחובר
 function getLoggedUser() {
     const raw = sessionStorage.getItem("loggedUser");
     return raw ? JSON.parse(raw) : null;
 }
 
-// ✅ טופס שיתוף כאב טיפוס
+// ✅ טופס שיתוף מוכן לשימוש
 function getShareForm(articleId) {
     return `
         <div id="shareForm-${articleId}" class="share-form mt-2" style="display:none;">
@@ -23,93 +29,81 @@ function getShareForm(articleId) {
         </div>`;
 }
 
-// ✅ טעינה ראשונית
-
+// ✅ התחלה בעת טעינת הדף
 document.addEventListener("DOMContentLoaded", () => {
-    // מייבא כתבות חיצוניות (רק בפעם הראשונה)
     fetch("/api/Articles/ImportExternal", { method: "POST" })
         .finally(() => {
-            // לאחר הייבוא או כשלון, טוענים את הנתונים
-            loadCarouselArticles();  // אם יש לך קרוסלה
-            loadArticlesGrid();      // כתבות במרכז
-            loadSidebarSections();   // HOT NEWS וכולי
+            loadCarouselArticles();
+            loadArticlesGrid();
+            loadSidebarSections();
         });
 });
 
-
-function loadArticles() {
+// ✅ טוען כתבות לפי עמוד מהשרת (Load More)
+function loadArticlesGrid() {
     fetch("/api/Articles/WithTags")
-        .then(res => {
-            if (!res.ok) throw new Error();
-            return res.json();
+        .then(res => res.json())
+        .then(data => {
+            allArticles = data;
+            currentVisibleCount = 10;
+            renderVisibleArticles();
         })
-        .then(articles => {
-            articles.reverse(); // מהעדכניות לישנות
-            allArticles = articles;
-            renderPage(currentPage);
-        })
-        .catch(() => {
-            document.getElementById("articlesContainer").innerHTML = `
-                <div class="alert alert-danger">An error occurred while loading the articles.</div>`;
+        .catch(err => {
+            console.error("שגיאה בטעינת הכתבות:", err);
         });
 }
 
-function renderPage(page) {
-    const container = document.getElementById("articlesContainer");
-    container.innerHTML = "";
 
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    const pageArticles = allArticles.slice(start, end);
+function renderVisibleArticles() {
+    const grid = document.getElementById("articlesGrid");
+    grid.innerHTML = "";
 
-    const user = getLoggedUser();
+    const articlesToShow = allArticles.slice(0, currentVisibleCount);
 
-    let html = "";
-    for (const article of pageArticles) {
-        const image = article.imageUrl
-            ? `<img src="${article.imageUrl}" style="max-height:200px;" class="img-fluid mb-2">`
-            : "";
+    articlesToShow.forEach(article => {
+        const div = document.createElement("div");
+        div.className = "article-card";
 
-        const actionsHtml = (user && article.id)
-            ? `<button onclick="saveArticle(${article.id})" class="btn btn-success btn-sm me-2">💾 Save</button>
-               <button onclick="toggleShare(${article.id})" class="btn btn-secondary btn-sm">🔗 Share</button>`
-            : "";
+        const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
 
-        const tagHtml = article.tags && article.tags.length > 0
-            ? article.tags.map(tag => `<span class="badge bg-secondary me-1">${tag.name || tag}</span>`).join("")
-            : `<span class="text-muted">No tags</span>`;
-
-        html += `
-            <div id="article-card-${article.id}" class="article-card mb-4 p-3 border rounded bg-white shadow-sm">
-                ${image}
-                <h5>${article.title}</h5>
-                <p>${article.description || ""}</p>
-                <div class="mb-2 tags-container">${tagHtml}</div>
-                <a href="${article.sourceUrl}" target="_blank" class="btn btn-outline-primary btn-sm mb-2">Read Full Article</a><br/>
-                ${actionsHtml}
+        div.innerHTML = `
+            <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
+            <div class="article-content">
+                <div class="article-tags">${tagsHtml}</div>
+                <h3 class="article-title">${article.title}</h3>
+                <p class="article-description">${article.description?.substring(0, 150) || "אין תיאור."}</p>
+                <div class="article-meta">
+                    <span>${article.author || "מערכת"}</span>
+                    <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+                </div>
+                <div class="article-actions">
+                    <button class="save-btn" onclick="saveArticle(${article.id})">💾 Save</button>
+                    <button class="share-btn" onclick="toggleShare(${article.id})">📤 Share</button>
+                </div>
                 ${getShareForm(article.id)}
-            </div>`;
+            </div>
+        `;
+
+        grid.appendChild(div);
+    });
+
+    // הצגת / הסתרת כפתור Load More
+    const btn = document.getElementById("loadMoreBtn");
+    if (currentVisibleCount >= allArticles.length) {
+        btn.style.display = "none";
+    } else {
+        btn.style.display = "block";
     }
-
-    container.innerHTML = html;
-    renderPagination(Math.ceil(allArticles.length / pageSize));
 }
 
-function renderPagination(totalPages) {
-    const container = document.getElementById("articlesContainer");
-    let html = `<div class="text-center mt-3">`;
-    for (let i = 1; i <= totalPages; i++) {
-        html += `<button onclick="goToPage(${i})" class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'} mx-1">${i}</button>`;
-    }
-    html += `</div>`;
-    container.innerHTML += html;
+
+// ✅ כפתור Load More
+function loadMoreArticles() {
+    currentPage++;
+    loadArticlesGrid(currentPage);
 }
 
-function goToPage(page) {
-    currentPage = page;
-    renderPage(page);
-}
-
+// ✅ שמירת כתבה
 function saveArticle(articleId) {
     const user = getLoggedUser();
 
@@ -118,7 +112,7 @@ function saveArticle(articleId) {
         return;
     }
 
-    fetch("https://localhost:7084/api/Users/SaveArticle", {
+    fetch("/api/Users/SaveArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
@@ -127,11 +121,10 @@ function saveArticle(articleId) {
         .catch(() => alert("Network error occurred."));
 }
 
+// ✅ שיתוף
 function toggleShare(articleId) {
     const form = document.getElementById(`shareForm-${articleId}`);
-    if (form) {
-        form.style.display = form.style.display === "none" ? "block" : "none";
-    }
+    if (form) form.style.display = form.style.display === "none" ? "block" : "none";
 }
 
 function toggleShareType(articleId) {
@@ -164,16 +157,13 @@ function sendShare(articleId) {
         })
             .then(res => res.ok ? alert("Shared with user!") : alert("Error sharing."))
             .catch(() => alert("Error sharing."));
-
     } else {
         fetch("/api/Articles/SharePublic", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, articleId, comment })
         })
-            .then(res => res.ok
-                ? alert("Publicly shared!")
-                : res.text().then(text => { console.error("❌ SharePublic error:", text); throw new Error(text); }))
+            .then(res => res.ok ? alert("Publicly shared!") : res.text().then(text => { throw new Error(text); }))
             .catch(err => {
                 alert("Error sharing publicly.");
                 console.error(err);
@@ -181,40 +171,7 @@ function sendShare(articleId) {
     }
 }
 
-function loadArticlesGrid() {
-    fetch("/api/Articles/WithTags")
-        .then(res => {
-            if (!res.ok) throw new Error('Failed to fetch articles');
-            return res.json();
-        })
-        .then(articles => {
-            const grid = document.getElementById("articlesGrid");
-            grid.innerHTML = "";
-
-            articles.forEach(article => {
-                const div = document.createElement("div");
-                div.className = "article-card";
-                div.innerHTML = `
-                    <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
-                    <div class="article-content">
-                        <div class="article-category">${article.tags?.[0]?.name || "חדשות"}</div>
-                        <h3 class="article-title">${article.title}</h3>
-                        <p class="article-description">${article.description?.substring(0, 150) || "אין תיאור."}</p>
-                        <div class="article-meta">
-                            <span>${article.author || "מערכת"}</span>
-                            <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                `;
-                grid.appendChild(div);
-            });
-        })
-        .catch(err => {
-            console.error("שגיאה בטעינת הכתבות:", err);
-        });
-}
-
-
+// ✅ Sidebar
 function loadSidebarSections() {
     fetch("/api/Articles/WithTags")
         .then(res => res.json())
@@ -244,6 +201,7 @@ function loadSidebarSections() {
         });
 }
 
+// ✅ Carousel
 let carouselArticles = [];
 let currentSlide = 0;
 let slideInterval;
@@ -252,7 +210,7 @@ function loadCarouselArticles() {
     fetch("/api/Articles/WithTags")
         .then(res => res.json())
         .then(data => {
-            carouselArticles = data.slice(0, 5); // עד 5 כתבות
+            carouselArticles = data.slice(0, 5);
             initCarousel();
         })
         .catch(err => console.error("שגיאה בטעינת קרוסלה:", err));
@@ -270,11 +228,13 @@ function initCarousel() {
         slide.className = `carousel-slide ${index === 0 ? "active" : ""}`;
         slide.style.backgroundImage = `url(${article.imageUrl || 'https://via.placeholder.com/800x400'})`;
 
+        const tagsHtml = (article.tags || []).map(tag => `<span class="slide-category">${tag}</span>`).join(" ");
+
         slide.innerHTML = `
             <div class="carousel-overlay">
                 <div class="slide-content">
                     <div class="slide-main">
-                        <div class="slide-category">${article.tags?.[0]?.name || "News"}</div>
+                        <div class="slide-tags">${tagsHtml}</div>
                         <h1 class="slide-title">${article.title}</h1>
                         <p class="slide-description">${article.description?.substring(0, 150) || ""}</p>
                         <p class="slide-author">${article.author || "מערכת"}</p>
@@ -325,48 +285,6 @@ function goToSlide(index) {
     const slides = document.querySelectorAll(".carousel-slide");
     const dots = document.querySelectorAll(".carousel-dot");
 
-    slides[currentSlide].classList.remove("active");
-    dots[currentSlide].classList.remove("active");
-
-    currentSlide = index;
-
-    slides[currentSlide].classList.add("active");
-    dots[currentSlide].classList.add("active");
-
-    resetAutoSlide();
-}
-
-function nextSlide() {
-    goToSlide((currentSlide + 1) % carouselArticles.length);
-}
-
-function prevSlide() {
-    goToSlide((currentSlide - 1 + carouselArticles.length) % carouselArticles.length);
-}
-
-function startAutoSlide() {
-    slideInterval = setInterval(nextSlide, 5000);
-}
-
-function resetAutoSlide() {
-    clearInterval(slideInterval);
-    startAutoSlide();
-}
-
-
-function startAutoSlide() {
-    stopAutoSlide(); // בטיחות
-    slideInterval = setInterval(nextSlide, 5000); // כל 5 שניות
-}
-
-function stopAutoSlide() {
-    if (slideInterval) clearInterval(slideInterval);
-}
-
-function goToSlide(index) {
-    const slides = document.querySelectorAll(".carousel-slide");
-    const dots = document.querySelectorAll(".carousel-dot");
-
     if (index < 0 || index >= slides.length) return;
 
     slides.forEach((slide, i) => {
@@ -388,4 +306,13 @@ function nextSlide() {
 function prevSlide() {
     const prev = (currentSlide - 1 + carouselArticles.length) % carouselArticles.length;
     goToSlide(prev);
+}
+
+function startAutoSlide() {
+    stopAutoSlide();
+    slideInterval = setInterval(nextSlide, 5000);
+}
+
+function stopAutoSlide() {
+    if (slideInterval) clearInterval(slideInterval);
 }
