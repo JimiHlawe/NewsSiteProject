@@ -71,9 +71,9 @@ function renderVisibleArticles() {
             <div class="article-content">
                 <div class="article-tags">${tagsHtml}</div>
                 <h3 class="article-title">${article.title}</h3>
-                <p class="article-description">${article.description?.substring(0, 150) || "אין תיאור."}</p>
+                <p class="article-description">${article.description?.substring(0, 150)}</p>
                 <div class="article-meta">
-                    <span>${article.author || "מערכת"}</span>
+                    <span>${article.author}</span>
                     <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
                 </div>
                 <div class="article-actions">
@@ -238,7 +238,7 @@ function initCarousel() {
                         <div class="slide-tags">${tagsHtml}</div>
                         <h1 class="slide-title">${article.title}</h1>
                         <p class="slide-description">${article.description?.substring(0, 150) || ""}</p>
-                        <p class="slide-author">${article.author || "מערכת"}</p>
+                        <p class="slide-author">${article.author}</p>
                     </div>
                     <div class="slide-sidebar">
                         ${generateCarouselSidebarArticles(index)}

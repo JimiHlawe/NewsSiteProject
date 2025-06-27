@@ -312,7 +312,11 @@ namespace NewsSite1.DAL
                             Description = rdr["Description"]?.ToString(),
                             ImageUrl = rdr["ImageUrl"]?.ToString(),
                             SourceUrl = rdr["Url"]?.ToString(),
-                            Tags = new List<string>() // נוסיף תגיות אחרי הלולאה
+                            Author = rdr["Author"]?.ToString(),
+                            PublishedAt = rdr["PublishedAt"] == DBNull.Value
+                                ? (DateTime?)null
+                                : Convert.ToDateTime(rdr["PublishedAt"]),
+                            Tags = new List<string>() // נטען אחרי הלולאה
                         };
 
                         articles.Add(article);
@@ -328,6 +332,7 @@ namespace NewsSite1.DAL
 
             return articles;
         }
+
 
         // ===================== SHARING =====================
         public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
