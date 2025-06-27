@@ -26,9 +26,16 @@ function getShareForm(articleId) {
 // ✅ טעינה ראשונית
 
 document.addEventListener("DOMContentLoaded", () => {
+    // מייבא כתבות חיצוניות (רק בפעם הראשונה)
     fetch("/api/Articles/ImportExternal", { method: "POST" })
-        .finally(loadArticles);
+        .finally(() => {
+            // לאחר הייבוא או כשלון, טוענים את הנתונים
+            loadCarouselArticles();  // אם יש לך קרוסלה
+            loadArticlesGrid();      // כתבות במרכז
+            loadSidebarSections();   // HOT NEWS וכולי
+        });
 });
+
 
 function loadArticles() {
     fetch("/api/Articles/WithTags")
@@ -172,4 +179,213 @@ function sendShare(articleId) {
                 console.error(err);
             });
     }
+}
+
+function loadArticlesGrid() {
+    fetch("/api/Articles/WithTags")
+        .then(res => {
+            if (!res.ok) throw new Error('Failed to fetch articles');
+            return res.json();
+        })
+        .then(articles => {
+            const grid = document.getElementById("articlesGrid");
+            grid.innerHTML = "";
+
+            articles.forEach(article => {
+                const div = document.createElement("div");
+                div.className = "article-card";
+                div.innerHTML = `
+                    <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
+                    <div class="article-content">
+                        <div class="article-category">${article.tags?.[0]?.name || "חדשות"}</div>
+                        <h3 class="article-title">${article.title}</h3>
+                        <p class="article-description">${article.description?.substring(0, 150) || "אין תיאור."}</p>
+                        <div class="article-meta">
+                            <span>${article.author || "מערכת"}</span>
+                            <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        })
+        .catch(err => {
+            console.error("שגיאה בטעינת הכתבות:", err);
+        });
+}
+
+
+function loadSidebarSections() {
+    fetch("/api/Articles/WithTags")
+        .then(res => res.json())
+        .then(articles => {
+            const hot = document.getElementById("hotNews");
+            const editor = document.getElementById("editorPick");
+            const must = document.getElementById("mustSee");
+
+            const sections = [hot, editor, must];
+
+            sections.forEach((section, i) => {
+                section.innerHTML = "";
+                const chunk = articles.slice(i * 3, i * 3 + 3);
+                chunk.forEach(article => {
+                    const div = document.createElement("div");
+                    div.className = "sidebar-item";
+                    div.innerHTML = `
+                        <img src="${article.imageUrl || 'https://via.placeholder.com/60'}" />
+                        <div class="sidebar-item-content">
+                            <h6>${article.title?.substring(0, 40)}...</h6>
+                            <div class="date">${new Date(article.publishedAt).toLocaleDateString()}</div>
+                        </div>
+                    `;
+                    section.appendChild(div);
+                });
+            });
+        });
+}
+
+let carouselArticles = [];
+let currentSlide = 0;
+let slideInterval;
+
+function loadCarouselArticles() {
+    fetch("/api/Articles/WithTags")
+        .then(res => res.json())
+        .then(data => {
+            carouselArticles = data.slice(0, 5); // עד 5 כתבות
+            initCarousel();
+        })
+        .catch(err => console.error("שגיאה בטעינת קרוסלה:", err));
+}
+
+function initCarousel() {
+    const container = document.getElementById("carouselContainer");
+    const indicators = document.getElementById("carouselIndicators");
+
+    container.innerHTML = "";
+    indicators.innerHTML = "";
+
+    carouselArticles.forEach((article, index) => {
+        const slide = document.createElement("div");
+        slide.className = `carousel-slide ${index === 0 ? "active" : ""}`;
+        slide.style.backgroundImage = `url(${article.imageUrl || 'https://via.placeholder.com/800x400'})`;
+
+        slide.innerHTML = `
+            <div class="carousel-overlay">
+                <div class="slide-content">
+                    <div class="slide-main">
+                        <div class="slide-category">${article.tags?.[0]?.name || "News"}</div>
+                        <h1 class="slide-title">${article.title}</h1>
+                        <p class="slide-description">${article.description?.substring(0, 150) || ""}</p>
+                        <p class="slide-author">${article.author || "מערכת"}</p>
+                    </div>
+                    <div class="slide-sidebar">
+                        ${generateCarouselSidebarArticles(index)}
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(slide);
+
+        const dot = document.createElement("div");
+        dot.className = `carousel-dot ${index === 0 ? "active" : ""}`;
+        dot.onclick = () => goToSlide(index);
+        indicators.appendChild(dot);
+    });
+
+    startAutoSlide();
+}
+
+function generateCarouselSidebarArticles(excludeIndex) {
+    let html = "";
+    let count = 0;
+
+    for (let i = 0; i < carouselArticles.length; i++) {
+        if (i !== excludeIndex && count < 3) {
+            const art = carouselArticles[i];
+            html += `
+                <div class="sidebar-article">
+                    <div class="sidebar-article-content">
+                        <img src="${art.imageUrl || 'https://via.placeholder.com/60'}" alt="">
+                        <div class="sidebar-article-text">
+                            <h6>${art.title.substring(0, 50)}...</h6>
+                            <div class="date">${new Date(art.publishedAt).toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            count++;
+        }
+    }
+
+    return html;
+}
+
+function goToSlide(index) {
+    const slides = document.querySelectorAll(".carousel-slide");
+    const dots = document.querySelectorAll(".carousel-dot");
+
+    slides[currentSlide].classList.remove("active");
+    dots[currentSlide].classList.remove("active");
+
+    currentSlide = index;
+
+    slides[currentSlide].classList.add("active");
+    dots[currentSlide].classList.add("active");
+
+    resetAutoSlide();
+}
+
+function nextSlide() {
+    goToSlide((currentSlide + 1) % carouselArticles.length);
+}
+
+function prevSlide() {
+    goToSlide((currentSlide - 1 + carouselArticles.length) % carouselArticles.length);
+}
+
+function startAutoSlide() {
+    slideInterval = setInterval(nextSlide, 5000);
+}
+
+function resetAutoSlide() {
+    clearInterval(slideInterval);
+    startAutoSlide();
+}
+
+
+function startAutoSlide() {
+    stopAutoSlide(); // בטיחות
+    slideInterval = setInterval(nextSlide, 5000); // כל 5 שניות
+}
+
+function stopAutoSlide() {
+    if (slideInterval) clearInterval(slideInterval);
+}
+
+function goToSlide(index) {
+    const slides = document.querySelectorAll(".carousel-slide");
+    const dots = document.querySelectorAll(".carousel-dot");
+
+    if (index < 0 || index >= slides.length) return;
+
+    slides.forEach((slide, i) => {
+        slide.classList.toggle("active", i === index);
+    });
+
+    dots.forEach((dot, i) => {
+        dot.classList.toggle("active", i === index);
+    });
+
+    currentSlide = index;
+}
+
+function nextSlide() {
+    const next = (currentSlide + 1) % carouselArticles.length;
+    goToSlide(next);
+}
+
+function prevSlide() {
+    const prev = (currentSlide - 1 + carouselArticles.length) % carouselArticles.length;
+    goToSlide(prev);
 }
