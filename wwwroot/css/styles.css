@@ -411,62 +411,142 @@ body {
     color: #666;
 }
 
-/* Newsletter Section */
+/* Newsletter Footer Section - Modern Design */
 .newsletter-section {
-    background: linear-gradient(135deg, #2563eb, #1e40af);
-    padding: 4rem 0;
-    margin-top: 4rem;
+    background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%);
+    padding: 5rem 0 3rem;
+    margin-top: 0;
     color: white;
     text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 
+    /* Subtle background pattern */
+    .newsletter-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 25% 25%, rgba(255,255,255,0.03) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(255,255,255,0.03) 0%, transparent 50%);
+        opacity: 0.7;
+    }
+
 .newsletter-content {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
     padding: 0 2rem;
+    position: relative;
+    z-index: 2;
 }
 
 .newsletter-title {
-    font-size: 2.5rem;
-    font-weight: bold;
+    font-size: clamp(2.2rem, 4vw, 2.8rem);
+    font-weight: 700;
     margin-bottom: 1rem;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: -0.02em;
 }
 
 .newsletter-description {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
     opacity: 0.9;
+    line-height: 1.6;
+    color: #e0e7ff;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 3rem;
 }
 
 .newsletter-form {
     display: flex;
-    gap: 1rem;
-    max-width: 400px;
+    gap: 0.75rem;
+    max-width: 420px;
     margin: 0 auto;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
 }
+
+    .newsletter-form:hover {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
 
 .newsletter-input {
     flex: 1;
-    padding: 1rem;
+    padding: 1rem 1.5rem;
     border: none;
-    border-radius: 8px;
+    border-radius: 40px;
     font-size: 1rem;
+    background: transparent;
+    color: white;
+    outline: none;
+    transition: all 0.3s ease;
 }
+
+    .newsletter-input::placeholder {
+        color: rgba(255, 255, 255, 0.7);
+        font-weight: 400;
+    }
+
+    .newsletter-input:focus {
+        background: rgba(255, 255, 255, 0.05);
+    }
 
 .newsletter-btn {
-    background: #fbbf24;
-    color: #1a1a1a;
-    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     padding: 1rem 2rem;
-    border-radius: 8px;
-    font-weight: bold;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 0.95rem;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
 }
 
-    .newsletter-btn:hover {
-        background: #f59e0b;
+    .newsletter-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.6s ease;
     }
+
+    .newsletter-btn:hover::before {
+        left: 100%;
+    }
+
+    .newsletter-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .newsletter-btn:active {
+        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
 
 /* Responsive */
 @media (max-width: 768px) {
