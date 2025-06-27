@@ -99,9 +99,10 @@ function renderVisibleArticles() {
 
 // ✅ כפתור Load More
 function loadMoreArticles() {
-    currentPage++;
-    loadArticlesGrid(currentPage);
+    currentVisibleCount += loadStep;
+    renderVisibleArticles();
 }
+
 
 // ✅ שמירת כתבה
 function saveArticle(articleId) {
