@@ -77,8 +77,8 @@ function renderVisibleArticles() {
                     <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
                 </div>
                 <div class="article-actions">
-                    <button class="save-btn" onclick="saveArticle(${article.id})">💾 Save</button>
-                    <button class="share-btn" onclick="toggleShare(${article.id})">📤 Share</button>
+                    <button class="save-btn" onclick="saveArticle(${article.id})">Save</button>
+                    <button class="share-btn" onclick="toggleShare(${article.id})">Share</button>
                 </div>
                 ${getShareForm(article.id)}
             </div>
