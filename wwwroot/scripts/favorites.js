@@ -61,21 +61,23 @@ function renderSavedArticles(articles) {
     articles.forEach(function (article, index) {
         var articleElement = document.createElement('div');
         articleElement.className = 'article-card';
-
         var readingTime = Math.ceil((article.description?.length || 50) / 50) + ' min read';
         var publishDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
         });
 
+        // יצירת HTML עבור התגיות (כמו ב-renderVisibleArticles)
+        var tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
+
         articleElement.innerHTML = `
             <div class="article-image-container">
                 <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" class="article-image" alt="Article Image">
                 <div class="article-overlay"></div>
-                <div class="article-category-badge">News</div>
                 <div class="article-date-badge">${publishDate}</div>
             </div>
             <div class="article-content">
+                <div class="article-tags">${tagsHtml}</div>
                 <h5 class="article-title">${article.title}</h5>
                 <p class="article-description">${article.description || 'No description available.'}</p>
                 <div class="article-meta">
@@ -88,7 +90,6 @@ function renderSavedArticles(articles) {
                 </div>
             </div>
         `;
-
         container.appendChild(articleElement);
     });
 }
