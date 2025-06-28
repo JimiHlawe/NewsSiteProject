@@ -62,7 +62,7 @@ function renderSavedArticles(articles) {
         var articleElement = document.createElement('div');
         articleElement.className = 'article-card';
 
-        var readingTime = Math.ceil((article.description?.length || 200) / 200) + ' min read';
+        var readingTime = Math.ceil((article.description?.length || 50) / 50) + ' min read';
         var publishDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric'
