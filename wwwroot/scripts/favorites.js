@@ -53,28 +53,45 @@ function filterArticles() {
 function renderSavedArticles(articles) {
     var container = document.getElementById("savedArticlesContainer");
     container.innerHTML = "";
-
     if (articles.length === 0) {
         container.innerHTML = '<div class="alert alert-warning">No articles found.</div>';
         return;
     }
 
-    for (var i = 0; i < articles.length; i++) {
-        var article = articles[i];
+    articles.forEach(function (article, index) {
+        var articleElement = document.createElement('div');
+        articleElement.className = 'article-card';
+        var readingTime = Math.ceil((article.description?.length || 50) / 50) + ' min read';
+        var publishDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
+        });
 
-        container.innerHTML +=
-            '<div class="col-md-4">' +
-            '<div class="card">' +
-            '<img src="' + article.imageUrl + '" class="card-img-top" alt="Article Image">' +
-            '<div class="card-body">' +
-            '<h5 class="card-title">' + article.title + '</h5>' +
-            '<p class="card-text">' + article.description + '</p>' +
-            '<a href="' + article.sourceUrl + '" target="_blank" class="btn btn-primary">Read</a> ' +
-            '<button onclick="removeFavorite(' + article.id + ')" class="btn btn-danger btn-sm">Remove</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-    }
+        // יצירת HTML עבור התגיות (כמו ב-renderVisibleArticles)
+        var tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
+
+        articleElement.innerHTML = `
+            <div class="article-image-container">
+                <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" class="article-image" alt="Article Image">
+                <div class="article-overlay"></div>
+                <div class="article-date-badge">${publishDate}</div>
+            </div>
+            <div class="article-content">
+                <div class="article-tags">${tagsHtml}</div>
+                <h5 class="article-title">${article.title}</h5>
+                <p class="article-description">${article.description || 'No description available.'}</p>
+                <div class="article-meta">
+                    <div class="article-author">${article.author || 'Unknown Author'}</div>
+                    <div class="article-reading-time">${readingTime}</div>
+                </div>
+                <div class="article-actions">
+                    <a href="${article.sourceUrl || '#'}" target="_blank" class="btn btn-primary">Read Article</a>
+                    <button onclick="removeFavorite(${article.id})" class="btn btn-danger">Remove</button>
+                </div>
+            </div>
+        `;
+        container.appendChild(articleElement);
+    });
 }
 
 function removeFavorite(articleId) {
