@@ -20,7 +20,7 @@ namespace NewsSite1.Services
 
         public OpenAiTagService(IConfiguration config)
         {
-            _apiKey = "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";
+            _apiKey = "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";
             _httpClient = new HttpClient();
         }
 

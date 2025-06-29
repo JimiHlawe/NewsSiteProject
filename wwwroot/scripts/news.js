@@ -2,11 +2,7 @@
 // ✅ משתנים גלובליים
 let currentPage = 1;
 const pageSize = 6;
-let lastPageReached = false;
-
 let allArticles = [];
-let currentVisibleCount = 10;
-const loadStep = 5;
 
 
 // ✅ קבלת משתמש מחובר
@@ -31,25 +27,39 @@ function getShareForm(articleId) {
 
 // ✅ התחלה בעת טעינת הדף
 document.addEventListener("DOMContentLoaded", () => {
-    fetch("/api/Articles/ImportExternal", { method: "POST" })
-        .finally(() => {
-            loadCarouselArticles();
-            loadArticlesGrid();
-            loadSidebarSections();
-        });
+    // ביטול זמני של ImportExternal:
+    // fetch("/api/Articles/ImportExternal", { method: "POST" })
+    //     .finally(() => {
+    //         loadCarouselArticles();
+    //         loadArticlesGrid();
+    //         loadSidebarSections();
+    //     });
+
+    // מריץ ישר את השאר:
+    loadCarouselArticles();
+    loadArticlesGrid();
+    loadSidebarSections();
 });
+
 
 // ✅ טוען כתבות לפי עמוד מהשרת (Load More)
 function loadArticlesGrid() {
-    fetch("/api/Articles/WithTags")
+    fetch(`/api/Articles/Paginated?page=${currentPage}&pageSize=${pageSize}`)
         .then(res => res.json())
         .then(data => {
-            allArticles = data;
-            currentVisibleCount = 10;
+            // מוסיף את התוצאות לרשימה קיימת
+            allArticles = allArticles.concat(data);
             renderVisibleArticles();
+
+            // הסתר כפתור Load More אם הגענו לסוף
+            if (data.length < pageSize) {
+                document.getElementById("loadMoreBtn").style.display = "none";
+            } else {
+                document.getElementById("loadMoreBtn").style.display = "block";
+            }
         })
         .catch(err => {
-            console.error("שגיאה בטעינת הכתבות:", err);
+            console.error("שגיאה בטעינת כתבות:", err);
         });
 }
 
@@ -58,9 +68,7 @@ function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
 
-    const articlesToShow = allArticles.slice(0, currentVisibleCount);
-
-    articlesToShow.forEach(article => {
+    allArticles.forEach(article => {
         const div = document.createElement("div");
         div.className = "article-card";
 
@@ -87,20 +95,16 @@ function renderVisibleArticles() {
         grid.appendChild(div);
     });
 
-    // הצגת / הסתרת כפתור Load More
     const btn = document.getElementById("loadMoreBtn");
-    if (currentVisibleCount >= allArticles.length) {
-        btn.style.display = "none";
-    } else {
-        btn.style.display = "block";
-    }
+    btn.style.display = (allArticles.length % pageSize !== 0) ? "none" : "block";
 }
+
 
 
 // ✅ כפתור Load More
 function loadMoreArticles() {
-    currentVisibleCount += loadStep;
-    renderVisibleArticles();
+    currentPage++;
+    loadArticlesGrid();
 }
 
 
@@ -174,7 +178,7 @@ function sendShare(articleId) {
 
 // ✅ Sidebar
 function loadSidebarSections() {
-    fetch("/api/Articles/WithTags")
+    fetch("/api/Articles/Paginated?page=1&pageSize=5")
         .then(res => res.json())
         .then(articles => {
             const hot = document.getElementById("hotNews");
@@ -208,7 +212,7 @@ let currentSlide = 0;
 let slideInterval;
 
 function loadCarouselArticles() {
-    fetch("/api/Articles/WithTags")
+    fetch("/api/Articles/Paginated?page=1&pageSize=5")
         .then(res => res.json())
         .then(data => {
             carouselArticles = data.slice(0, 5);

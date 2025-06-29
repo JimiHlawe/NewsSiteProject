@@ -35,7 +35,7 @@ public class TaggingRunner
                 SaveTagsToDb(article.Id, tags);
                 Console.WriteLine($"✓ Tagged article ID: {article.Id}");
 
-                await Task.Delay(5000); // ❗ השהיה של 5 שניות בין בקשות
+                await Task.Delay(1000); // ❗ השהיה של 5 שניות בין בקשות
             }
             catch (Exception ex)
             {

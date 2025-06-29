@@ -14,6 +14,8 @@
         private string senderName = "";
         private string initialComment = "";
         private DateTime sharedAt;
+
+        private List<string> tags = new List<string>(); 
         private List<PublicComment> publicComments = new List<PublicComment>();
 
         public PublicArticle() { }
@@ -21,7 +23,7 @@
         public PublicArticle(int publicArticleId, int articleId, string title, string description, string content,
                              string author, string sourceUrl, string imageUrl, DateTime publishedAt,
                              string senderName, string initialComment, DateTime sharedAt,
-                             List<PublicComment> publicComments)
+                             List<string> tags, List<PublicComment> publicComments)
         {
             this.publicArticleId = publicArticleId;
             this.articleId = articleId;
@@ -35,6 +37,7 @@
             this.senderName = senderName;
             this.initialComment = initialComment;
             this.sharedAt = sharedAt;
+            this.tags = tags ?? new List<string>(); 
             this.publicComments = publicComments ?? new List<PublicComment>();
         }
 
@@ -50,6 +53,8 @@
         public string SenderName { get => senderName; set => senderName = value; }
         public string InitialComment { get => initialComment; set => initialComment = value; }
         public DateTime SharedAt { get => sharedAt; set => sharedAt = value; }
+
+        public List<string> Tags { get => tags; set => tags = value; }  
         public List<PublicComment> PublicComments { get => publicComments; set => publicComments = value; }
     }
 }

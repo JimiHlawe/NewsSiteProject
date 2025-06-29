@@ -20,16 +20,6 @@ public class ArticlesController : ControllerBase
         _articleService = articleService;
     }
 
-    [HttpPost("Add")]
-    public IActionResult AddArticle([FromBody] Article article)
-    {
-        if (article == null)
-            return BadRequest("Invalid article data");
-
-        _db.AddArticle(article);
-        return Ok("Article added successfully");
-    }
-
     [HttpGet("All")]
     public IActionResult GetAll()
     {
@@ -175,6 +165,14 @@ public class ArticlesController : ControllerBase
         var tags = db.GetTagsForArticle(articleId);
         return Ok(tags);
     }
+
+    [HttpGet("Paginated")]
+    public IActionResult GetPaginated(int page = 1, int pageSize = 6)
+    {
+        var paged = _db.GetArticlesPaginated(page, pageSize);
+        return Ok(paged);
+    }
+
 
 
 

@@ -135,27 +135,6 @@ namespace NewsSite1.DAL
 
         // ===================== ARTICLES =====================
 
-        public void AddArticle(Article article)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddArticle", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                cmd.Parameters.AddWithValue("@Title", article.Title);
-                cmd.Parameters.AddWithValue("@Description", article.Description);
-                cmd.Parameters.AddWithValue("@Content", article.Content);
-                cmd.Parameters.AddWithValue("@Author", article.Author);
-                cmd.Parameters.AddWithValue("@SourceName", article.SourceName);
-                cmd.Parameters.AddWithValue("@SourceUrl", article.SourceUrl);
-                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl);
-                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt);
-
-                cmd.ExecuteNonQuery();
-            }
-        }
 
         public List<Article> GetAllArticles()
         {
@@ -327,6 +306,58 @@ namespace NewsSite1.DAL
                 foreach (var article in articles)
                 {
                     article.Tags = GetTagsForArticle(article.Id);
+                }
+            }
+
+            return articles;
+        }
+
+
+        public List<ArticleWithTags> GetArticlesPaginated(int page, int pageSize)
+        {
+            List<ArticleWithTags> articles = new List<ArticleWithTags>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesPaginated", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@Page", page);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                using (SqlDataReader rdr = cmd.ExecuteReader())
+                {
+                    Dictionary<int, ArticleWithTags> dict = new Dictionary<int, ArticleWithTags>();
+
+                    while (rdr.Read())
+                    {
+                        int id = Convert.ToInt32(rdr["Id"]);
+
+                        if (!dict.ContainsKey(id))
+                        {
+                            dict[id] = new ArticleWithTags
+                            {
+                                Id = id,
+                                Title = rdr["Title"].ToString(),
+                                Description = rdr["Description"]?.ToString(),
+                                ImageUrl = rdr["ImageUrl"]?.ToString(),
+                                SourceUrl = rdr["Url"]?.ToString(),
+                                Author = rdr["Author"]?.ToString(),
+                                PublishedAt = rdr["PublishedAt"] == DBNull.Value
+                                    ? null
+                                    : (DateTime?)Convert.ToDateTime(rdr["PublishedAt"]),
+                                Tags = new List<string>()
+                            };
+                        }
+
+                        if (rdr["TagName"] != DBNull.Value)
+                        {
+                            dict[id].Tags.Add(rdr["TagName"].ToString());
+                        }
+                    }
+
+                    articles = dict.Values.ToList();
                 }
             }
 
@@ -539,6 +570,75 @@ namespace NewsSite1.DAL
 
             return tags;
         }
+        public int AddArticleWithTags(ArticleWithTags article)
+        {
+            int newArticleId;
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            INSERT INTO News_Articles (Title, Description, ImageUrl, Url, PublishedAt, Author)
+            OUTPUT INSERTED.Id
+            VALUES (@Title, @Description, @ImageUrl, @Url, @PublishedAt, @Author)
+        ", con);
+
+                cmd.Parameters.AddWithValue("@Title", article.Title ?? "");
+                cmd.Parameters.AddWithValue("@Description", article.Description ?? "");
+                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl ?? "");
+                cmd.Parameters.AddWithValue("@Url", article.SourceUrl ?? "");
+                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Author", article.Author ?? "");
+
+                newArticleId = (int)cmd.ExecuteScalar();
+            }
+
+            // אחרי הוספת הכתבה: טיפול בתגיות
+            foreach (string tagName in article.Tags)
+            {
+                int tagId = GetOrAddTagId(tagName);
+                InsertArticleTag(newArticleId, tagId);
+            }
+
+            return newArticleId;
+        }
+
+
+
+        public int GetOrAddTagId(string tagName)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "SELECT Id FROM News_Tags WHERE Name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", tagName);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                    return (int)result;
+
+                cmd = new SqlCommand(
+                    "INSERT INTO News_Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", con);
+                cmd.Parameters.AddWithValue("@Name", tagName);
+
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+
+
+        public void InsertArticleTag(int articleId, int tagId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO News_ArticleTags (ArticleId, TagId) VALUES (@ArticleId, @TagId)", con);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
         public List<string> GetTagsForArticle(int articleId)
         {
