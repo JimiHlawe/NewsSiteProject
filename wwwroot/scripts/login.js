@@ -14,13 +14,9 @@ function switchToSignup() {
             tags.forEach(tag => {
                 const tagBubble = document.createElement("div");
                 tagBubble.className = "tag-bubble";
-
-                // יצירת ID ייחודי לכל תגית
-                const uniqueId = `tag-${tag.id}-${Date.now()}`;
-
                 tagBubble.innerHTML = `
-                    <input type="checkbox" id="${uniqueId}" value="${tag.id}">
-                    <label for="${uniqueId}">${tag.name}</label>
+                    <input type="checkbox" id="tag-${tag.id}" value="${tag.id}">
+                    <label for="tag-${tag.id}">${tag.name}</label>
                 `;
 
                 // הוספת אירוע קליק לתגית
