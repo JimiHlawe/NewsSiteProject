@@ -557,8 +557,18 @@ body {
     padding: 2.5rem;
 }
 
+/* תגיות על התמונה - כמו בעמוד 1 */
+/* תגיות על התמונה - כמו בעמוד 1 */
 .article-tags {
-    margin-bottom: 1.2rem;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    z-index: 3;
+    flex-wrap: wrap;
+    max-width: calc(100% - 120px);
 }
 
 .tag {
@@ -576,6 +586,8 @@ body {
     transition: all 0.3s ease;
     border: 1px solid rgba(71, 85, 105, 0.2);
     backdrop-filter: blur(10px);
+    white-space: nowrap;
+    position: relative;
 }
 
     .tag:hover {

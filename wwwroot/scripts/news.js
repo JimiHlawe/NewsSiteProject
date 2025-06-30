@@ -49,7 +49,7 @@ function loadAllArticlesAndSplit() {
         });
 }
 
-// ✅ גריד
+// ✅ גריד - עם תיקון מיקום התגיות בלבד
 function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
@@ -65,10 +65,14 @@ function renderVisibleArticles() {
             day: 'numeric'
         });
 
+        // 🔧 תיקון: התגיות עכשיו על התמונה בצד שמאל למעלה
         div.innerHTML = `
-            <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
-            <div class="article-content">
+            <div class="article-image-container">
+                <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
                 <div class="article-tags">${tagsHtml}</div>
+                <div class="article-overlay"></div>
+            </div>
+            <div class="article-content">
                 <h3 class="article-title">${article.title}</h3>
                 <p class="article-description">${article.description?.substring(0, 150)}</p>
                 <div class="article-meta">
@@ -231,6 +235,11 @@ function goToSlide(index) {
 function nextSlide() {
     const next = (currentSlide + 1) % carouselArticles.length;
     goToSlide(next);
+}
+
+function prevSlide() {
+    const prev = currentSlide === 0 ? carouselArticles.length - 1 : currentSlide - 1;
+    goToSlide(prev);
 }
 
 function startAutoSlide() {

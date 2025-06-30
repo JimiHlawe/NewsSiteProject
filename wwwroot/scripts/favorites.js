@@ -53,7 +53,7 @@ function filterArticles() {
     renderSavedArticles(filtered);
 }
 
-// ✅ RENDER ARTICLES
+// ✅ RENDER ARTICLES עם MIN READ
 function renderSavedArticles(articles) {
     var container = document.getElementById("savedArticlesContainer");
     container.innerHTML = "";
@@ -63,12 +63,18 @@ function renderSavedArticles(articles) {
         return;
     }
 
-    articles.forEach(function (article) {
+    articles.forEach(function (article, index) {
         var articleElement = document.createElement('div');
         articleElement.className = 'article-card';
+        articleElement.style.animationDelay = (index * 0.1) + 's';
 
-        var tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
+        // יצירת תגיות
+        var tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join("");
 
+        // חישוב זמן קריאה
+        var readingTime = Math.ceil((article.description?.length || 50) / 50) + ' min read';
+
+        // פורמט תאריך
         var formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -77,16 +83,17 @@ function renderSavedArticles(articles) {
 
         articleElement.innerHTML = `
             <div class="article-image-container">
-                <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image" alt="Article Image">
+                <img src="${article.imageUrl || 'https://via.placeholder.com/400x200'}" class="article-image" alt="Article Image">
+                <div class="article-tags">${tagsHtml}</div>
                 <div class="article-date-badge">${formattedDate}</div>
                 <div class="article-overlay"></div>
             </div>
             <div class="article-content">
-                <div class="article-tags">${tagsHtml}</div>
                 <h3 class="article-title">${article.title}</h3>
                 <p class="article-description">${article.description?.substring(0, 150) || 'No description available.'}</p>
                 <div class="article-meta">
                     <span class="article-author">${article.author || 'Unknown Author'}</span>
+                    <span class="article-reading-time">${readingTime}</span>
                 </div>
                 <div class="article-actions">
                     <a href="${article.sourceUrl || '#'}" target="_blank" class="btn btn-primary">Read Article</a>
