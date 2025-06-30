@@ -1,28 +1,93 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Profile</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link href="../css/profile.css" rel="stylesheet" />
+    <link href="../css/styles.css" rel="stylesheet" />
+    <script src="../scripts/navbar.js"></script>
 </head>
 <body>
-    <h1>My Profile</h1>
+    <!-- Navigation -->
+    <div id="navbar"></div>
 
-    <div id="profileInfo">
-        <p><strong>Name:</strong> <span id="profileName"></span></p>
-        <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">My Profile</h1>
+            <p class="page-subtitle">Manage your account settings and preferences</p>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-container">
+            <!-- Profile Info Section -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <h2 class="section-title">Account Information</h2>
+                    <div class="section-icon">👤</div>
+                </div>
+                <div class="profile-info-card">
+                    <div class="info-item">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value" id="profileName"></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value" id="profileEmail"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Change Password Section -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <h2 class="section-title">Change Password</h2>
+                    <div class="section-icon">🔒</div>
+                </div>
+                <div class="password-card">
+                    <div class="form-group">
+                        <input type="password" id="newPassword" class="form-control" placeholder="Enter new password" />
+                    </div>
+                    <button class="btn btn-primary" onclick="updatePassword()">
+                        <span>Update Password</span>
+                        <i class="btn-icon">🔄</i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Current Interests Section -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <h2 class="section-title">Your Interests</h2>
+                    <div class="section-icon">⭐</div>
+                </div>
+                <div class="interests-card">
+                    <div id="userTags" class="tags-container">
+                        <!-- User tags will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add New Interests Section -->
+            <div class="profile-section">
+                <div class="section-header">
+                    <h2 class="section-title">Add New Interests</h2>
+                    <div class="section-icon">➕</div>
+                </div>
+                <div class="add-interests-card">
+                    <div id="allTagsContainer" class="available-tags-container">
+                        <!-- Available tags will be loaded here -->
+                    </div>
+                    <button class="btn btn-secondary" onclick="addSelectedTags()">
+                        <span>Add Selected Interests</span>
+                        <i class="btn-icon">✨</i>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <h2>Change Password</h2>
-    <input type="password" id="newPassword" placeholder="New Password" />
-    <button onclick="updatePassword()">Update Password</button>
-
-    <h2>Your Interests</h2>
-    <div id="userTags"></div>
-
-    <h3>Add Interests</h3>
-    <div id="allTagsContainer"></div>
-    <button onclick="addSelectedTags()">Add Selected Tags</button>
 
     <script src="../scripts/profile.js"></script>
 </body>
