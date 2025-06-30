@@ -703,6 +703,31 @@ ORDER BY Priority, publishedAt DESC
 
 
 
+        public void RemoveUserTag(int userId, int tagId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "DELETE FROM News_UserTags WHERE userId = @UserId AND tagId = @TagId", con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdatePassword(int userId, string newPassword)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "UPDATE News_Users SET Password = @Password WHERE Id = @UserId", con);
+                cmd.Parameters.AddWithValue("@Password", newPassword);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
 
         public int GetOrAddTagId(string tagName)
         {

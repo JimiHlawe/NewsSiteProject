@@ -121,9 +121,29 @@ namespace NewsSite1.Controllers
             return Ok(articles);
         }
 
+        [HttpPost("RemoveTag")]
+        public IActionResult RemoveTag([FromBody] AddTagRequest data)
+        {
+            db.RemoveUserTag(data.UserId, data.TagId);
+            return Ok("Tag removed");
+        }
+
+        [HttpPost("UpdatePassword")]
+        public IActionResult UpdatePassword([FromBody] UpdatePasswordRequest data)
+        {
+            db.UpdatePassword(data.UserId, data.NewPassword);
+            return Ok("Password updated");
+        }
+
+
     }
 
 
+    public class UpdatePasswordRequest
+    {
+        public int UserId { get; set; }
+        public string NewPassword { get; set; }
+    }
 
     public class SaveArticleRequest
     {
