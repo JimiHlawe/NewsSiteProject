@@ -3,7 +3,22 @@
 function switchToSignup() {
     document.getElementById("signinForm").style.display = "none";
     document.getElementById("signupForm").style.display = "block";
+
+    // טען את התגיות ברגע שעוברים למסך ההרשמה
+    fetch(apiBase + "/Users/AllTags")
+        .then(res => res.json())
+        .then(tags => {
+            const container = document.getElementById("signupTagsContainer");
+            container.innerHTML = "";
+            tags.forEach(tag => {
+                container.innerHTML += `
+                    <label>
+                        <input type="checkbox" value="${tag.id}"> ${tag.name}
+                    </label><br>`;
+            });
+        });
 }
+
 
 function switchToSignin() {
     document.getElementById("signupForm").style.display = "none";
@@ -78,11 +93,16 @@ $(document).ready(function () {
             return;
         }
 
+        var checked = document.querySelectorAll("#signupTagsContainer input:checked");
+        var selectedTags = [];
+        checked.forEach(chk => selectedTags.push(parseInt(chk.value)));
+
         var user = {
             name: name,
             email: email,
             password: password,
-            active: true
+            active: true,
+            tags: selectedTags // 🔥 שולח את התגיות ביחד!
         };
 
         $.ajax({
@@ -90,9 +110,10 @@ $(document).ready(function () {
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(user),
-            success: function () {
+            success: function (createdUser) {
                 alert("Registered successfully");
-                switchToSignin();
+                sessionStorage.setItem("loggedUser", JSON.stringify(createdUser));
+                window.location.href = "index.html";
             },
             error: function () {
                 $("#signupError").text("Register failed. Email may already exist.").addClass("show");
@@ -100,3 +121,19 @@ $(document).ready(function () {
         });
     });
 });
+
+// ✅ פונקציה לשמירת תחומי עניין
+function saveUserTags() {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const checked = document.querySelectorAll("#tagsContainer input:checked");
+    checked.forEach(chk => {
+        fetch(apiBase + "/Users/AddTag", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user.id, tagId: chk.value })
+        });
+    });
+
+    alert("Tags saved!");
+    window.location.href = "index.html";
+}

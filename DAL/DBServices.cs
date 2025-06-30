@@ -38,29 +38,44 @@ namespace NewsSite1.DAL
 
         // ===================== USERS =====================
 
-        public bool RegisterUser(User user)
+        public int RegisterUser(UserWithTags user)
         {
+            int newUserId;
+
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_RegisterUser", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                SqlCommand cmd = new SqlCommand(@"
+            INSERT INTO News_Users (Name, Email, Password, Active)
+            OUTPUT INSERTED.Id
+            VALUES (@Name, @Email, @Password, @Active)", con);
+
                 cmd.Parameters.AddWithValue("@Name", user.Name);
                 cmd.Parameters.AddWithValue("@Email", user.Email);
                 cmd.Parameters.AddWithValue("@Password", user.Password);
+                cmd.Parameters.AddWithValue("@Active", user.Active);
 
-                try
+                newUserId = (int)cmd.ExecuteScalar();
+            }
+
+            // שמירת תחומי עניין
+            using (SqlConnection con = connect())
+            {
+                foreach (int tagId in user.Tags)
                 {
+                    SqlCommand cmd = new SqlCommand(@"
+                INSERT INTO News_UserTags (userId, tagId)
+                VALUES (@UserId, @TagId)", con);
+
+                    cmd.Parameters.AddWithValue("@UserId", newUserId);
+                    cmd.Parameters.AddWithValue("@TagId", tagId);
+
                     cmd.ExecuteNonQuery();
-                    return true;
-                }
-                catch (SqlException)
-                {
-                    return false;
                 }
             }
+
+            return newUserId;
         }
+
 
         public User LoginUser(string email, string password)
         {
@@ -135,27 +150,6 @@ namespace NewsSite1.DAL
 
         // ===================== ARTICLES =====================
 
-        public void AddArticle(Article article)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddArticle", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-
-                cmd.Parameters.AddWithValue("@Title", article.Title);
-                cmd.Parameters.AddWithValue("@Description", article.Description);
-                cmd.Parameters.AddWithValue("@Content", article.Content);
-                cmd.Parameters.AddWithValue("@Author", article.Author);
-                cmd.Parameters.AddWithValue("@SourceName", article.SourceName);
-                cmd.Parameters.AddWithValue("@SourceUrl", article.SourceUrl);
-                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl);
-                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt);
-
-                cmd.ExecuteNonQuery();
-            }
-        }
 
         public List<Article> GetAllArticles()
         {
@@ -244,7 +238,7 @@ namespace NewsSite1.DAL
 
         public List<Article> GetSavedArticles(int userId)
         {
-            List<Article> articles = new List<Article>();
+            Dictionary<int, Article> articlesDict = new Dictionary<int, Article>();
 
             using (SqlConnection con = connect())
             {
@@ -257,24 +251,37 @@ namespace NewsSite1.DAL
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    Article a = new Article
+                    int articleId = (int)reader["id"];
+
+                    if (!articlesDict.ContainsKey(articleId))
                     {
-                        Id = (int)reader["id"],
-                        Title = reader["title"]?.ToString(),
-                        Description = reader["description"]?.ToString(),
-                        Content = reader["content"]?.ToString(),
-                        Author = reader["author"]?.ToString(),
-                        SourceName = reader["sourceName"]?.ToString(),
-                        SourceUrl = reader["url"]?.ToString(),
-                        ImageUrl = reader["imageUrl"]?.ToString(),
-                        PublishedAt = (DateTime)reader["publishedAt"]
-                    };
-                    articles.Add(a);
+                        Article a = new Article
+                        {
+                            Id = articleId,
+                            Title = reader["title"]?.ToString(),
+                            Description = reader["description"]?.ToString(),
+                            Content = reader["content"]?.ToString(),
+                            Author = reader["author"]?.ToString(),
+                            SourceName = reader["sourceName"]?.ToString(),
+                            SourceUrl = reader["url"]?.ToString(),
+                            ImageUrl = reader["imageUrl"]?.ToString(),
+                            PublishedAt = (DateTime)reader["publishedAt"],
+                            Tags = new List<string>()
+                        };
+                        articlesDict.Add(articleId, a);
+                    }
+
+                    string tagName = reader["TagName"]?.ToString();
+                    if (!string.IsNullOrEmpty(tagName) && !articlesDict[articleId].Tags.Contains(tagName))
+                    {
+                        articlesDict[articleId].Tags.Add(tagName);
+                    }
                 }
             }
 
-            return articles;
+            return articlesDict.Values.ToList();
         }
+
 
         public void RemoveSavedArticle(int userId, int articleId)
         {
@@ -327,6 +334,58 @@ namespace NewsSite1.DAL
                 foreach (var article in articles)
                 {
                     article.Tags = GetTagsForArticle(article.Id);
+                }
+            }
+
+            return articles;
+        }
+
+
+        public List<ArticleWithTags> GetArticlesPaginated(int page, int pageSize)
+        {
+            List<ArticleWithTags> articles = new List<ArticleWithTags>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesPaginated", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@Page", page);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
+
+                using (SqlDataReader rdr = cmd.ExecuteReader())
+                {
+                    Dictionary<int, ArticleWithTags> dict = new Dictionary<int, ArticleWithTags>();
+
+                    while (rdr.Read())
+                    {
+                        int id = Convert.ToInt32(rdr["Id"]);
+
+                        if (!dict.ContainsKey(id))
+                        {
+                            dict[id] = new ArticleWithTags
+                            {
+                                Id = id,
+                                Title = rdr["Title"].ToString(),
+                                Description = rdr["Description"]?.ToString(),
+                                ImageUrl = rdr["ImageUrl"]?.ToString(),
+                                SourceUrl = rdr["Url"]?.ToString(),
+                                Author = rdr["Author"]?.ToString(),
+                                PublishedAt = rdr["PublishedAt"] == DBNull.Value
+                                    ? null
+                                    : (DateTime?)Convert.ToDateTime(rdr["PublishedAt"]),
+                                Tags = new List<string>()
+                            };
+                        }
+
+                        if (rdr["TagName"] != DBNull.Value)
+                        {
+                            dict[id].Tags.Add(rdr["TagName"].ToString());
+                        }
+                    }
+
+                    articles = dict.Values.ToList();
                 }
             }
 
@@ -539,6 +598,185 @@ namespace NewsSite1.DAL
 
             return tags;
         }
+        public int AddArticleWithTags(ArticleWithTags article)
+        {
+            int newArticleId;
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            INSERT INTO News_Articles (Title, Description, ImageUrl, Url, PublishedAt, Author)
+            OUTPUT INSERTED.Id
+            VALUES (@Title, @Description, @ImageUrl, @Url, @PublishedAt, @Author)
+        ", con);
+
+                cmd.Parameters.AddWithValue("@Title", article.Title ?? "");
+                cmd.Parameters.AddWithValue("@Description", article.Description ?? "");
+                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl ?? "");
+                cmd.Parameters.AddWithValue("@Url", article.SourceUrl ?? "");
+                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Author", article.Author ?? "");
+
+                newArticleId = (int)cmd.ExecuteScalar();
+            }
+
+            // אחרי הוספת הכתבה: טיפול בתגיות
+            foreach (string tagName in article.Tags)
+            {
+                int tagId = GetOrAddTagId(tagName);
+                InsertArticleTag(newArticleId, tagId);
+            }
+
+            return newArticleId;
+        }
+
+public List<Article> GetArticlesFilteredByTags(int userId)
+{
+    Dictionary<int, Article> articles = new Dictionary<int, Article>();
+
+    using (SqlConnection con = connect())
+    {
+                SqlCommand cmd = new SqlCommand(@"
+(
+    -- 1️⃣ כתבות עם תיוגים רלוונטיים
+    SELECT A.*, T.name AS TagName, 1 AS Priority
+    FROM News_Articles A
+    JOIN News_ArticleTags AT ON A.id = AT.articleId
+    JOIN News_Tags T ON AT.tagId = T.id
+    JOIN News_UserTags UT ON UT.tagId = AT.tagId
+    WHERE UT.userId = @UserId
+
+    UNION ALL
+
+    -- 2️⃣ כתבות ללא תיוג בכלל
+    SELECT A.*, NULL AS TagName, 2 AS Priority
+    FROM News_Articles A
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM News_ArticleTags AT
+        WHERE AT.articleId = A.id
+    )
+
+    UNION ALL
+
+    -- 3️⃣ כתבות אחרות עם תיוגים לא שלך
+    SELECT A.*, T.name AS TagName, 3 AS Priority
+    FROM News_Articles A
+    JOIN News_ArticleTags AT ON A.id = AT.articleId
+    JOIN News_Tags T ON AT.tagId = T.id
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM News_UserTags UT
+        WHERE UT.tagId = AT.tagId AND UT.userId = @UserId
+    )
+)
+ORDER BY Priority, publishedAt DESC
+
+", con);
+
+
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+        SqlDataReader reader = cmd.ExecuteReader();
+        while (reader.Read())
+        {
+            int id = (int)reader["id"];
+            if (!articles.ContainsKey(id))
+            {
+                Article article = new Article
+                {
+                    Id = id,
+                    Title = reader["title"] as string ?? "",
+                    Description = reader["description"] as string ?? "",
+                    Content = reader["content"] as string ?? "",
+                    Author = reader["author"] as string ?? "",
+                    SourceName = reader["sourceName"] as string ?? "",
+                    SourceUrl = reader["url"] as string ?? "",
+                    ImageUrl = reader["imageUrl"] as string ?? "",
+                    PublishedAt = reader["publishedAt"] == DBNull.Value
+                        ? DateTime.MinValue
+                        : Convert.ToDateTime(reader["publishedAt"]),
+                    Tags = new List<string>()
+                };
+
+                articles.Add(id, article);
+            }
+
+            // הוספת Tag רק אם באמת קיים
+            string tagName = reader["TagName"] as string;
+            if (!string.IsNullOrEmpty(tagName) && !articles[id].Tags.Contains(tagName))
+            {
+                articles[id].Tags.Add(tagName);
+            }
+        }
+    }
+
+    return articles.Values.ToList();
+}
+
+
+
+        public void RemoveUserTag(int userId, int tagId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "DELETE FROM News_UserTags WHERE userId = @UserId AND tagId = @TagId", con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void UpdatePassword(int userId, string newPassword)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "UPDATE News_Users SET Password = @Password WHERE Id = @UserId", con);
+                cmd.Parameters.AddWithValue("@Password", newPassword);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+
+        public int GetOrAddTagId(string tagName)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "SELECT Id FROM News_Tags WHERE Name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", tagName);
+
+                object result = cmd.ExecuteScalar();
+                if (result != null)
+                    return (int)result;
+
+                cmd = new SqlCommand(
+                    "INSERT INTO News_Tags (Name) OUTPUT INSERTED.Id VALUES (@Name)", con);
+                cmd.Parameters.AddWithValue("@Name", tagName);
+
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+
+
+        public void InsertArticleTag(int articleId, int tagId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO News_ArticleTags (ArticleId, TagId) VALUES (@ArticleId, @TagId)", con);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@TagId", tagId);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
         public List<string> GetTagsForArticle(int articleId)
         {
@@ -564,6 +802,28 @@ namespace NewsSite1.DAL
             return tags;
         }
 
+        public List<Tag> GetAllTags()
+        {
+            List<Tag> tags = new List<Tag>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllTags", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    tags.Add(new Tag
+                    {
+                        Id = (int)reader["id"],
+                        Name = (string)reader["name"]
+                    });
+                }
+            }
+            return tags;
+        }
 
     }
 }
