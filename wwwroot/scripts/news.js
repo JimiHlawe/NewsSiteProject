@@ -244,7 +244,7 @@ function stopAutoSlide() {
 
 // ✅ Sidebar רגיל שלך
 function loadSidebarSections() {
-    fetch("/api/Articles/Paginated?page=1&pageSize=5")
+    fetch("/api/Articles/Paginated?page=1&pageSize=8")
         .then(res => res.json())
         .then(articles => {
             const hot = document.getElementById("hotNews");
