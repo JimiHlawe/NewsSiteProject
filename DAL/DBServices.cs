@@ -238,7 +238,7 @@ namespace NewsSite1.DAL
 
         public List<Article> GetSavedArticles(int userId)
         {
-            List<Article> articles = new List<Article>();
+            Dictionary<int, Article> articlesDict = new Dictionary<int, Article>();
 
             using (SqlConnection con = connect())
             {
@@ -251,24 +251,37 @@ namespace NewsSite1.DAL
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    Article a = new Article
+                    int articleId = (int)reader["id"];
+
+                    if (!articlesDict.ContainsKey(articleId))
                     {
-                        Id = (int)reader["id"],
-                        Title = reader["title"]?.ToString(),
-                        Description = reader["description"]?.ToString(),
-                        Content = reader["content"]?.ToString(),
-                        Author = reader["author"]?.ToString(),
-                        SourceName = reader["sourceName"]?.ToString(),
-                        SourceUrl = reader["url"]?.ToString(),
-                        ImageUrl = reader["imageUrl"]?.ToString(),
-                        PublishedAt = (DateTime)reader["publishedAt"]
-                    };
-                    articles.Add(a);
+                        Article a = new Article
+                        {
+                            Id = articleId,
+                            Title = reader["title"]?.ToString(),
+                            Description = reader["description"]?.ToString(),
+                            Content = reader["content"]?.ToString(),
+                            Author = reader["author"]?.ToString(),
+                            SourceName = reader["sourceName"]?.ToString(),
+                            SourceUrl = reader["url"]?.ToString(),
+                            ImageUrl = reader["imageUrl"]?.ToString(),
+                            PublishedAt = (DateTime)reader["publishedAt"],
+                            Tags = new List<string>()
+                        };
+                        articlesDict.Add(articleId, a);
+                    }
+
+                    string tagName = reader["TagName"]?.ToString();
+                    if (!string.IsNullOrEmpty(tagName) && !articlesDict[articleId].Tags.Contains(tagName))
+                    {
+                        articlesDict[articleId].Tags.Add(tagName);
+                    }
                 }
             }
 
-            return articles;
+            return articlesDict.Values.ToList();
         }
+
 
         public void RemoveSavedArticle(int userId, int articleId)
         {

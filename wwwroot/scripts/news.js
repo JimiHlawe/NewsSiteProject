@@ -26,21 +26,15 @@ function loadAllArticlesAndSplit() {
         return;
     }
 
-    console.log("🔑 Loading articles for user:", user.id);
-
     fetch(`/api/Users/All?userId=${user.id}`)
         .then(res => {
             if (!res.ok) throw new Error("Failed to load articles");
             return res.json();
         })
         .then(data => {
-            console.log("✅ Articles fetched:", data);
-
-            // ✨ הקרוסלה: 5 הכתבות הכי חדשות
             carouselArticles = data.slice(0, 5);
             initCarousel();
 
-            // ✨ הגריד: כל שאר הכתבות אחרי 5 הראשונות
             allArticles = data.slice(5, 5 + pageSize * currentPage);
             renderVisibleArticles();
 
@@ -65,6 +59,11 @@ function renderVisibleArticles() {
         div.className = "article-card";
 
         const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
+        const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
 
         div.innerHTML = `
             <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
@@ -73,8 +72,8 @@ function renderVisibleArticles() {
                 <h3 class="article-title">${article.title}</h3>
                 <p class="article-description">${article.description?.substring(0, 150)}</p>
                 <div class="article-meta">
-                    <span>${article.author}</span>
-                    <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
+                    <span>${article.author || 'Unknown Author'}</span>
+                    <span>${formattedDate}</span>
                 </div>
                 <div class="article-actions">
                     <button class="save-btn" onclick="saveArticle(${article.id})">Save</button>
@@ -257,13 +256,18 @@ function loadSidebarSections() {
                 section.innerHTML = "";
                 const chunk = articles.slice(i * 3, i * 3 + 3);
                 chunk.forEach(article => {
+                    const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
                     const div = document.createElement("div");
                     div.className = "sidebar-item";
                     div.innerHTML = `
                         <img src="${article.imageUrl || 'https://via.placeholder.com/60'}" />
                         <div class="sidebar-item-content">
                             <h6>${article.title?.substring(0, 40)}...</h6>
-                            <div class="date">${new Date(article.publishedAt).toLocaleDateString()}</div>
+                            <div class="date">${formattedDate}</div>
                         </div>
                     `;
                     section.appendChild(div);
