@@ -1,9 +1,7 @@
-﻿
-// ✅ משתנים גלובליים
+﻿// ✅ משתנים גלובליים
 let currentPage = 1;
 const pageSize = 6;
 let allArticles = [];
-
 
 // ✅ קבלת משתמש מחובר
 function getLoggedUser() {
@@ -16,8 +14,8 @@ function getShareForm(articleId) {
     return `
         <div id="shareForm-${articleId}" class="share-form mt-2" style="display:none;">
             <select class="form-select mb-2" id="shareType-${articleId}" onchange="toggleShareType(${articleId})">
-                <option value="private">📤 Share with user</option>
-                <option value="public">🌍 Share with everyone</option>
+                <option value="private">Share with user</option>
+                <option value="public">Share with everyone</option>
             </select>
             <input type="text" placeholder="Target username" id="targetUser-${articleId}" class="form-control mb-2" />
             <textarea placeholder="Add a comment" id="comment-${articleId}" class="form-control mb-2"></textarea>
@@ -27,39 +25,36 @@ function getShareForm(articleId) {
 
 // ✅ התחלה בעת טעינת הדף
 document.addEventListener("DOMContentLoaded", () => {
-    // ביטול זמני של ImportExternal:
-    // fetch("/api/Articles/ImportExternal", { method: "POST" })
-    //     .finally(() => {
-    //         loadCarouselArticles();
-    //         loadArticlesGrid();
-    //         loadSidebarSections();
-    //     });
-
-    // מריץ ישר את השאר:
     loadCarouselArticles();
     loadArticlesGrid();
     loadSidebarSections();
 });
 
-
-// ✅ טוען כתבות לפי עמוד מהשרת (Load More)
+// ✅ טוען כתבות מסוננות לפי תחומי עניין
 function loadArticlesGrid() {
-    fetch(`/api/Articles/Paginated?page=${currentPage}&pageSize=${pageSize}`)
-        .then(res => res.json())
+    const user = getLoggedUser();
+    if (!user?.id) {
+        console.error("No logged user found");
+        return;
+    }
+
+    fetch(`/api/Users/All?userId=${user.id}`)
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to load articles");
+            return res.json();
+        })
         .then(data => {
-            // מוסיף את התוצאות לרשימה קיימת
-            allArticles = allArticles.concat(data);
+            allArticles = data.slice(0, pageSize * currentPage);
             renderVisibleArticles();
 
-            // הסתר כפתור Load More אם הגענו לסוף
-            if (data.length < pageSize) {
+            if (allArticles.length >= data.length) {
                 document.getElementById("loadMoreBtn").style.display = "none";
             } else {
                 document.getElementById("loadMoreBtn").style.display = "block";
             }
         })
         .catch(err => {
-            console.error("שגיאה בטעינת כתבות:", err);
+            console.error("Error:", err);
         });
 }
 
@@ -94,19 +89,13 @@ function renderVisibleArticles() {
 
         grid.appendChild(div);
     });
-
-    const btn = document.getElementById("loadMoreBtn");
-    btn.style.display = (allArticles.length % pageSize !== 0) ? "none" : "block";
 }
-
-
 
 // ✅ כפתור Load More
 function loadMoreArticles() {
     currentPage++;
     loadArticlesGrid();
 }
-
 
 // ✅ שמירת כתבה
 function saveArticle(articleId) {
@@ -218,7 +207,7 @@ function loadCarouselArticles() {
             carouselArticles = data.slice(0, 5);
             initCarousel();
         })
-        .catch(err => console.error("שגיאה בטעינת קרוסלה:", err));
+        .catch(err => console.error("Error", err));
 }
 
 function initCarousel() {

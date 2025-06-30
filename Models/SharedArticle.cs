@@ -11,8 +11,9 @@
         public SharedArticle(int id, string title, string description, string content,
                              string author, string sourceName, string sourceUrl,
                              string imageUrl, DateTime publishedAt,
+                             List<string> tags,
                              string comment, DateTime sharedAt, string senderName)
-            : base(id, title, description, content, author, sourceName, sourceUrl, imageUrl, publishedAt)
+            : base(id, title, description, content, author, sourceName, sourceUrl, imageUrl, publishedAt, tags)
         {
             this.comment = comment;
             this.sharedAt = sharedAt;

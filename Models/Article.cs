@@ -11,11 +11,13 @@
         private string sourceUrl = "";
         private string imageUrl = "";
         private DateTime publishedAt;
+        private List<string> tags = new List<string>();
 
         public Article() { }
 
         public Article(int id, string title, string description, string content,
-                       string author, string sourceName, string sourceUrl, string imageUrl, DateTime publishedAt)
+                       string author, string sourceName, string sourceUrl,
+                       string imageUrl, DateTime publishedAt, List<string> tags)
         {
             this.id = id;
             this.title = title;
@@ -26,6 +28,7 @@
             this.sourceUrl = sourceUrl;
             this.imageUrl = imageUrl;
             this.publishedAt = publishedAt;
+            this.tags = tags;
         }
 
         public int Id { get => id; set => id = value; }
@@ -37,5 +40,6 @@
         public string SourceUrl { get => sourceUrl; set => sourceUrl = value; }
         public string ImageUrl { get => imageUrl; set => imageUrl = value; }
         public DateTime PublishedAt { get => publishedAt; set => publishedAt = value; }
+        public List<string> Tags { get => tags; set => tags = value; }
     }
 }

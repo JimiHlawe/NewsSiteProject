@@ -17,16 +17,22 @@ namespace NewsSite1.Controllers
 
         // --- POST: api/Users/Register
         [HttpPost("Register")]
-        public IActionResult Register([FromBody] User user)
+        public IActionResult Register([FromBody] UserWithTags user)
         {
             if (user == null)
                 return BadRequest("Invalid user data");
 
-            bool success = db.RegisterUser(user);
-            if (success)
-                return Ok("User registered successfully");
+            int newUserId = db.RegisterUser(user);
+
+            if (newUserId > 0)
+            {
+                user.Id = newUserId;
+                return Ok(user); // מחזיר את המשתמש עם ה-ID החדש
+            }
             else
+            {
                 return Conflict("Email already exists");
+            }
         }
 
         [HttpGet("AllUsers")]
@@ -37,7 +43,6 @@ namespace NewsSite1.Controllers
         }
 
 
-        // --- POST: api/Users/Login
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest loginUser)
         {
@@ -91,6 +96,21 @@ namespace NewsSite1.Controllers
             {
                 return StatusCode(500, "Error: " + ex.Message);
             }
+        }
+
+        [HttpGet("AllTags")]
+        public IActionResult GetAllTags()
+        {
+            var tags = db.GetAllTags();
+            return Ok(tags);
+        }
+
+
+        [HttpGet("All")]
+        public IActionResult GetAll(int userId)
+        {
+            var articles = db.GetArticlesFilteredByTags(userId);
+            return Ok(articles);
         }
 
 
