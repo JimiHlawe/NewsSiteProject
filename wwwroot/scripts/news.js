@@ -68,7 +68,7 @@ function renderVisibleArticles() {
         // 🔧 תיקון: התגיות עכשיו על התמונה בצד שמאל למעלה
         div.innerHTML = `
             <div class="article-image-container">
-                <img src="${article.imageUrl || 'https://via.placeholder.com/800x600'}" class="article-image">
+                <img src="${article.imageUrl || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'}" class="article-image">
                 <div class="article-tags">${tagsHtml}</div>
                 <div class="article-overlay"></div>
             </div>
@@ -284,3 +284,38 @@ function loadSidebarSections() {
             });
         });
 }
+function toggleAddArticleForm() {
+    const form = document.getElementById("addArticleForm");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+function submitNewArticle(event) {
+    if (event) event.preventDefault();
+
+    const tagsRaw = document.getElementById("newTags").value;
+    const tags = tagsRaw.split(",").map(s => s.trim()).filter(s => s !== "");
+
+    const newArticle = {
+        title: document.getElementById("newTitle").value,
+        description: document.getElementById("newDescription").value,
+        content: document.getElementById("newContent").value,
+        author: document.getElementById("newAuthor").value,
+        sourceUrl: document.getElementById("newSourceUrl").value,
+        imageUrl: document.getElementById("newImageUrl").value,
+        publishedAt: document.getElementById("newPublishedAt").value,
+        tags: tags
+    };
+
+    console.log(newArticle);
+
+    fetch("/api/Articles/AddUserArticle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newArticle)
+    })
+        .then(res => res.ok ? res.json() : res.text())
+        .then(data => console.log(data))
+        .catch(err => console.error(err));
+}
+
+

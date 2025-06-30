@@ -30,7 +30,7 @@ public class ArticlesController : ControllerBase
     [HttpGet("Filter")]
     public IActionResult Filter(string? sourceName, string? title, DateTime? from, DateTime? to)
     {
-        List<Article> result = _db.FilterArticles(sourceName, title, from, to);
+        List<Article> result = _db.FilterArticles(title, from, to);
         return Ok(result);
     }
 
@@ -171,6 +171,39 @@ public class ArticlesController : ControllerBase
     {
         var paged = _db.GetArticlesPaginated(page, pageSize);
         return Ok(paged);
+    }
+
+    [HttpPost("AddUserArticle")]
+    public IActionResult AddUserArticle([FromBody] Article article)
+    {
+        if (article == null ||
+            string.IsNullOrEmpty(article.Title) ||
+            string.IsNullOrEmpty(article.Description) ||
+            string.IsNullOrEmpty(article.Content) ||
+            string.IsNullOrEmpty(article.Author) ||
+            string.IsNullOrEmpty(article.SourceUrl) ||
+            string.IsNullOrEmpty(article.ImageUrl) ||
+            article.PublishedAt == default)
+        {
+            return BadRequest("Invalid article data");
+        }
+
+        // ✅ ודא ש-Tags לא null
+        if (article.Tags == null)
+        {
+            article.Tags = new List<string>();
+        }
+
+        try
+        {
+            int newId = _db.AddUserArticle(article);
+            article.Id = newId;
+            return Ok(article);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error: " + ex.Message);
+        }
     }
 
 

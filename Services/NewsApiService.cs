@@ -38,7 +38,6 @@ namespace NewsSite1.Services
                     Description = a.Description ?? "",
                     Content = a.Content ?? "",
                     Author = a.Author ?? "",
-                    SourceName = a.Source?.Name ?? "",
                     SourceUrl = a.Url ?? "",
                     ImageUrl = a.UrlToImage ?? "",
                     PublishedAt = DateTime.TryParse(a.PublishedAt, out DateTime dt) ? dt : DateTime.MinValue

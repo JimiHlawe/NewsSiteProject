@@ -172,7 +172,6 @@ namespace NewsSite1.DAL
                         Description = reader["description"]?.ToString(),
                         Content = reader["content"]?.ToString(),
                         Author = reader["author"]?.ToString(),
-                        SourceName = reader["sourceName"]?.ToString(),
                         SourceUrl = reader["url"]?.ToString(),
                         ImageUrl = reader["imageUrl"]?.ToString(),
                         PublishedAt = (DateTime)reader["publishedAt"]
@@ -184,7 +183,7 @@ namespace NewsSite1.DAL
             return articles;
         }
 
-        public List<Article> FilterArticles(string sourceName, string title, DateTime? from, DateTime? to)
+        public List<Article> FilterArticles(string title, DateTime? from, DateTime? to)
         {
             using (SqlConnection con = connect())
             {
@@ -193,7 +192,6 @@ namespace NewsSite1.DAL
                     CommandType = CommandType.StoredProcedure
                 };
 
-                cmd.Parameters.AddWithValue("@SourceName", (object?)sourceName ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Title", (object?)title ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@FromDate", (object?)from ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@ToDate", (object?)to ?? DBNull.Value);
@@ -210,7 +208,6 @@ namespace NewsSite1.DAL
                         Description = (string)reader["description"],
                         Content = (string)reader["content"],
                         Author = (string)reader["author"],
-                        SourceName = (string)reader["sourceName"],
                         SourceUrl = (string)reader["url"],
                         ImageUrl = (string)reader["imageUrl"],
                         PublishedAt = (DateTime)reader["publishedAt"]
@@ -262,7 +259,6 @@ namespace NewsSite1.DAL
                             Description = reader["description"]?.ToString(),
                             Content = reader["content"]?.ToString(),
                             Author = reader["author"]?.ToString(),
-                            SourceName = reader["sourceName"]?.ToString(),
                             SourceUrl = reader["url"]?.ToString(),
                             ImageUrl = reader["imageUrl"]?.ToString(),
                             PublishedAt = (DateTime)reader["publishedAt"],
@@ -281,6 +277,44 @@ namespace NewsSite1.DAL
 
             return articlesDict.Values.ToList();
         }
+        public int AddUserArticle(Article article)
+        {
+            int newArticleId;
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            INSERT INTO News_Articles (Title, Description, Content, Author, url, ImageUrl, PublishedAt)
+            OUTPUT INSERTED.Id
+            VALUES (@Title, @Description, @Content, @Author, @SourceUrl, @ImageUrl, @PublishedAt)
+        ", con);
+
+                cmd.Parameters.AddWithValue("@Title", article.Title ?? "");
+                cmd.Parameters.AddWithValue("@Description", article.Description ?? "");
+                cmd.Parameters.AddWithValue("@Content", article.Content ?? "");
+                cmd.Parameters.AddWithValue("@Author", article.Author ?? "");
+                cmd.Parameters.AddWithValue("@SourceUrl", article.SourceUrl ?? "");
+                cmd.Parameters.AddWithValue("@ImageUrl", article.ImageUrl ?? "");
+                cmd.Parameters.AddWithValue("@PublishedAt", article.PublishedAt);
+
+                newArticleId = (int)cmd.ExecuteScalar();
+            }
+
+            // ✅ הגנה כפולה
+            if (article.Tags == null)
+            {
+                article.Tags = new List<string>();
+            }
+
+            foreach (string tagName in article.Tags)
+            {
+                int tagId = GetOrAddTagId(tagName);
+                InsertArticleTag(newArticleId, tagId);
+            }
+
+            return newArticleId;
+        }
+
 
 
         public void RemoveSavedArticle(int userId, int articleId)
@@ -690,7 +724,6 @@ ORDER BY Priority, publishedAt DESC
                     Description = reader["description"] as string ?? "",
                     Content = reader["content"] as string ?? "",
                     Author = reader["author"] as string ?? "",
-                    SourceName = reader["sourceName"] as string ?? "",
                     SourceUrl = reader["url"] as string ?? "",
                     ImageUrl = reader["imageUrl"] as string ?? "",
                     PublishedAt = reader["publishedAt"] == DBNull.Value
