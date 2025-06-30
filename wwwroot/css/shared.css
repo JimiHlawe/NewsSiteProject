@@ -1,0 +1,163 @@
+﻿/* Shared Badge */
+.shared-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #059669, #047857);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.article-card:hover .shared-badge {
+    background: linear-gradient(135deg, #047857, #065f46);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+}
+
+/* Shared Info Section */
+.shared-info {
+    background: rgba(248, 250, 252, 0.9);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(203, 213, 225, 0.3);
+    position: relative;
+}
+
+    .shared-info::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #059669, #047857);
+        border-radius: 2px 0 0 2px;
+    }
+
+.shared-by {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.8rem;
+    gap: 0.5rem;
+}
+
+.shared-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-weight: 600;
+    min-width: fit-content;
+}
+
+.shared-name {
+    font-size: 0.9rem;
+    color: var(--primary-slate);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary-slate), var(--primary-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shared-comment {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.comment-label {
+    font-size: 0.85rem;
+    color: var(--text-light);
+    font-weight: 600;
+}
+
+.comment-text {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    font-style: italic;
+    line-height: 1.4;
+    padding: 0.5rem 0.8rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-slate);
+    position: relative;
+}
+
+    .comment-text::before {
+        content: '"';
+        font-size: 1.5rem;
+        color: var(--primary-slate);
+        position: absolute;
+        left: 0.3rem;
+        top: -0.2rem;
+        font-weight: bold;
+    }
+
+    .comment-text::after {
+        content: '"';
+        font-size: 1.5rem;
+        color: var(--primary-slate);
+        position: absolute;
+        right: 0.3rem;
+        bottom: -0.5rem;
+        font-weight: bold;
+    }
+
+/* Enhanced Article Actions for Shared Articles */
+.shared-articles .article-actions .btn {
+    background: linear-gradient(135deg, #059669, #047857);
+    border-color: rgba(5, 150, 105, 0.3);
+}
+
+    .shared-articles .article-actions .btn:hover {
+        background: linear-gradient(135deg, #047857, #065f46);
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+    }
+
+/* Special styling for shared articles container */
+.shared-articles .article-card {
+    border-left: 4px solid #059669;
+}
+
+    .shared-articles .article-card:hover {
+        border-left-color: #047857;
+    }
+
+/* No articles message styling */
+.alert-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border: none;
+    text-align: center;
+    font-size: 1.1rem;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: var(--shadow-md);
+}
+
+/* Enhanced animations for shared articles */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: slideInUp 0.6s ease-out forwards;
+    opacity: 0;
+}
