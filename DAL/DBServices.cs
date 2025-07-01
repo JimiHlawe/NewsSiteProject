@@ -315,6 +315,17 @@ namespace NewsSite1.DAL
             return newArticleId;
         }
 
+        public void BlockUser(int blockerUserId, int blockedUserId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                  "INSERT INTO News_UserBlocks (BlockerUserId, BlockedUserId) VALUES (@Blocker, @Blocked)", con);
+                cmd.Parameters.AddWithValue("@Blocker", blockerUserId);
+                cmd.Parameters.AddWithValue("@Blocked", blockedUserId);
+                cmd.ExecuteNonQuery();
+            }
+        }
 
 
         public void RemoveSavedArticle(int userId, int articleId)
@@ -498,7 +509,8 @@ namespace NewsSite1.DAL
             }
         }
 
-        public List<PublicArticle> GetAllPublicArticles()
+
+        public List<PublicArticle> GetAllPublicArticles(int userId)
         {
             List<PublicArticle> list = new List<PublicArticle>();
 
@@ -528,15 +540,34 @@ namespace NewsSite1.DAL
                         SharedAt = (DateTime)reader["sharedAt"]
                     };
 
-                    // כאן מתווספת שליפת התגובות לכל כתבה
+                    // שליפת תגובות לכתבה
                     article.PublicComments = GetCommentsForPublicArticle(article.PublicArticleId);
 
                     list.Add(article);
                 }
             }
 
+            // סינון לפי רשימת חסומים
+            var blocked = GetBlockedUserIds(userId);
+            return list.Where(a => !blocked.Contains(GetUserIdByUsername(a.SenderName) ?? -1)).ToList();
+        }
+
+
+        public List<int> GetBlockedUserIds(int userId)
+        {
+            var list = new List<int>();
+            using (var con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT BlockedUserId FROM News_UserBlocks WHERE BlockerUserId = @UserId", con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                    list.Add((int)reader["BlockedUserId"]);
+            }
             return list;
         }
+
 
         // ===================== PUBLIC COMMENTS =====================
 

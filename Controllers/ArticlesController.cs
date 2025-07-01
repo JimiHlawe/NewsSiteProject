@@ -77,26 +77,13 @@ public class ArticlesController : ControllerBase
         }
     }
 
-
-
-
-
-
-
-
-    [HttpGet("Public")]
-    public IActionResult GetPublicArticles()
+    [HttpGet("Public/{userId}")]
+    public IActionResult GetPublicArticles(int userId)
     {
-        try
-        {
-            var result = _db.GetAllPublicArticles();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest("DB Error: " + ex.Message); // ← כדי לראות את השגיאה בדפדפן
-        }
+        var all = _db.GetAllPublicArticles(userId);
+        return Ok(all);
     }
+
 
 
 

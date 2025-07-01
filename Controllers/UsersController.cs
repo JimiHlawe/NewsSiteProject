@@ -135,9 +135,29 @@ namespace NewsSite1.Controllers
             return Ok("Password updated");
         }
 
+        [HttpPost("BlockUser")]
+        public IActionResult BlockUser([FromBody] BlockUserRequest req)
+        {
+            if (string.IsNullOrEmpty(req.BlockedUsername))
+                return BadRequest("No user specified.");
+
+            int? blockedId = db.GetUserIdByUsername(req.BlockedUsername);
+            if (blockedId == null) return NotFound("User not found.");
+
+            db.BlockUser(req.BlockerUserId, blockedId.Value);
+            return Ok("Blocked");
+        }
+
+
 
     }
 
+
+    public class BlockUserRequest
+    {
+        public int BlockerUserId { get; set; }
+        public string BlockedUsername { get; set; }
+    }
 
     public class UpdatePasswordRequest
     {

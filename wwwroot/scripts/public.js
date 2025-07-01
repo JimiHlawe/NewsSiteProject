@@ -1,5 +1,10 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-    fetch("/api/Articles/Public")
+    loadPublicArticles();
+});
+
+function loadPublicArticles() {
+    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    fetch("/api/Articles/Public/" + user.id)
         .then(function (res) {
             if (!res.ok) throw new Error("Failed to fetch articles");
             return res.json();
@@ -12,7 +17,7 @@
             console.error("Failed to load public articles:", err);
             showError("publicContainer", "Failed to load articles");
         });
-});
+}
 
 function renderPublicArticles(articles) {
     var container = document.getElementById("publicContainer");
@@ -39,6 +44,7 @@ function createArticleCard(article) {
     html += "<p>" + (article.description || "") + "</p>";
     html += "<p><em>" + (article.initialComment || "") + "</em></p>";
     html += "<div class='mb-2'><strong>Shared by:</strong> " + article.senderName + "</div>";
+    html += `<button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}')">Block ${article.senderName}</button>`;
     html += "<h6>💬 Comments:</h6>";
     html += "<div id='comments-" + id + "'></div>";
     html += "<textarea id='commentBox-" + id + "' class='form-control mb-2' placeholder='Write a comment...'></textarea>";
@@ -46,6 +52,28 @@ function createArticleCard(article) {
 
     div.innerHTML = html;
     return div;
+}
+
+function blockUser(senderName) {
+    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to block ${senderName}?`)) return;
+
+    fetch("/api/Users/BlockUser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            blockerUserId: user.id,
+            blockedUsername: senderName
+        })
+    })
+        .then(res => res.ok ? alert(`✅ ${senderName} blocked!`) : alert("Error blocking user"))
+        .then(() => loadPublicArticles())
+        .catch(() => alert("Error"));
 }
 
 function sendComment(articleId) {
