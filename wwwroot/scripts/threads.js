@@ -1,25 +1,25 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-    loadPublicArticles();
+    loadThreadsArticles();
 });
 
-function loadPublicArticles() {
+function loadThreadsArticles() {
     var user = JSON.parse(sessionStorage.getItem("loggedUser"));
     fetch("/api/Articles/Public/" + user.id)
         .then(function (res) {
-            if (!res.ok) throw new Error("Failed to fetch articles");
+            if (!res.ok) throw new Error("Failed to fetch threads");
             return res.json();
         })
         .then(function (data) {
-            console.log("📦 Articles from DB:", data);
-            renderPublicArticles(data);
+            console.log("📦 Threads from DB:", data);
+            renderThreadsArticles(data);
         })
         .catch(function (err) {
-            console.error("Failed to load public articles:", err);
-            showError("threadsContainer", "Failed to load articles");
+            console.error("Failed to load threads:", err);
+            showError("threadsContainer", "Failed to load threads");
         });
 }
 
-function renderPublicArticles(articles) {
+function renderThreadsArticles(articles) {
     var container = document.getElementById("threadsContainer");
     container.innerHTML = "";
 
@@ -27,29 +27,51 @@ function renderPublicArticles(articles) {
         var article = articles[i];
         var id = article.publicArticleId;
 
-        var card = createArticleCard(article);
+        var card = createThreadCard(article);
         container.appendChild(card);
 
         loadComments(id);
     }
 }
 
-function createArticleCard(article) {
+function createThreadCard(article) {
     var id = article.publicArticleId;
     var div = document.createElement("div");
-    div.className = "article-card p-3 mb-3 border rounded bg-light";
+    div.className = "thread-card p-3 mb-4 border rounded bg-light";
 
-    var html = "";
-    html += "<h5>" + article.title + "</h5>";
-    html += "<p>" + (article.description || "") + "</p>";
-    html += "<p><em>" + (article.initialComment || "") + "</em></p>";
-    html += "<div class='mb-2'><strong>Shared by:</strong> " + article.senderName + "</div>";
-    html += `<button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}')">Block ${article.senderName}</button> `;
-    html += `<button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id})">Report Article</button>`;
-    html += "<h6>💬 Comments:</h6>";
-    html += "<div id='comments-" + id + "'></div>";
-    html += "<textarea id='commentBox-" + id + "' class='form-control mb-2' placeholder='Write a comment...'></textarea>";
-    html += "<button class='btn btn-sm btn-primary' onclick='sendComment(" + id + ")'>Send</button>";
+    var formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+
+    var html = `
+        <div class="initial-comment border-bottom pb-2 mb-3">
+            <strong>${article.senderName}</strong> wrote:
+            <p class="mb-0"><em>${article.initialComment || ""}</em></p>
+        </div>
+
+        <div class="thread-content">
+            <div class="thread-image mb-2">
+                <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="img-fluid rounded">
+            </div>
+            <h5>${article.title}</h5>
+            <p>${article.description || ""}</p>
+
+            <div class="thread-meta mb-2">
+                <strong>Author:</strong> ${article.author || 'Unknown'} |
+                <strong>Date:</strong> ${formattedDate}
+            </div>
+
+            <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}')">Block ${article.senderName}</button>
+            <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id})">Report Article</button>
+
+            <h6>💬 Comments:</h6>
+            <div id="comments-${id}"></div>
+            <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
+            <button class='btn btn-sm btn-primary' onclick='sendComment(${id})'>Send</button>
+        </div>
+    `;
 
     div.innerHTML = html;
     return div;
@@ -73,7 +95,7 @@ function blockUser(senderName) {
         })
     })
         .then(res => res.ok ? alert(`✅ ${senderName} blocked!`) : alert("Error blocking user"))
-        .then(() => loadPublicArticles())
+        .then(() => loadThreadsArticles())
         .catch(() => alert("Error"));
 }
 
