@@ -430,11 +430,11 @@ body {
     position: relative;
 }
 
-.article-card:hover .tag {
-    background: rgba(51, 65, 85, 1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(51, 65, 85, 0.4);
-}
+    .tag:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(71, 85, 105, 0.4);
+        background: rgba(100, 116, 139, 0.9);
+    }
 
 .article-date-badge {
     position: absolute;
