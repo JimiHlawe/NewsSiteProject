@@ -20,20 +20,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ✅ טען את כל הכתבות ואז פצל לקרוסלה וגריד
 function loadAllArticlesAndSplit() {
-    fetch(`/api/Articles/WithTags?page=${currentPage}&pageSize=${pageSize * 5}`)
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to load articles");
-            return res.json();
-        })
+    const user = getLoggedUser();
+    fetch(`/api/Users/All?userId=${user.id}`)
+        .then(res => res.json())
         .then(data => {
             if (!data || data.length === 0) {
                 console.warn("No articles found");
                 return;
             }
-
             carouselArticles = data.slice(0, 5);
-            allArticles = data.slice(5); // כל השאר
-
+            allArticles = data.slice(5);
             initCarousel();
             renderVisibleArticles();
 
