@@ -42,6 +42,16 @@ function renderSharedArticles(articles) {
         // תמונה ברירת מחדל אם אין תמונה
         var imageUrl = article.imageUrl || 'https://via.placeholder.com/400x200?text=Article+Image';
 
+        // עיצוב תאריך
+        var formattedDate = "";
+        if (article.publishedAt) {
+            formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
         var html = `
             <div class='shared-article-card fade-in' style='animation-delay: ${i * 0.1}s'>
                 <div class='shared-image-container'>
@@ -68,6 +78,11 @@ function renderSharedArticles(articles) {
                     ${article.description ? `
                         <p class='shared-description'>${article.description.substring(0, 150)}${article.description.length > 150 ? '...' : ''}</p>
                     ` : ''}
+
+                    <div class='shared-meta mb-2'>
+                        <span class='shared-author'><strong>Author:</strong> ${article.author || 'Unknown'}</span>
+                        ${formattedDate ? ` | <span class='shared-date'><strong>Date:</strong> ${formattedDate}</span>` : ''}
+                    </div>
                     
                     <a href='${article.sourceUrl}' target='_blank' class='read-article-btn'>
                         📖 Read Full Article
