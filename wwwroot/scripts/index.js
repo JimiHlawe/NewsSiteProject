@@ -72,17 +72,20 @@ function renderVisibleArticles() {
                 <span>${formattedDate}</span>
             </div>
             <div class="article-actions">
+                <button class="like-btn" onclick="likeArticle(${article.id})">
+                    <img src="../pictures/like.png" alt="Like" title="Like">
+                </button>
+                <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id})">
+                    <img src="../pictures/comment.png" alt="Comment" title="Comment">
+                </button>
                 <button class="save-btn" onclick="saveArticle(${article.id})">
                     <img src="../pictures/save.png" alt="Save" title="Save">
                 </button>
                 <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})">
                     <img src="../pictures/share.png" alt="Share" title="Share">
                 </button>
-                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})">
-                    
-                </button>
-                <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id})">
-                    <img src="../pictures/comment.png" alt="Comment" title="Comment">
+                 <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})">
+                    <img src="../pictures/report.png" alt="Report" title="Report">
                 </button>
             </div>
             ${getShareForm(article.id)}
