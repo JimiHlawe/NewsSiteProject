@@ -44,7 +44,8 @@ function createArticleCard(article) {
     html += "<p>" + (article.description || "") + "</p>";
     html += "<p><em>" + (article.initialComment || "") + "</em></p>";
     html += "<div class='mb-2'><strong>Shared by:</strong> " + article.senderName + "</div>";
-    html += `<button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}')">Block ${article.senderName}</button>`;
+    html += `<button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}')">Block ${article.senderName}</button> `;
+    html += `<button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id})">Report Article</button>`;
     html += "<h6>💬 Comments:</h6>";
     html += "<div id='comments-" + id + "'></div>";
     html += "<textarea id='commentBox-" + id + "' class='form-control mb-2' placeholder='Write a comment...'></textarea>";
@@ -73,6 +74,32 @@ function blockUser(senderName) {
     })
         .then(res => res.ok ? alert(`✅ ${senderName} blocked!`) : alert("Error blocking user"))
         .then(() => loadPublicArticles())
+        .catch(() => alert("Error"));
+}
+
+function reportArticle(articleId) {
+    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    var reason = prompt("Why do you report this article?");
+    if (!reason) return;
+
+    var payload = {
+        userId: user.id,
+        referenceType: "Article",
+        referenceId: articleId,
+        reason: reason
+    };
+
+    fetch("/api/Articles/Report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.ok ? alert("✅ Report sent!") : alert("Error reporting"))
         .catch(() => alert("Error"));
 }
 
@@ -122,13 +149,41 @@ function loadComments(articleId) {
             for (var i = 0; i < comments.length; i++) {
                 var c = comments[i];
                 var html = "<div class='border rounded p-2 mb-1'><strong>" +
-                    c.username + "</strong>: " + c.comment + "</div>";
+                    c.username + "</strong>: " + c.comment +
+                    ` <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>Report</button>` +
+                    "</div>";
                 container.innerHTML += html;
             }
         })
         .catch(function () {
             console.error("💥 Error loading comments");
         });
+}
+
+function reportComment(commentId) {
+    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    var reason = prompt("Why do you report this comment?");
+    if (!reason) return;
+
+    var payload = {
+        userId: user.id,
+        referenceType: "Comment",
+        referenceId: commentId,
+        reason: reason
+    };
+
+    fetch("/api/Articles/Report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => res.ok ? alert("✅ Report sent!") : alert("Error reporting"))
+        .catch(() => alert("Error"));
 }
 
 function showError(containerId, message) {

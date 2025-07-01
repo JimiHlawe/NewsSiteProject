@@ -194,6 +194,30 @@ public class ArticlesController : ControllerBase
     }
 
 
+    [HttpPost("Report")]
+    public IActionResult ReportContent([FromBody] ReportRequest req)
+    {
+        if (req == null || req.UserId <= 0 || string.IsNullOrEmpty(req.ReferenceType))
+            return BadRequest("Invalid report data");
+
+        try
+        {
+            _db.ReportContent(req.UserId, req.ReferenceType, req.ReferenceId, req.Reason);
+            return Ok("Reported");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error: " + ex.Message);
+        }
+    }
 
 
+
+}
+public class ReportRequest
+{
+    public int UserId { get; set; }
+    public string ReferenceType { get; set; } = "";
+    public int ReferenceId { get; set; }
+    public string Reason { get; set; } = "";
 }

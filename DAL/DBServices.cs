@@ -437,6 +437,23 @@ namespace NewsSite1.DAL
             return articles;
         }
 
+        public void ReportContent(int userId, string referenceType, int referenceId, string reason)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            INSERT INTO News_Reports (userId, referenceType, referenceId, reason, reportedAt)
+            VALUES (@UserId, @ReferenceType, @ReferenceId, @Reason, GETDATE())", con);
+
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ReferenceType", referenceType);
+                cmd.Parameters.AddWithValue("@ReferenceId", referenceId);
+                cmd.Parameters.AddWithValue("@Reason", reason ?? "");
+
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
         // ===================== SHARING =====================
         public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
