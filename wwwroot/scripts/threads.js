@@ -15,12 +15,12 @@ function loadPublicArticles() {
         })
         .catch(function (err) {
             console.error("Failed to load public articles:", err);
-            showError("publicContainer", "Failed to load articles");
+            showError("threadsContainer", "Failed to load articles");
         });
 }
 
 function renderPublicArticles(articles) {
-    var container = document.getElementById("publicContainer");
+    var container = document.getElementById("threadsContainer");
     container.innerHTML = "";
 
     for (var i = 0; i < articles.length; i++) {

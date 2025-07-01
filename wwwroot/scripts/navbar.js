@@ -10,7 +10,7 @@
         html += "      <li><a class='nav-link' href='/html/index.html'>Home</a></li>";
         html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
         html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
-        html += "      <li><a class='nav-link' href='/html/public.html'>Threads</a></li>";
+        html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
         html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
         html += "    </ul>";
         html += "    <a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a>";
