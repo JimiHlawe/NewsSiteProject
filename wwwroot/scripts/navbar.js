@@ -8,9 +8,9 @@
         html += "    <a class='navbar-brand' href='/html/index.html'>NEWSPAPER</a>";
         html += "    <ul class='navbar-nav'>";
         html += "      <li><a class='nav-link' href='/html/index.html'>Home</a></li>";
-        html += "      <li><a class='nav-link' href='/html/favorites.html'>Saved Articles</a></li>";
-        html += "      <li><a class='nav-link' href='/html/shared.html'>Shared Articles</a></li>";
-        html += "      <li><a class='nav-link' href='/html/public.html'>Public Shared</a></li>";
+        html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
+        html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
+        html += "      <li><a class='nav-link' href='/html/public.html'>Threads</a></li>";
         html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
         html += "    </ul>";
         html += "    <select class='language-selector'>";
