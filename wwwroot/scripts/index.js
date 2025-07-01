@@ -72,12 +72,21 @@ function renderVisibleArticles() {
                 <span>${formattedDate}</span>
             </div>
             <div class="article-actions">
-                <button class="save-btn" onclick="saveArticle(${article.id})"></button>
-                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})"></button>
-                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})"></button>
+                <button class="save-btn" onclick="saveArticle(${article.id})">
+                    <img src="../pictures/save.png" alt="Save" title="Save">
+                </button>
+                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})">
+                    <img src="../pictures/share.png" alt="Share" title="Share">
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})">
+                    
+                </button>
+                <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id})">
+                    <img src="../pictures/comment.png" alt="Comment" title="Comment">
+                </button>
             </div>
             ${getShareForm(article.id)}
-            <div class="article-comments mt-3">
+            <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
                 <h6>Comments:</h6>
                 <div id="comments-${article.id}"></div>
                 <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
@@ -101,6 +110,14 @@ function renderVisibleArticles() {
 function loadMoreArticles() {
     currentPage++;
     renderVisibleArticles();
+}
+
+// ✅ הצגת/הסתרת תגובות
+function toggleComments(articleId) {
+    const commentsSection = document.getElementById(`commentsSection-${articleId}`);
+    if (commentsSection) {
+        commentsSection.style.display = commentsSection.style.display === "none" ? "block" : "none";
+    }
 }
 
 // ✅ שמירת כתבה
@@ -302,6 +319,7 @@ function initCarousel() {
 
     startAutoSlide();
 }
+
 function goToSlide(index) {
     const slides = document.querySelectorAll(".carousel-slide");
     const dots = document.querySelectorAll(".carousel-dot");
@@ -387,5 +405,3 @@ function submitNewArticle(event) {
         .then(data => console.log(data))
         .catch(err => console.error(err));
 }
-
-
