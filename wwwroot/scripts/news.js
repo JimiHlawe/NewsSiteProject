@@ -72,13 +72,13 @@ function renderVisibleArticles() {
                 <span>${formattedDate}</span>
             </div>
             <div class="article-actions">
-                <button class="save-btn" onclick="saveArticle(${article.id})">Save</button>
-                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})">Share</button>
-                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})">🚩 Report</button>
+                <button class="save-btn" onclick="saveArticle(${article.id})"></button>
+                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})"></button>
+                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})"></button>
             </div>
             ${getShareForm(article.id)}
             <div class="article-comments mt-3">
-                <h6>💬 Comments:</h6>
+                <h6>Comments:</h6>
                 <div id="comments-${article.id}"></div>
                 <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
                 <button onclick="sendComment(${article.id})" class="btn btn-sm btn-primary">Send</button>
