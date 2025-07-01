@@ -13,10 +13,6 @@
         html += "      <li><a class='nav-link' href='/html/public.html'>Threads</a></li>";
         html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
         html += "    </ul>";
-        html += "    <select class='language-selector'>";
-        html += "      <option>English</option>";
-        html += "      <option>עברית</option>";
-        html += "    </select>";
         html += "    <a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a>";
         html += "  </div>";
         html += "</nav>";

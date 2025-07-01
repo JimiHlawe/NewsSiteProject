@@ -148,23 +148,6 @@ body {
         border-color: rgba(220, 38, 38, 0.5);
     }
 
-.language-selector {
-    color: white;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    padding: 0.6rem 1.2rem;
-    border-radius: 25px;
-    cursor: pointer;
-    backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
-}
-
-    .language-selector:hover {
-        background: rgba(255,255,255,0.2);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(255,255,255,0.2);
-    }
-
 /* Enhanced Hero Carousel */
 .hero-carousel {
     position: relative;

@@ -27,27 +27,54 @@ function renderSharedArticles(articles) {
     container.innerHTML = "";
 
     if (articles.length === 0) {
-        container.innerHTML = "<p>No articles shared with you yet.</p>";
+        container.innerHTML = `
+            <div class="no-articles-message fade-in">
+                <h3>📭 No shared articles yet</h3>
+                <p>Articles that friends and colleagues share with you will appear here.</p>
+            </div>
+        `;
         return;
     }
 
     for (var i = 0; i < articles.length; i++) {
         var article = articles[i];
 
-        var imageHtml = "";
-        if (article.imageUrl) {
-            imageHtml = "<img src='" + article.imageUrl + "' style='max-height:200px;' class='mb-2'>";
-        }
+        // תמונה ברירת מחדל אם אין תמונה
+        var imageUrl = article.imageUrl || 'https://via.placeholder.com/400x200?text=Article+Image';
 
-        var html = "";
-        html += "<div class='card mb-3 p-3'>";
-        html += imageHtml;
-        html += "<h4>" + article.title + "</h4>";
-        html += "<p>" + (article.description || "") + "</p>";
-        html += "<p><strong>Shared by:</strong> " + article.senderName + "</p>";
-        html += "<p><strong>Comment:</strong> " + (article.comment || "No comment") + "</p>";
-        html += "<a href='" + article.sourceUrl + "' target='_blank' class='btn btn-primary btn-sm mt-2'>Read Full Article</a>";
-        html += "</div>";
+        var html = `
+            <div class='shared-article-card fade-in' style='animation-delay: ${i * 0.1}s'>
+                <div class='shared-image-container'>
+                    <img src='${imageUrl}' class='shared-image' alt='${article.title}'>
+                </div>
+                
+                <div class='shared-content'>
+                    <div class='shared-info'>
+                        <div class='shared-by'>
+                            <span class='shared-label'>👤 Shared by:</span>
+                            <span class='shared-name'>${article.senderName}</span>
+                        </div>
+                        
+                        ${article.comment && article.comment !== 'No comment' ? `
+                            <div class='shared-comment'>
+                                <span class='comment-label'>💬 Comment:</span>
+                                <div class='comment-text'>${article.comment}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <h3 class='shared-title'>${article.title}</h3>
+                    
+                    ${article.description ? `
+                        <p class='shared-description'>${article.description.substring(0, 150)}${article.description.length > 150 ? '...' : ''}</p>
+                    ` : ''}
+                    
+                    <a href='${article.sourceUrl}' target='_blank' class='read-article-btn'>
+                        📖 Read Full Article
+                    </a>
+                </div>
+            </div>
+        `;
 
         container.innerHTML += html;
     }
