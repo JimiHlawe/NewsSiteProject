@@ -20,33 +20,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ✅ טען את כל הכתבות ואז פצל לקרוסלה וגריד
 function loadAllArticlesAndSplit() {
-    const user = getLoggedUser();
-    if (!user?.id) {
-        console.error("No logged user found");
-        return;
-    }
-
-    fetch(`/api/Users/All?userId=${user.id}`)
+    fetch(`/api/Articles/WithTags?page=${currentPage}&pageSize=${pageSize * 5}`)
         .then(res => {
             if (!res.ok) throw new Error("Failed to load articles");
             return res.json();
         })
         .then(data => {
-            carouselArticles = data.slice(0, 5);
-            initCarousel();
+            if (!data || data.length === 0) {
+                console.warn("No articles found");
+                return;
+            }
 
-            allArticles = data.slice(5, 5 + pageSize * currentPage);
+            carouselArticles = data.slice(0, 5);
+            allArticles = data.slice(5); // כל השאר
+
+            initCarousel();
             renderVisibleArticles();
 
-            if (5 + allArticles.length >= data.length) {
+            if (pageSize >= allArticles.length) {
                 document.getElementById("loadMoreBtn").style.display = "none";
             } else {
                 document.getElementById("loadMoreBtn").style.display = "block";
             }
         })
-        .catch(err => {
-            console.error("❌ Error loading articles:", err);
-        });
+        .catch(err => console.error("❌ Error loading articles:", err));
 }
 
 // ✅ גריד - עם תיקון מיקום התגיות בלבד
@@ -54,57 +51,60 @@ function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
 
-    allArticles.forEach(article => {
+    const visibleArticles = allArticles.slice(0, pageSize * currentPage);
+
+    visibleArticles.forEach(article => {
         const div = document.createElement("div");
         div.className = "article-card";
 
         const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
         const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+            year: 'numeric', month: 'short', day: 'numeric'
         });
 
-        // 🔧 תיקון: התגיות עכשיו על התמונה בצד שמאל למעלה
         div.innerHTML = `
-            <div class="article-image-container">
-                <img src="${article.imageUrl || 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'}" class="article-image">
-                <div class="article-tags">${tagsHtml}</div>
-                <div class="article-overlay"></div>
+        <div class="article-image-container">
+            <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="article-image">
+            <div class="article-tags">${tagsHtml}</div>
+            <div class="article-overlay"></div>
+        </div>
+        <div class="article-content">
+            <h3 class="article-title">${article.title}</h3>
+            <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
+            <div class="article-meta">
+                <span>${article.author || 'Unknown Author'}</span>
+                <span>${formattedDate}</span>
             </div>
-            <div class="article-content">
-                <h3 class="article-title">${article.title}</h3>
-                <p class="article-description">${article.description?.substring(0, 150)}</p>
-                <div class="article-meta">
-                    <span>${article.author || 'Unknown Author'}</span>
-                    <span>${formattedDate}</span>
-                </div>
-                <div class="article-actions">
-                    <button class="save-btn" onclick="saveArticle(${article.id})">Save</button>
-                    <button class="share-btn" onclick="toggleShare(${article.id})">Share</button>
-                </div>
-                ${getShareForm(article.id)}
+            <div class="article-actions">
+                <button class="save-btn" onclick="saveArticle(${article.id})">Save</button>
+                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})">Share</button>
+                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})">🚩 Report</button>
             </div>
-        `;
+            ${getShareForm(article.id)}
+            <div class="article-comments mt-3">
+                <h6>💬 Comments:</h6>
+                <div id="comments-${article.id}"></div>
+                <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
+                <button onclick="sendComment(${article.id})" class="btn btn-sm btn-primary">Send</button>
+            </div>
+        </div>
+    `;
+
         grid.appendChild(div);
+
+        loadComments(article.id);
     });
+
+    if (pageSize * currentPage >= allArticles.length) {
+        document.getElementById("loadMoreBtn").style.display = "none";
+    } else {
+        document.getElementById("loadMoreBtn").style.display = "block";
+    }
 }
 
-// ✅ כפתור Load More
 function loadMoreArticles() {
     currentPage++;
-    const user = getLoggedUser();
-
-    fetch(`/api/Users/All?userId=${user.id}`)
-        .then(res => res.json())
-        .then(data => {
-            allArticles = data.slice(5, 5 + pageSize * currentPage);
-            renderVisibleArticles();
-
-            if (5 + allArticles.length >= data.length) {
-                document.getElementById("loadMoreBtn").style.display = "none";
-            }
-        });
+    renderVisibleArticles();
 }
 
 // ✅ שמירת כתבה
@@ -120,8 +120,95 @@ function saveArticle(articleId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
     })
-        .then(res => res.ok ? alert("Article saved.") : alert("Failed to save."))
-        .catch(() => alert("Network error."));
+        .then(res => res.ok ? alert("✅ Article saved.") : alert("❌ Failed to save."))
+        .catch(() => alert("❌ Network error."));
+}
+
+// ✅ הוספת תגובה
+function sendComment(articleId) {
+    const user = getLoggedUser();
+    const comment = document.getElementById(`commentBox-${articleId}`).value.trim();
+
+    if (!comment) {
+        alert("Please write a comment!");
+        return;
+    }
+
+    fetch("/api/Articles/AddComment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            ArticleId: articleId,
+            UserId: user.id,
+            Comment: comment
+        })
+    })
+        .then(res => {
+            if (res.ok) {
+                document.getElementById(`commentBox-${articleId}`).value = "";
+                loadComments(articleId);
+            } else {
+                alert("❌ Error adding comment");
+            }
+        })
+        .catch(() => alert("❌ Network error"));
+}
+
+// ✅ טעינת תגובות
+function loadComments(articleId) {
+    fetch(`/api/Articles/GetComments/${articleId}`)
+        .then(res => res.json())
+        .then(comments => {
+            const container = document.getElementById(`comments-${articleId}`);
+            container.innerHTML = "";
+            comments.forEach(c => {
+                container.innerHTML += `<div class="border rounded p-2 mb-1">
+                    <strong>${c.username}</strong>: ${c.commentText}
+                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>🚩</button>
+                </div>`;
+            });
+        })
+        .catch(err => console.error(err));
+}
+
+// ✅ דיווח כתבה
+function reportArticle(articleId) {
+    const user = getLoggedUser();
+    const reason = prompt("Why do you want to report this article?");
+    if (!reason) return;
+
+    fetch("/api/Articles/Report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            userId: user.id,
+            referenceType: "Article",
+            referenceId: articleId,
+            reason: reason
+        })
+    })
+        .then(res => res.ok ? alert("✅ Reported!") : alert("❌ Error reporting."))
+        .catch(() => alert("❌ Error reporting."));
+}
+
+// ✅ דיווח תגובה
+function reportComment(commentId) {
+    const user = getLoggedUser();
+    const reason = prompt("Why do you want to report this comment?");
+    if (!reason) return;
+
+    fetch("/api/Articles/Report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            userId: user.id,
+            referenceType: "Comment",
+            referenceId: commentId,
+            reason: reason
+        })
+    })
+        .then(res => res.ok ? alert("✅ Reported!") : alert("❌ Error reporting."))
+        .catch(() => alert("❌ Error reporting."));
 }
 
 // ✅ שיתוף
@@ -188,7 +275,6 @@ function sendShare(articleId) {
 function initCarousel() {
     const container = document.getElementById("carouselContainer");
     const indicators = document.getElementById("carouselIndicators");
-
     container.innerHTML = "";
     indicators.innerHTML = "";
 
@@ -209,8 +295,7 @@ function initCarousel() {
                         <p class="slide-author">${article.author}</p>
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
         container.appendChild(slide);
 
         const dot = document.createElement("div");
@@ -221,25 +306,16 @@ function initCarousel() {
 
     startAutoSlide();
 }
-
 function goToSlide(index) {
     const slides = document.querySelectorAll(".carousel-slide");
     const dots = document.querySelectorAll(".carousel-dot");
-
     slides.forEach((slide, i) => slide.classList.toggle("active", i === index));
     dots.forEach((dot, i) => dot.classList.toggle("active", i === index));
-
     currentSlide = index;
 }
 
 function nextSlide() {
-    const next = (currentSlide + 1) % carouselArticles.length;
-    goToSlide(next);
-}
-
-function prevSlide() {
-    const prev = currentSlide === 0 ? carouselArticles.length - 1 : currentSlide - 1;
-    goToSlide(prev);
+    goToSlide((currentSlide + 1) % carouselArticles.length);
 }
 
 function startAutoSlide() {
@@ -266,9 +342,7 @@ function loadSidebarSections() {
                 const chunk = articles.slice(i * 3, i * 3 + 3);
                 chunk.forEach(article => {
                     const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
+                        year: 'numeric', month: 'short', day: 'numeric'
                     });
                     const div = document.createElement("div");
                     div.className = "sidebar-item";
@@ -277,13 +351,13 @@ function loadSidebarSections() {
                         <div class="sidebar-item-content">
                             <h6>${article.title?.substring(0, 40)}...</h6>
                             <div class="date">${formattedDate}</div>
-                        </div>
-                    `;
+                        </div>`;
                     section.appendChild(div);
                 });
             });
         });
 }
+
 function toggleAddArticleForm() {
     const form = document.getElementById("addArticleForm");
     form.style.display = form.style.display === "none" ? "block" : "none";

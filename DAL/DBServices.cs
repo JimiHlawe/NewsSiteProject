@@ -342,7 +342,7 @@ namespace NewsSite1.DAL
             }
         }
 
-        public List<ArticleWithTags> GetArticlesWithTags()
+        public List<ArticleWithTags> GetArticlesWithTags(int page, int pageSize)
         {
             List<ArticleWithTags> articles = new List<ArticleWithTags>();
 
@@ -352,6 +352,8 @@ namespace NewsSite1.DAL
                 {
                     CommandType = CommandType.StoredProcedure
                 };
+                cmd.Parameters.AddWithValue("@Page", page);
+                cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
                 using (SqlDataReader rdr = cmd.ExecuteReader())
                 {
@@ -368,14 +370,13 @@ namespace NewsSite1.DAL
                             PublishedAt = rdr["PublishedAt"] == DBNull.Value
                                 ? (DateTime?)null
                                 : Convert.ToDateTime(rdr["PublishedAt"]),
-                            Tags = new List<string>() // נטען אחרי הלולאה
+                            Tags = new List<string>()
                         };
 
                         articles.Add(article);
                     }
                 }
 
-                // טוען את התגיות לכל כתבה
                 foreach (var article in articles)
                 {
                     article.Tags = GetTagsForArticle(article.Id);
@@ -384,6 +385,7 @@ namespace NewsSite1.DAL
 
             return articles;
         }
+
 
 
         public List<ArticleWithTags> GetArticlesPaginated(int page, int pageSize)
@@ -454,6 +456,49 @@ namespace NewsSite1.DAL
             }
         }
 
+        // 🟢 הוספת תגובה
+        public void AddCommentToArticle(int articleId, int userId, string comment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Comment", comment);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // 🟢 שליפת תגובות
+        public List<Comment> GetCommentsForArticle(int articleId)
+        {
+            List<Comment> list = new List<Comment>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetCommentsForArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+
+                SqlDataReader rdr = cmd.ExecuteReader();
+                while (rdr.Read())
+                {
+                    Comment c = new Comment
+                    {
+                        Id = (int)rdr["id"],
+                        ArticleId = (int)rdr["articleId"],
+                        UserId = (int)rdr["userId"],
+                        CommentText = rdr["comment"].ToString(), 
+                        CreatedAt = (DateTime)rdr["createdAt"],
+                        Username = rdr["username"].ToString()
+                    };
+                    list.Add(c);
+                }
+            }
+
+            return list;
+        }
 
         // ===================== SHARING =====================
         public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)

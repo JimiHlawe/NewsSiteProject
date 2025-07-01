@@ -137,12 +137,14 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpGet("WithTags")]
-    public IActionResult GetArticlesWithTags()
+    public IActionResult GetArticlesWithTags(int page = 1, int pageSize = 20)
     {
         DBServices dbs = new DBServices();
-        var articles = dbs.GetArticlesWithTags();
+        var articles = dbs.GetArticlesWithTags(page, pageSize);
         return Ok(articles);
     }
+
+
 
 
     [HttpGet("GetTagsForArticle/{articleId}")]
@@ -211,13 +213,50 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    [HttpPost("AddComment")]
+    public IActionResult AddComment([FromBody] CommentRequest comment)
+    {
+        if (comment == null || comment.ArticleId <= 0 || comment.UserId <= 0 || string.IsNullOrWhiteSpace(comment.Comment))
+            return BadRequest("Invalid comment data");
 
+        try
+        {
+            _db.AddCommentToArticle(comment.ArticleId, comment.UserId, comment.Comment);
+            return Ok("Comment added successfully");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error: " + ex.Message);
+        }
+    }
 
-}
-public class ReportRequest
-{
+    [HttpGet("GetComments/{articleId}")]
+    public IActionResult GetComments(int articleId)
+    {
+        try
+        {
+            var comments = _db.GetCommentsForArticle(articleId);
+            return Ok(comments);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error: " + ex.Message);
+        }
+
+    }
+
+    public class CommentRequest
+    {
+        public int ArticleId { get; set; }
+        public int UserId { get; set; }
+        public string Comment { get; set; } = "";
+    }
+    public class ReportRequest
+    {
     public int UserId { get; set; }
     public string ReferenceType { get; set; } = "";
     public int ReferenceId { get; set; }
     public string Reason { get; set; } = "";
+    }
 }
+    
