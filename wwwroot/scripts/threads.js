@@ -39,6 +39,9 @@ function createThreadCard(article) {
     var div = document.createElement("div");
     div.className = "thread-card p-3 mb-4 border rounded bg-light";
 
+    // הוספת cursor pointer וקליק לכרטיס כולו
+    div.style.cursor = 'pointer';
+
     var formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -63,17 +66,27 @@ function createThreadCard(article) {
                 <strong>Date:</strong> ${formattedDate}
             </div>
 
-            <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}')">Block ${article.senderName}</button>
-            <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id})">Report Article</button>
+            <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}'); event.stopPropagation();">Block ${article.senderName}</button>
+            <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id}); event.stopPropagation();">Report Article</button>
 
             <h6>💬 Comments:</h6>
-            <div id="comments-${id}"></div>
-            <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
-            <button class='btn btn-sm btn-primary' onclick='sendComment(${id})'>Send</button>
+            <div id="comments-${id}" onclick="event.stopPropagation();"></div>
+            <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
+            <button class='btn btn-sm btn-primary' onclick='sendComment(${id}); event.stopPropagation();'>Send</button>
         </div>
     `;
 
     div.innerHTML = html;
+
+    // הוספת event listener לכרטיס כולו
+    div.addEventListener('click', function () {
+        if (article.sourceUrl && article.sourceUrl !== '#') {
+            window.open(article.sourceUrl, '_blank');
+        } else {
+            alert('No article URL available');
+        }
+    });
+
     return div;
 }
 
@@ -170,11 +183,18 @@ function loadComments(articleId) {
 
             for (var i = 0; i < comments.length; i++) {
                 var c = comments[i];
-                var html = "<div class='border rounded p-2 mb-1'><strong>" +
+                var commentDiv = document.createElement('div');
+                commentDiv.className = 'border rounded p-2 mb-1';
+                commentDiv.innerHTML = "<strong>" +
                     c.username + "</strong>: " + c.comment +
-                    ` <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>Report</button>` +
-                    "</div>";
-                container.innerHTML += html;
+                    ` <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>`;
+
+                // מניעת קליק על התגובה עצמה
+                commentDiv.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+
+                container.appendChild(commentDiv);
             }
         })
         .catch(function () {

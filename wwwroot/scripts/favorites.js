@@ -68,6 +68,9 @@ function renderSavedArticles(articles) {
         articleElement.className = 'article-card';
         articleElement.style.animationDelay = (index * 0.1) + 's';
 
+        // הוספת cursor pointer וקליק לכרטיס כולו
+        articleElement.style.cursor = 'pointer';
+
         // יצירת תגיות
         var tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join("");
 
@@ -96,11 +99,19 @@ function renderSavedArticles(articles) {
                     <span class="article-reading-time">${readingTime}</span>
                 </div>
                 <div class="article-actions">
-                    <a href="${article.sourceUrl || '#'}" target="_blank" class="btn btn-primary">Read Article</a>
-                    <button onclick="removeFavorite(${article.id})" class="btn btn-danger">Remove</button>
+                    <button onclick="removeFavorite(${article.id}); event.stopPropagation();" class="btn btn-danger">Remove</button>
                 </div>
             </div>
         `;
+
+        // הוספת event listener לכרטיס כולו
+        articleElement.addEventListener('click', function () {
+            if (article.sourceUrl && article.sourceUrl !== '#') {
+                window.open(article.sourceUrl, '_blank');
+            } else {
+                alert('No article URL available');
+            }
+        });
 
         container.appendChild(articleElement);
     });

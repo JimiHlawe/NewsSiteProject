@@ -53,6 +53,9 @@ function renderVisibleArticles() {
         const div = document.createElement("div");
         div.className = "article-card";
 
+        // הוספת cursor pointer וקליק לכרטיס כולו
+        div.style.cursor = 'pointer';
+
         const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
         const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
             year: 'numeric', month: 'short', day: 'numeric'
@@ -72,30 +75,39 @@ function renderVisibleArticles() {
                 <span>${formattedDate}</span>
             </div>
             <div class="article-actions">
-                <button class="like-btn" onclick="likeArticle(${article.id})">
+                <button class="like-btn" onclick="likeArticle(${article.id}); event.stopPropagation();">
                     <img src="../pictures/like.png" alt="Like" title="Like">
                 </button>
-                <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id})">
+                <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id}); event.stopPropagation();">
                     <img src="../pictures/comment.png" alt="Comment" title="Comment">
                 </button>
-                <button class="save-btn" onclick="saveArticle(${article.id})">
+                <button class="save-btn" onclick="saveArticle(${article.id}); event.stopPropagation();">
                     <img src="../pictures/save.png" alt="Save" title="Save">
                 </button>
-                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id})">
+                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
                     <img src="../pictures/share.png" alt="Share" title="Share">
                 </button>
-                 <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id})">
+                 <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
                     <img src="../pictures/report.png" alt="Report" title="Report">
                 </button>
             </div>
             <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
                 <h6>Comments:</h6>
                 <div id="comments-${article.id}"></div>
-                <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..."></textarea>
-                <button onclick="sendComment(${article.id})" class="btn btn-sm btn-primary">Send</button>
+                <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
+                <button onclick="sendComment(${article.id}); event.stopPropagation();" class="btn btn-sm btn-primary">Send</button>
             </div>
         </div>
     `;
+
+        // הוספת event listener לכרטיס כולו
+        div.addEventListener('click', function () {
+            if (article.sourceUrl && article.sourceUrl !== '#') {
+                window.open(article.sourceUrl, '_blank');
+            } else {
+                alert('No article URL available');
+            }
+        });
 
         grid.appendChild(div);
         loadComments(article.id);
