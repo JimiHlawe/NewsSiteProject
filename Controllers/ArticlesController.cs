@@ -10,13 +10,11 @@ public class ArticlesController : ControllerBase
 {
     private readonly DBServices _db;
     private readonly NewsApiService _newsApiService;
-    private readonly ArticleService _articleService;
 
-    public ArticlesController(DBServices db, NewsApiService newsApiService, ArticleService articleService)
+    public ArticlesController(DBServices db, NewsApiService newsApiService)
     {
         _db = db;
         _newsApiService = newsApiService;
-        _articleService = articleService;
     }
 
     [HttpGet("AllFiltered")]
@@ -130,12 +128,13 @@ public class ArticlesController : ControllerBase
 
         foreach (var article in externalArticles)
         {
-            int id = _articleService.SaveArticleAndGetId(article);
+            int id = _db.AddUserArticle(article); 
             article.Id = id;
         }
 
         return Ok(externalArticles);
     }
+
 
     [HttpGet("WithTags")]
     public IActionResult GetArticlesWithTags(int page = 1, int pageSize = 20)
