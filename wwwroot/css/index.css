@@ -80,25 +80,28 @@
 }
 
 .slide-category {
+    display: inline-block;
     background: rgba(71, 85, 105, 0.9);
     color: white;
-    padding: 0.6rem 1.2rem;
-    border-radius: 25px;
-    font-size: 0.9rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    display: inline-block;
-    margin-right: 0.8rem;
-    margin-bottom: 0.5rem;
-    box-shadow: 0 4px 15px rgba(71, 85, 105, 0.3);
+    letter-spacing: 0.5px;
+    box-shadow: 0 3px 12px rgba(71, 85, 105, 0.3);
     transition: all 0.3s ease;
+    border: 1px solid rgba(71, 85, 105, 0.2);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
+    position: relative;
+    margin-right: 0.5rem;
+    margin-bottom: 0.3rem;
 }
 
     .slide-category:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(71, 85, 105, 0.4);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 20px rgba(71, 85, 105, 0.4);
         background: rgba(100, 116, 139, 0.9);
     }
 
@@ -2261,14 +2264,3 @@
     transition: transform 0.1s ease;
 }
 
-/* CSS Variables for consistency */
-:root {
-    --primary-slate: #334155;
-    --primary-gray: #64748b;
-    --primary-blue: #3b82f6;
-    --primary-light: #e2e8f0;
-    --text-dark: #1e293b;
-    --text-light: #64748b;
-    --bg-card: #ffffff;
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
