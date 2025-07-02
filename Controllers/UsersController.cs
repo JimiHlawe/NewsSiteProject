@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 
@@ -15,7 +16,6 @@ namespace NewsSite1.Controllers
             this.db = db;
         }
 
-        // --- POST: api/Users/Register
         [HttpPost("Register")]
         public IActionResult Register([FromBody] UserWithTags user)
         {
@@ -27,7 +27,7 @@ namespace NewsSite1.Controllers
             if (newUserId > 0)
             {
                 user.Id = newUserId;
-                return Ok(user); // מחזיר את המשתמש עם ה-ID החדש
+                return Ok(user);
             }
             else
             {
@@ -42,7 +42,6 @@ namespace NewsSite1.Controllers
             return Ok(users);
         }
 
-
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest loginUser)
         {
@@ -50,11 +49,19 @@ namespace NewsSite1.Controllers
                 return BadRequest("Invalid login data");
 
             User user = db.LoginUser(loginUser.Email, loginUser.Password);
-            return user != null ? Ok(user) : Unauthorized("Invalid email or password");
+            if (user == null)
+                return Unauthorized("Invalid email or password");
+
+            if (!user.Active)
+                return StatusCode(403, "Your account is blocked.");
+
+            db.LogUserLogin(user.Id);
+
+            return Ok(user);
         }
 
 
-        // --- POST: api/Users/AddTag
+
         [HttpPost("AddTag")]
         public IActionResult AddTag([FromBody] AddTagRequest data)
         {
@@ -62,7 +69,6 @@ namespace NewsSite1.Controllers
             return Ok("Tag added to user");
         }
 
-        // --- GET: api/Users/GetTags/5
         [HttpGet("GetTags/{userId}")]
         public IActionResult GetTags(int userId)
         {
@@ -105,14 +111,12 @@ namespace NewsSite1.Controllers
             return Ok(tags);
         }
 
-
         [HttpGet("All")]
         public IActionResult GetAll(int userId)
         {
             var articles = db.GetArticlesFilteredByTags(userId);
             return Ok(articles);
         }
-
 
         [HttpGet("GetSavedArticles/{userId}")]
         public IActionResult GetSavedArticles(int userId)
@@ -148,10 +152,68 @@ namespace NewsSite1.Controllers
             return Ok("Blocked");
         }
 
+        [HttpPost("SetActiveStatus")]
+        public IActionResult SetActiveStatus([FromBody] SetStatusRequest req)
+        {
+            db.SetUserActiveStatus(req.UserId, req.IsActive);
+            return Ok("User status updated");
+        }
 
+        [HttpPost("SetSharingStatus")]
+        public IActionResult SetSharingStatus([FromBody] SharingStatusRequest req)
+        {
+            db.SetUserSharingStatus(req.UserId, req.CanShare);
+            return Ok("Sharing status updated");
+        }
 
+        [HttpPost("SetCommentingStatus")]
+        public IActionResult SetCommentingStatus([FromBody] SharingStatusRequest req)
+        {
+            db.SetUserCommentingStatus(req.UserId, req.CanComment);
+            return Ok("Commenting status updated");
+        }
+
+        [HttpGet("GetStatistics")]
+        public IActionResult GetStatistics()
+        {
+            var stats = db.GetSiteStatistics();
+            return Ok(stats);
+        }
+
+        // 🟢 אופציונלי: בדיקת יכולת שיתוף/תגובה בצד UsersController אם צריך
+        private bool UserCanShare(int userId)
+        {
+            using (SqlConnection con = db.connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT CanShare FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", userId);
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
+
+        private bool UserCanComment(int userId)
+        {
+            using (SqlConnection con = db.connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT CanComment FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", userId);
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
     }
 
+    public class SetStatusRequest
+    {
+        public int UserId { get; set; }
+        public bool IsActive { get; set; }
+    }
+
+    public class SharingStatusRequest
+    {
+        public int UserId { get; set; }
+        public bool CanShare { get; set; }
+        public bool CanComment { get; set; }
+    }
 
     public class BlockUserRequest
     {
@@ -170,6 +232,7 @@ namespace NewsSite1.Controllers
         public int UserId { get; set; }
         public int ArticleId { get; set; }
     }
+
     public class AddTagRequest
     {
         public int UserId { get; set; }

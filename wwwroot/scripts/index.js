@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // ✅ טען את כל הכתבות ואז פצל לקרוסלה וגריד
 function loadAllArticlesAndSplit() {
     const user = getLoggedUser();
-    fetch(`/api/Users/All?userId=${user.id}`)
+    fetch(`/api/Articles/AllFiltered?userId=${user.id}`)
         .then(res => res.json())
         .then(data => {
             if (!data || data.length === 0) {
@@ -150,6 +150,13 @@ function sendComment(articleId) {
         return;
     }
 
+    // בדוק אם המשתמש חסום להגיב
+    const canComment = sessionStorage.getItem("canComment") === "true";
+    if (!canComment) {
+        alert("🚫 Your commenting ability is blocked!");
+        return;
+    }
+
     fetch("/api/Articles/AddComment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -164,11 +171,12 @@ function sendComment(articleId) {
                 document.getElementById(`commentBox-${articleId}`).value = "";
                 loadComments(articleId);
             } else {
-                alert("❌ Error adding comment");
+                alert("❌ You may not be allowed to comment.");
             }
         })
         .catch(() => alert("❌ Network error"));
 }
+
 
 // ✅ טעינת תגובות
 function loadComments(articleId) {
@@ -262,6 +270,13 @@ function sendShare(articleId) {
         return;
     }
 
+    // בדוק אם המשתמש חסום לשיתוף
+    const canShare = sessionStorage.getItem("canShare") === "true";
+    if (!canShare) {
+        alert("🚫 Your sharing ability is blocked!");
+        return;
+    }
+
     if (type === "private") {
         const toUsername = document.getElementById(`targetUser-${articleId}`).value.trim();
         if (!toUsername) {
@@ -274,16 +289,16 @@ function sendShare(articleId) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ senderUsername: user.name, toUsername, articleId, comment })
         })
-            .then(res => res.ok ? alert("Shared!") : alert("Error sharing."))
-            .catch(() => alert("Error."));
+            .then(res => res.ok ? alert("✅ Shared!") : alert("❌ Error sharing."))
+            .catch(() => alert("❌ Error."));
     } else {
         fetch("/api/Articles/SharePublic", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, articleId, comment })
         })
-            .then(res => res.ok ? alert("Publicly shared!") : alert("Error."))
-            .catch(() => alert("Error."));
+            .then(res => res.ok ? alert("✅ Publicly shared!") : alert("❌ Error."))
+            .catch(() => alert("❌ Error."));
     }
 }
 

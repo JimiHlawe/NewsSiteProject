@@ -3,7 +3,6 @@ using Microsoft.Data.SqlClient;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 using NewsSite1.Services;
-using NewsSite1.Models;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -20,12 +19,17 @@ public class ArticlesController : ControllerBase
         _articleService = articleService;
     }
 
-    [HttpGet("All")]
-    public IActionResult GetAll()
+    [HttpGet("AllFiltered")]
+    public IActionResult GetAllFiltered(int userId)
     {
-        List<Article> articles = _db.GetAllArticles();
-        return Ok(articles);
+        var filtered = _db.GetArticlesFilteredByTags(userId);
+
+        // רשום Log של Fetch
+        _db.LogArticleFetch(userId);
+
+        return Ok(filtered);
     }
+
 
     [HttpGet("Filter")]
     public IActionResult Filter(string? sourceName, string? title, DateTime? from, DateTime? to)
@@ -34,14 +38,17 @@ public class ArticlesController : ControllerBase
         return Ok(result);
     }
 
-
     [HttpPost("Share")]
     public IActionResult ShareArticle([FromBody] SharedArticleRequest request)
     {
-        if (request == null ||
-            string.IsNullOrEmpty(request.SenderUsername) ||
-            string.IsNullOrEmpty(request.ToUsername))
+        if (request == null || string.IsNullOrEmpty(request.SenderUsername) || string.IsNullOrEmpty(request.ToUsername))
             return BadRequest("Invalid request");
+
+        int? senderUserId = _db.GetUserIdByUsername(request.SenderUsername);
+        if (senderUserId == null) return NotFound("Sender not found");
+
+        if (!UserCanShare(senderUserId.Value))
+            return Forbid("Sharing is disabled for this user");
 
         try
         {
@@ -54,8 +61,6 @@ public class ArticlesController : ControllerBase
         }
     }
 
-
-
     [HttpGet("SharedWithMe/{userId}")]
     public IActionResult GetSharedArticles(int userId)
     {
@@ -66,6 +71,9 @@ public class ArticlesController : ControllerBase
     [HttpPost("SharePublic")]
     public IActionResult ShareArticlePublic([FromBody] PublicArticleShareRequest request)
     {
+        if (!UserCanShare(request.UserId))
+            return Forbid("Sharing is disabled for this user");
+
         try
         {
             _db.ShareArticlePublic(request.UserId, request.ArticleId, request.Comment);
@@ -84,14 +92,12 @@ public class ArticlesController : ControllerBase
         return Ok(all);
     }
 
-
-
-
-
-
     [HttpPost("AddPublicComment")]
     public IActionResult AddPublicComment([FromBody] PublicCommentRequest comment)
     {
+        if (!UserCanComment(comment.UserId))
+            return Forbid("Commenting is disabled for this user");
+
         try
         {
             _db.AddPublicComment(comment.PublicArticleId, comment.UserId, comment.Comment);
@@ -99,12 +105,9 @@ public class ArticlesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "Error: " + ex.Message); // ← חשוב להדפיס את השגיאה
+            return StatusCode(500, "Error: " + ex.Message);
         }
     }
-
-
-
 
     [HttpGet("GetPublicComments/{articleId}")]
     public IActionResult GetPublicComments(int articleId)
@@ -120,8 +123,6 @@ public class ArticlesController : ControllerBase
         }
     }
 
-
-
     [HttpPost("ImportExternal")]
     public async Task<IActionResult> ImportExternalArticles()
     {
@@ -129,7 +130,7 @@ public class ArticlesController : ControllerBase
 
         foreach (var article in externalArticles)
         {
-            int id = _articleService.SaveArticleAndGetId(article); // ← שימוש בשירות
+            int id = _articleService.SaveArticleAndGetId(article);
             article.Id = id;
         }
 
@@ -139,19 +140,14 @@ public class ArticlesController : ControllerBase
     [HttpGet("WithTags")]
     public IActionResult GetArticlesWithTags(int page = 1, int pageSize = 20)
     {
-        DBServices dbs = new DBServices();
-        var articles = dbs.GetArticlesWithTags(page, pageSize);
+        var articles = _db.GetArticlesWithTags(page, pageSize);
         return Ok(articles);
     }
-
-
-
 
     [HttpGet("GetTagsForArticle/{articleId}")]
     public IActionResult GetTagsForArticle(int articleId)
     {
-        DBServices db = new DBServices();
-        var tags = db.GetTagsForArticle(articleId);
+        var tags = _db.GetTagsForArticle(articleId);
         return Ok(tags);
     }
 
@@ -177,7 +173,6 @@ public class ArticlesController : ControllerBase
             return BadRequest("Invalid article data");
         }
 
-        // ✅ ודא ש-Tags לא null
         if (article.Tags == null)
         {
             article.Tags = new List<string>();
@@ -194,7 +189,6 @@ public class ArticlesController : ControllerBase
             return StatusCode(500, "Error: " + ex.Message);
         }
     }
-
 
     [HttpPost("Report")]
     public IActionResult ReportContent([FromBody] ReportRequest req)
@@ -219,6 +213,9 @@ public class ArticlesController : ControllerBase
         if (comment == null || comment.ArticleId <= 0 || comment.UserId <= 0 || string.IsNullOrWhiteSpace(comment.Comment))
             return BadRequest("Invalid comment data");
 
+        if (!UserCanComment(comment.UserId))
+            return Forbid("Commenting is disabled for this user");
+
         try
         {
             _db.AddCommentToArticle(comment.ArticleId, comment.UserId, comment.Comment);
@@ -242,7 +239,28 @@ public class ArticlesController : ControllerBase
         {
             return StatusCode(500, "Error: " + ex.Message);
         }
+    }
 
+    // 🟢 עזר: בדיקת הרשאות שיתוף
+    private bool UserCanShare(int userId)
+    {
+        using (SqlConnection con = _db.connect())
+        {
+            SqlCommand cmd = new SqlCommand("SELECT CanShare FROM News_Users WHERE Id = @Id", con);
+            cmd.Parameters.AddWithValue("@Id", userId);
+            return (bool)cmd.ExecuteScalar();
+        }
+    }
+
+    // 🟢 עזר: בדיקת הרשאות תגובה
+    private bool UserCanComment(int userId)
+    {
+        using (SqlConnection con = _db.connect())
+        {
+            SqlCommand cmd = new SqlCommand("SELECT CanComment FROM News_Users WHERE Id = @Id", con);
+            cmd.Parameters.AddWithValue("@Id", userId);
+            return (bool)cmd.ExecuteScalar();
+        }
     }
 
     public class CommentRequest
@@ -251,12 +269,12 @@ public class ArticlesController : ControllerBase
         public int UserId { get; set; }
         public string Comment { get; set; } = "";
     }
+
     public class ReportRequest
     {
-    public int UserId { get; set; }
-    public string ReferenceType { get; set; } = "";
-    public int ReferenceId { get; set; }
-    public string Reason { get; set; } = "";
+        public int UserId { get; set; }
+        public string ReferenceType { get; set; } = "";
+        public int ReferenceId { get; set; }
+        public string Reason { get; set; } = "";
     }
 }
-    

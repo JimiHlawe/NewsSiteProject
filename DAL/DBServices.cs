@@ -125,13 +125,27 @@ namespace NewsSite1.DAL
                         Id = (int)reader["id"],
                         Name = (string)reader["name"],
                         Email = (string)reader["email"],
-                        Active = (bool)reader["active"]
+                        Active = (bool)reader["active"],
+                        CanShare = reader["CanShare"] != DBNull.Value ? (bool)reader["CanShare"] : true,
+                        CanComment = reader["CanComment"] != DBNull.Value ? (bool)reader["CanComment"] : true
                     });
                 }
             }
 
             return users;
         }
+
+        public void LogArticleFetch(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO News_ArticleFetchLog (UserId) VALUES (@UserId)", con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
         public int? GetUserIdByUsername(string username)
         {
@@ -928,6 +942,61 @@ ORDER BY Priority, publishedAt DESC
             return tags;
         }
 
+
+        // 🟢 שינוי סטטוס משתמש
+        public void SetUserActiveStatus(int userId, bool isActive)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "UPDATE News_Users SET Active = @Active WHERE Id = @UserId", con);
+                cmd.Parameters.AddWithValue("@Active", isActive);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        // 🟢 שליפת סטטיסטיקות
+        public SiteStatistics GetSiteStatistics()
+        {
+            var stats = new SiteStatistics();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd;
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Users", con);
+                stats.TotalUsers = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Articles", con);
+                stats.TotalArticles = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_SavedArticles", con);
+                stats.TotalSaved = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Logins WHERE CAST(LoginTime AS DATE) = CAST(GETDATE() AS DATE)", con);
+                stats.TodayLogins = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_ArticleFetchLog WHERE CAST(FetchTime AS DATE) = CAST(GETDATE() AS DATE)", con);
+                stats.TodayFetches = (int)cmd.ExecuteScalar();
+            }
+
+            return stats;
+        }
+
+
+
+        public class SiteStatistics
+        {
+            public int TotalUsers { get; set; }
+            public int TotalArticles { get; set; }
+            public int TotalSaved { get; set; }
+            public int TodayLogins { get; set; }
+            public int TodayFetches { get; set; }
+        }
+
+
+
         public List<Tag> GetAllTags()
         {
             List<Tag> tags = new List<Tag>();
@@ -951,5 +1020,44 @@ ORDER BY Priority, publishedAt DESC
             return tags;
         }
 
+        public void LogUserLogin(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO News_Logins (UserId) VALUES (@UserId)", con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+        public void SetUserSharingStatus(int userId, bool canShare)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "UPDATE News_Users SET CanShare = @CanShare WHERE Id = @UserId", con);
+                cmd.Parameters.AddWithValue("@CanShare", canShare);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void SetUserCommentingStatus(int userId, bool canComment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "UPDATE News_Users SET CanComment = @CanComment WHERE Id = @UserId", con);
+                cmd.Parameters.AddWithValue("@CanComment", canComment);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
     }
 }
+
+

@@ -58,120 +58,50 @@ function switchToSignin() {
 }
 
 $(document).ready(function () {
-    // בדיקה אם כתובת מייל שמורה בלוקל סטורג'
-    var savedEmail = localStorage.getItem("rememberedEmail");
-    if (savedEmail) {
-        $("#signinEmail").val(savedEmail);
-        $("#rememberMe").prop("checked", true);
-    }
-
-    // התחברות
     $("#signinFormSubmit").submit(function (e) {
         e.preventDefault();
 
-        var email = $("#signinEmail").val();
-        var password = $("#signinPassword").val();
+        const email = $("#signinEmail").val().trim();
+        const password = $("#signinPassword").val().trim();
 
-        var requestData = {
-            email: email,
-            password: password
-        };
+        if (!email || !password) {
+            $("#signinError").text("Please enter email and password");
+            return;
+        }
 
-        // הוספת אנימציית טעינה
-        $(this).addClass('loading');
-
-        $.ajax({
-            url: apiBase + "/Users/Login",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(requestData),
-            success: function (user) {
-                $(this).removeClass('loading');
-
-                if (user) {
-                    sessionStorage.setItem("loggedUser", JSON.stringify(user));
-                    localStorage.setItem("user", JSON.stringify(user));
-
-                    if ($("#rememberMe").is(":checked")) {
-                        localStorage.setItem("rememberedEmail", email);
-                    } else {
-                        localStorage.removeItem("rememberedEmail");
-                    }
-
-                    window.location.href = "index.html";
-                } else {
-                    $("#signinError").text("Wrong email or password.").addClass("show");
+        fetch("/api/Users/Login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        })
+            .then(res => {
+                if (res.status === 403) {
+                    throw new Error("blocked");
                 }
-            },
-            error: function () {
-                $(this).removeClass('loading');
-                $("#signinError").text("Sign in failed. Try again.").addClass("show");
-            }
-        });
-    });
+                if (!res.ok) throw new Error("invalid");
+                return res.json();
+            })
+            .then(user => {
+                if (!user.active) {
+                    alert("🚫 Your account is blocked. Please contact support.");
+                    return;
+                }
 
-    // הרשמה
-    $("#signupFormSubmit").submit(function (e) {
-        e.preventDefault();
+                sessionStorage.setItem("loggedUser", JSON.stringify(user));
+                sessionStorage.setItem("canShare", user.canShare);
+                sessionStorage.setItem("canComment", user.canComment);
 
-        var name = $("#signupName").val();
-        var email = $("#signupEmail").val();
-        var password = $("#signupPassword").val();
+                window.location.href = "../html/index.html";
+            })
+            .catch(err => {
+                if (err.message === "blocked") {
+                    alert("🚫 Your account is blocked. Please contact support.");
+                } else {
+                    $("#signinError").text("Invalid email or password");
+                }
+            });
 
-        var nameRegex = /^[A-Za-z0-9]{2,}$/;
-        var passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
-        if (!nameRegex.test(name)) {
-            $("#signupError").text("Name must have at least 2 letters.").addClass("show");
-            return;
-        }
-
-        if (!passwordRegex.test(password)) {
-            $("#signupError").text("Password must contain at least 1 uppercase, 1 number, and 8 characters.").addClass("show");
-            return;
-        }
-
-        var checked = document.querySelectorAll("#signupTagsContainer input:checked");
-        var selectedTags = [];
-        checked.forEach(chk => selectedTags.push(parseInt(chk.value)));
-
-        if (selectedTags.length === 0) {
-            $("#signupError").text("Please select at least one interest.").addClass("show");
-            return;
-        }
-
-        var user = {
-            name: name,
-            email: email,
-            password: password,
-            active: true,
-            tags: selectedTags
-        };
-
-        // הוספת אנימציית טעינה
-        $(this).addClass('loading');
-
-        $.ajax({
-            url: apiBase + "/Users/Register",
-            type: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(user),
-            success: function (createdUser) {
-                $(this).removeClass('loading');
-                alert("Registered successfully");
-                sessionStorage.setItem("loggedUser", JSON.stringify(createdUser));
-                window.location.href = "index.html";
-            },
-            error: function () {
-                $(this).removeClass('loading');
-                $("#signupError").text("Register failed. Email may already exist.").addClass("show");
-            }
-        });
-    });
-
-    // הסתרת הודעות שגיאה כשמתחילים להקליד
-    $('.form-input').on('input', function () {
-        $('.error-message').removeClass('show');
     });
 });
 
