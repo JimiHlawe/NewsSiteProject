@@ -1,4 +1,4 @@
-﻿// ✅ משתנים גלובליים
+﻿// ✅ Global Variables
 let currentPage = 1;
 const pageSize = 6;
 let allArticles = [];
@@ -6,19 +6,19 @@ let carouselArticles = [];
 let currentSlide = 0;
 let slideInterval;
 
-// ✅ קבלת משתמש מחובר
+// ✅ Get logged user
 function getLoggedUser() {
     const raw = sessionStorage.getItem("loggedUser");
     return raw ? JSON.parse(raw) : null;
 }
 
-// ✅ התחלה בעת טעינת הדף
+// ✅ Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
     loadAllArticlesAndSplit();
     loadSidebarSections();
 });
 
-// ✅ טען את כל הכתבות ואז פצל לקרוסלה וגריד
+// ✅ Load all articles and split for carousel and grid
 function loadAllArticlesAndSplit() {
     const user = getLoggedUser();
     fetch(`/api/Articles/AllFiltered?userId=${user.id}`)
@@ -42,7 +42,7 @@ function loadAllArticlesAndSplit() {
         .catch(err => console.error("❌ Error loading articles:", err));
 }
 
-// ✅ גריד - עם תיקון מיקום התגיות בלבד
+// ✅ Grid - with tag positioning fix only
 function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
@@ -88,7 +88,6 @@ function renderVisibleArticles() {
                     <img src="../pictures/report.png" alt="Report" title="Report">
                 </button>
             </div>
-            ${getShareForm(article.id)}
             <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
                 <h6>Comments:</h6>
                 <div id="comments-${article.id}"></div>
@@ -99,7 +98,6 @@ function renderVisibleArticles() {
     `;
 
         grid.appendChild(div);
-
         loadComments(article.id);
     });
 
@@ -115,7 +113,7 @@ function loadMoreArticles() {
     renderVisibleArticles();
 }
 
-// ✅ הצגת/הסתרת תגובות
+// ✅ Toggle comments display
 function toggleComments(articleId) {
     const commentsSection = document.getElementById(`commentsSection-${articleId}`);
     if (commentsSection) {
@@ -123,7 +121,7 @@ function toggleComments(articleId) {
     }
 }
 
-// ✅ שמירת כתבה
+// ✅ Updated function for saving article with special modal
 function saveArticle(articleId) {
     const user = getLoggedUser();
     if (!user?.id || !articleId) {
@@ -136,11 +134,235 @@ function saveArticle(articleId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
     })
-        .then(res => res.ok ? alert("✅ Article saved.") : alert("❌ Failed to save."))
+        .then(res => {
+            if (res.ok) {
+                showSaveModal();
+            } else {
+                alert("❌ Failed to save.");
+            }
+        })
         .catch(() => alert("❌ Network error."));
 }
 
-// ✅ הוספת תגובה
+// Function to display the special save modal
+function showSaveModal() {
+    // Create the modal HTML
+    const modalHTML = `
+        <div class="save-modal-overlay" id="saveModalOverlay">
+            <div class="save-modal">
+                <div class="save-modal-particles"></div>
+                <div class="save-modal-icon"></div>
+                <h2 class="save-modal-title">Article Saved!</h2>
+                <p class="save-modal-subtitle">The article has been successfully added to your favorites</p>
+                <button class="save-modal-close" onclick="closeSaveModal()">Got it</button>
+            </div>
+        </div>
+    `;
+
+    // Add the modal to the page body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Show the modal with animation
+    setTimeout(() => {
+        document.getElementById('saveModalOverlay').classList.add('show');
+    }, 100);
+
+    // Auto close after 4 seconds
+    setTimeout(() => {
+        closeSaveModal();
+    }, 4000);
+}
+
+// Function to close the save modal
+function closeSaveModal() {
+    const overlay = document.getElementById('saveModalOverlay');
+    if (overlay) {
+        overlay.classList.add('hide');
+        setTimeout(() => {
+            overlay.remove();
+        }, 600);
+    }
+}
+
+// ✅ Updated function for sharing article with special modal
+function toggleShare(articleId) {
+    showShareModal(articleId);
+}
+
+// Function to display the special share modal
+function showShareModal(articleId) {
+    // Create the modal HTML
+    const modalHTML = `
+        <div class="share-modal-overlay" id="shareModalOverlay">
+            <div class="share-modal">
+                <div class="share-modal-particles"></div>
+                <div class="share-modal-icon"></div>
+                <h2 class="share-modal-title">Share Article</h2>
+                <p class="share-modal-subtitle">Choose how you want to share this article</p>
+                
+                <form class="share-modal-form" id="shareModalForm">
+                    <div class="form-group">
+                        <label for="shareType">Share Type</label>
+                        <select id="shareType" onchange="toggleShareModalType()">
+                            <option value="private">Share with specific user</option>
+                            <option value="public">Share with everyone</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="targetUserGroup">
+                        <label for="targetUser">Username</label>
+                        <input type="text" id="targetUser" placeholder="Enter username to share with" />
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="shareComment">Comment (Optional)</label>
+                        <textarea id="shareComment" placeholder="Add a comment about this article..."></textarea>
+                    </div>
+                </form>
+                
+                <div class="share-modal-buttons">
+                    <button class="share-modal-button secondary" onclick="closeShareModal()">Cancel</button>
+                    <button class="share-modal-button primary" onclick="submitShare(${articleId})">Share Article</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add the modal to the page body
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Show the modal with animation
+    setTimeout(() => {
+        document.getElementById('shareModalOverlay').classList.add('show');
+    }, 100);
+}
+
+// Function to toggle share type in modal
+function toggleShareModalType() {
+    const shareType = document.getElementById('shareType').value;
+    const targetUserGroup = document.getElementById('targetUserGroup');
+
+    if (shareType === 'public') {
+        targetUserGroup.style.display = 'none';
+    } else {
+        targetUserGroup.style.display = 'block';
+    }
+}
+
+// Function to submit share from modal
+function submitShare(articleId) {
+    const user = getLoggedUser();
+    const shareType = document.getElementById('shareType').value;
+    const comment = document.getElementById('shareComment').value.trim();
+
+    if (!user?.name || !user?.id) {
+        alert("Please log in.");
+        return;
+    }
+
+    // Check if user is blocked from sharing
+    const canShare = sessionStorage.getItem("canShare") === "true";
+    if (!canShare) {
+        alert("🚫 Your sharing ability is blocked!");
+        return;
+    }
+
+    if (shareType === "private") {
+        const toUsername = document.getElementById('targetUser').value.trim();
+        if (!toUsername) {
+            alert("Please enter a username.");
+            return;
+        }
+
+        fetch("/api/Articles/Share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                senderUsername: user.name,
+                toUsername,
+                articleId,
+                comment
+            })
+        })
+            .then(res => {
+                if (res.ok) {
+                    closeShareModal();
+                    showShareSuccessModal();
+                } else {
+                    alert("❌ Error sharing.");
+                }
+            })
+            .catch(() => alert("❌ Error."));
+    } else {
+        fetch("/api/Articles/SharePublic", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                userId: user.id,
+                articleId,
+                comment
+            })
+        })
+            .then(res => {
+                if (res.ok) {
+                    closeShareModal();
+                    showShareSuccessModal();
+                } else {
+                    alert("❌ Error.");
+                }
+            })
+            .catch(() => alert("❌ Error."));
+    }
+}
+
+// Function to close the share modal
+function closeShareModal() {
+    const overlay = document.getElementById('shareModalOverlay');
+    if (overlay) {
+        overlay.classList.add('hide');
+        setTimeout(() => {
+            overlay.remove();
+        }, 600);
+    }
+}
+
+// Function to show success message after sharing
+function showShareSuccessModal() {
+    const modalHTML = `
+        <div class="save-modal-overlay" id="shareSuccessOverlay">
+            <div class="save-modal">
+                <div class="save-modal-particles"></div>
+                <div class="save-modal-icon"></div>
+                <h2 class="save-modal-title">Article Shared!</h2>
+                <p class="save-modal-subtitle">The article has been successfully shared</p>
+                <button class="save-modal-close" onclick="closeShareSuccessModal()">Great!</button>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    setTimeout(() => {
+        document.getElementById('shareSuccessOverlay').classList.add('show');
+    }, 100);
+
+    setTimeout(() => {
+        closeShareSuccessModal();
+    }, 3000);
+}
+
+// Function to close share success modal
+function closeShareSuccessModal() {
+    const overlay = document.getElementById('shareSuccessOverlay');
+    if (overlay) {
+        overlay.classList.add('hide');
+        setTimeout(() => {
+            overlay.remove();
+        }, 600);
+    }
+}
+
+// ✅ Add comment
 function sendComment(articleId) {
     const user = getLoggedUser();
     const comment = document.getElementById(`commentBox-${articleId}`).value.trim();
@@ -150,7 +372,7 @@ function sendComment(articleId) {
         return;
     }
 
-    // בדוק אם המשתמש חסום להגיב
+    // Check if user is blocked from commenting
     const canComment = sessionStorage.getItem("canComment") === "true";
     if (!canComment) {
         alert("🚫 Your commenting ability is blocked!");
@@ -177,8 +399,7 @@ function sendComment(articleId) {
         .catch(() => alert("❌ Network error"));
 }
 
-
-// ✅ טעינת תגובות
+// ✅ Load comments
 function loadComments(articleId) {
     fetch(`/api/Articles/GetComments/${articleId}`)
         .then(res => res.json())
@@ -195,7 +416,7 @@ function loadComments(articleId) {
         .catch(err => console.error(err));
 }
 
-// ✅ דיווח כתבה
+// ✅ Report article
 function reportArticle(articleId) {
     const user = getLoggedUser();
     const reason = prompt("Why do you want to report this article?");
@@ -215,7 +436,7 @@ function reportArticle(articleId) {
         .catch(() => alert("❌ Error reporting."));
 }
 
-// ✅ דיווח תגובה
+// ✅ Report comment
 function reportComment(commentId) {
     const user = getLoggedUser();
     const reason = prompt("Why do you want to report this comment?");
@@ -235,74 +456,24 @@ function reportComment(commentId) {
         .catch(() => alert("❌ Error reporting."));
 }
 
-// ✅ שיתוף
-function getShareForm(articleId) {
-    return `
-        <div id="shareForm-${articleId}" class="share-form mt-2" style="display:none;">
-            <select class="form-select mb-2" id="shareType-${articleId}" onchange="toggleShareType(${articleId})">
-                <option value="private">Share with user</option>
-                <option value="public">Share with everyone</option>
-            </select>
-            <input type="text" placeholder="Target username" id="targetUser-${articleId}" class="form-control mb-2" />
-            <textarea placeholder="Add a comment" id="comment-${articleId}" class="form-control mb-2"></textarea>
-            <button onclick="sendShare(${articleId})" class="btn btn-primary btn-sm">Send</button>
-        </div>`;
-}
-
-function toggleShare(articleId) {
-    const form = document.getElementById(`shareForm-${articleId}`);
-    if (form) form.style.display = form.style.display === "none" ? "block" : "none";
-}
-
-function toggleShareType(articleId) {
-    const type = document.getElementById(`shareType-${articleId}`).value;
-    const targetInput = document.getElementById(`targetUser-${articleId}`);
-    targetInput.style.display = type === "public" ? "none" : "block";
-}
-
-function sendShare(articleId) {
+// ✅ Like article function
+function likeArticle(articleId) {
     const user = getLoggedUser();
-    const type = document.getElementById(`shareType-${articleId}`).value;
-    const comment = document.getElementById(`comment-${articleId}`).value.trim();
-
-    if (!user?.name || !user?.id) {
-        alert("Please log in.");
+    if (!user?.id || !articleId) {
+        alert("Please log in to like articles.");
         return;
     }
 
-    // בדוק אם המשתמש חסום לשיתוף
-    const canShare = sessionStorage.getItem("canShare") === "true";
-    if (!canShare) {
-        alert("🚫 Your sharing ability is blocked!");
-        return;
-    }
-
-    if (type === "private") {
-        const toUsername = document.getElementById(`targetUser-${articleId}`).value.trim();
-        if (!toUsername) {
-            alert("Please enter a username.");
-            return;
-        }
-
-        fetch("/api/Articles/Share", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ senderUsername: user.name, toUsername, articleId, comment })
-        })
-            .then(res => res.ok ? alert("✅ Shared!") : alert("❌ Error sharing."))
-            .catch(() => alert("❌ Error."));
-    } else {
-        fetch("/api/Articles/SharePublic", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: user.id, articleId, comment })
-        })
-            .then(res => res.ok ? alert("✅ Publicly shared!") : alert("❌ Error."))
-            .catch(() => alert("❌ Error."));
-    }
+    fetch("/api/Articles/Like", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, articleId })
+    })
+        .then(res => res.ok ? alert("✅ Article liked!") : alert("❌ Failed to like."))
+        .catch(() => alert("❌ Network error."));
 }
 
-// ✅ קרוסלה
+// ✅ Carousel
 function initCarousel() {
     const container = document.getElementById("carouselContainer");
     const indicators = document.getElementById("carouselIndicators");
@@ -350,6 +521,10 @@ function nextSlide() {
     goToSlide((currentSlide + 1) % carouselArticles.length);
 }
 
+function prevSlide() {
+    goToSlide((currentSlide - 1 + carouselArticles.length) % carouselArticles.length);
+}
+
 function startAutoSlide() {
     stopAutoSlide();
     slideInterval = setInterval(nextSlide, 5000);
@@ -359,7 +534,7 @@ function stopAutoSlide() {
     if (slideInterval) clearInterval(slideInterval);
 }
 
-// ✅ Sidebar רגיל שלך
+// ✅ Regular Sidebar
 function loadSidebarSections() {
     fetch("/api/Articles/Paginated?page=1&pageSize=8")
         .then(res => res.json())
@@ -423,3 +598,16 @@ function submitNewArticle(event) {
         .then(data => console.log(data))
         .catch(err => console.error(err));
 }
+
+// Close modals on background click
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.classList.contains('save-modal-overlay')) {
+        closeSaveModal();
+    }
+    if (e.target && e.target.classList.contains('share-modal-overlay')) {
+        closeShareModal();
+    }
+    if (e.target && e.target.classList.contains('save-modal-overlay') && e.target.id === 'shareSuccessOverlay') {
+        closeShareSuccessModal();
+    }
+});
