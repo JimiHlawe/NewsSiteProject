@@ -198,7 +198,7 @@ function loadComments(articleId) {
             }
         })
         .catch(function () {
-            console.error("💥 Error loading comments");
+            console.error("Error loading comments");
         });
 }
 
@@ -224,7 +224,7 @@ function reportComment(commentId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     })
-        .then(res => res.ok ? alert("✅ Report sent!") : alert("Error reporting"))
+        .then(res => res.ok ? alert("Report sent!") : alert("Error reporting"))
         .catch(() => alert("Error"));
 }
 
