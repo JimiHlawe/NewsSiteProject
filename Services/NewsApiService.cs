@@ -30,7 +30,7 @@ namespace NewsSite1.Services
                 var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                var news = await response.Content.ReadFromJsonAsync<NewsApiResponse>();
+                var news = await response.Content.ReadFromJsonAsync<NewsApiModels>();
 
                 return news?.Articles.Select(a => new Article
                 {
