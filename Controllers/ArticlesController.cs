@@ -305,7 +305,6 @@ public class ArticlesController : ControllerBase
         }
     }
 
-
     public class LikeRequest
     {
         public int UserId { get; set; }

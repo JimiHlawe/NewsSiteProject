@@ -145,31 +145,6 @@ function blockUser(senderName) {
         .catch(() => alert("Error"));
 }
 
-function reportArticle(articleId) {
-    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    if (!user?.id) {
-        alert("Please login first.");
-        return;
-    }
-
-    var reason = prompt("Why do you report this article?");
-    if (!reason) return;
-
-    var payload = {
-        userId: user.id,
-        referenceType: "Article",
-        referenceId: articleId,
-        reason: reason
-    };
-
-    fetch("/api/Articles/Report", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-        .then(res => res.ok ? alert("✅ Report sent!") : alert("Error reporting"))
-        .catch(() => alert("Error"));
-}
 
 function sendComment(articleId) {
     var user = JSON.parse(sessionStorage.getItem("loggedUser"));
@@ -235,30 +210,91 @@ function loadComments(articleId) {
         });
 }
 
-function reportComment(commentId) {
-    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+
+function showReportModal(referenceType, referenceId) {
+    const existing = document.getElementById('reportModalOverlay');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div class="save-modal-overlay" id="reportModalOverlay">
+            <div class="save-modal">
+                <h2 class="save-modal-title">🚩 Report Content</h2>
+                <p class="save-modal-subtitle">Please choose the reason for your report:</p>
+
+                <select id="reportReasonSelect" onchange="toggleOtherReason()" class="form-control mb-2">
+                    <option value="harassment">Harassment</option>
+                    <option value="hate">Hate Speech</option>
+                    <option value="false_info">False Information</option>
+                    <option value="explicit">Explicit Content</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <textarea id="reportOtherReason" class="form-control mb-2" placeholder="Enter reason..." style="display:none;"></textarea>
+
+                <div class="share-modal-buttons">
+                    <button class="share-modal-button secondary" onclick="closeReportModal()">Cancel</button>
+                    <button class="share-modal-button primary" onclick="submitReport('${referenceType}', ${referenceId})">Submit Report</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    setTimeout(() => {
+        document.getElementById("reportModalOverlay").classList.add("show");
+    }, 100);
+}
+
+function toggleOtherReason() {
+    const select = document.getElementById("reportReasonSelect");
+    const otherInput = document.getElementById("reportOtherReason");
+    otherInput.style.display = select.value === "other" ? "block" : "none";
+}
+
+function submitReport(referenceType, referenceId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     if (!user?.id) {
         alert("Please login first.");
         return;
     }
 
-    var reason = prompt("Why do you report this comment?");
-    if (!reason) return;
+    const reasonSelect = document.getElementById("reportReasonSelect").value;
+    const otherText = document.getElementById("reportOtherReason").value.trim();
+    const reason = reasonSelect === "other" ? otherText : reasonSelect;
 
-    var payload = {
-        userId: user.id,
-        referenceType: "Comment",
-        referenceId: commentId,
-        reason: reason
-    };
+    if (!reason) {
+        alert("Please provide a reason.");
+        return;
+    }
 
     fetch("/api/Articles/Report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+            userId: user.id,
+            referenceType,
+            referenceId,
+            reason
+        })
     })
-        .then(res => res.ok ? alert("Report sent!") : alert("Error reporting"))
-        .catch(() => alert("Error"));
+        .then(res => res.ok ? alert("✅ Reported!") : alert("❌ Error reporting."))
+        .catch(() => alert("❌ Network error"))
+        .finally(() => closeReportModal());
+}
+
+function closeReportModal() {
+    const overlay = document.getElementById("reportModalOverlay");
+    if (overlay) {
+        overlay.classList.add("hide");
+        setTimeout(() => overlay.remove(), 500);
+    }
+}
+
+function reportArticle(articleId) {
+    showReportModal("Article", articleId);
+}
+
+function reportComment(commentId) {
+    showReportModal("Comment", commentId);
 }
 
 function showError(containerId, message) {

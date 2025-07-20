@@ -5,4 +5,7 @@
     public int TotalSaved { get; set; }
     public int TodayLogins { get; set; }
     public int TodayFetches { get; set; }
+    public int TotalLikes { get; set; }
+    public int TodaysLikes { get; set; }
+
 }

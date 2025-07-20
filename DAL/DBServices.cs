@@ -1137,6 +1137,134 @@ ORDER BY Priority, publishedAt DESC
             return stats;
         }
 
+        public object GetLikesStats()
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetLikesStats", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                int articleLikes = 0;
+                int articleLikesToday = 0;
+                int threadLikes = 0;
+                int threadLikesToday = 0;
+
+                if (reader.Read())
+                {
+                    articleLikes = Convert.ToInt32(reader["ArticleLikes"]);
+                    articleLikesToday = Convert.ToInt32(reader["ArticleLikesToday"]);
+                    threadLikes = Convert.ToInt32(reader["ThreadLikes"]);
+                    threadLikesToday = Convert.ToInt32(reader["ThreadLikesToday"]);
+                }
+
+                return new
+                {
+                    articleLikes,
+                    articleLikesToday,
+                    threadLikes,
+                    threadLikesToday
+                };
+            }
+        }
+
+
+        public List<ReportedArticleDTO> GetReportedArticles()
+        {
+            List<ReportedArticleDTO> list = new List<ReportedArticleDTO>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetReportedArticles", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new ReportedArticleDTO
+                    {
+                        ReporterName = reader["ReporterName"].ToString(),
+                        TargetName = reader["TargetName"].ToString(),
+                        ArticleTitle = reader["ArticleTitle"].ToString(),
+                        Reason = reader["Reason"].ToString(),
+                        ReportedAt = Convert.ToDateTime(reader["ReportedAt"])
+                    });
+                }
+            }
+            return list;
+        }
+
+        public List<ReportedCommentDTO> GetReportedComments()
+        {
+            List<ReportedCommentDTO> list = new List<ReportedCommentDTO>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetReportedComments", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new ReportedCommentDTO
+                    {
+                        ReporterName = reader["ReporterName"].ToString(),
+                        TargetName = reader["TargetName"].ToString(),
+                        CommentText = reader["CommentText"].ToString(),
+                        Reason = reader["Reason"].ToString(),
+                        ReportedAt = Convert.ToDateTime(reader["ReportedAt"])
+                    });
+                }
+            }
+            return list;
+        }
+
+        public List<ReportEntry> GetAllReports()
+        {
+            List<ReportEntry> list = new List<ReportEntry>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetAllReports", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    ReportEntry r = new ReportEntry
+                    {
+                        Id = (int)reader["id"],
+                        ReporterId = (int)reader["ReporterId"],
+                        ReporterName = reader["ReporterName"].ToString(),
+                        ReportType = reader["referenceType"].ToString(),
+                        ReferenceId = (int)reader["referenceId"],
+                        Reason = reader["reason"].ToString(),
+                        ReportedAt = Convert.ToDateTime(reader["reportedAt"]),
+                        Content = reader["ReportedContent"].ToString(),
+                        TargetName = reader["TargetName"].ToString()
+                    };
+                    list.Add(r);
+                }
+            }
+            return list;
+        }
+
+
+
+
+        public class ReportedArticleDTO
+        {
+            public string ReporterName { get; set; }
+            public string TargetName { get; set; }
+            public string ArticleTitle { get; set; }
+            public string Reason { get; set; }
+            public DateTime ReportedAt { get; set; }
+        }
+
+        public class ReportedCommentDTO
+        {
+            public string ReporterName { get; set; }
+            public string TargetName { get; set; }
+            public string CommentText { get; set; }
+            public string Reason { get; set; }
+            public DateTime ReportedAt { get; set; }
+        }
 
     }
 }

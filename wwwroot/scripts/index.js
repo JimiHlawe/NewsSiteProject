@@ -460,24 +460,90 @@ function loadComments(articleId) {
         .catch(err => console.error(err));
 }
 
-// ✅ Report article
-function reportArticle(articleId) {
+function showReportModal(referenceType, referenceId) {
+    // הסר מודל קודם אם קיים
+    const existing = document.getElementById('reportModalOverlay');
+    if (existing) existing.remove();
+
+    const modalHTML = `
+        <div class="save-modal-overlay" id="reportModalOverlay">
+            <div class="save-modal">
+                <h2 class="save-modal-title">🚩 Report Content</h2>
+                <p class="save-modal-subtitle">Please choose the reason for your report:</p>
+
+                <select id="reportReasonSelect" onchange="toggleOtherReason()" class="form-control mb-2">
+                    <option value="harassment">Harassment</option>
+                    <option value="hate">Hate Speech</option>
+                    <option value="false_info">False Information</option>
+                    <option value="explicit">Explicit Content</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <textarea id="reportOtherReason" class="form-control mb-2" placeholder="Enter reason..." style="display:none;"></textarea>
+
+                <div class="share-modal-buttons">
+                    <button class="share-modal-button secondary" onclick="closeReportModal()">Cancel</button>
+                    <button class="share-modal-button primary" onclick="submitReport('${referenceType}', ${referenceId})">Submit Report</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    setTimeout(() => {
+        document.getElementById("reportModalOverlay").classList.add("show");
+    }, 100);
+}
+function toggleOtherReason() {
+    const select = document.getElementById("reportReasonSelect");
+    const otherInput = document.getElementById("reportOtherReason");
+    otherInput.style.display = select.value === "other" ? "block" : "none";
+}
+
+function submitReport(referenceType, referenceId) {
     const user = getLoggedUser();
-    const reason = prompt("Why do you want to report this article?");
-    if (!reason) return;
+    if (!user || !user.id) {
+        alert("You must be logged in to report.");
+        return;
+    }
+
+    const reasonSelect = document.getElementById("reportReasonSelect").value;
+    const otherText = document.getElementById("reportOtherReason").value.trim();
+    const reason = reasonSelect === "other" ? otherText : reasonSelect;
+
+    if (!reason) {
+        alert("Please provide a reason.");
+        return;
+    }
 
     fetch("/api/Articles/Report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             userId: user.id,
-            referenceType: "Article",
-            referenceId: articleId,
-            reason: reason
+            referenceType,
+            referenceId,
+            reason
         })
     })
         .then(res => res.ok ? alert("✅ Reported!") : alert("❌ Error reporting."))
-        .catch(() => alert("❌ Error reporting."));
+        .catch(() => alert("❌ Network error"))
+        .finally(() => closeReportModal());
+}
+
+function closeReportModal() {
+    const overlay = document.getElementById("reportModalOverlay");
+    if (overlay) {
+        overlay.classList.add("hide");
+        setTimeout(() => overlay.remove(), 500);
+    }
+}
+function reportArticle(articleId) {
+    showReportModal("Article", articleId);
+}
+
+function reportComment(commentId) {
+    showReportModal("Comment", commentId);
 }
 
 // ✅ Report comment
