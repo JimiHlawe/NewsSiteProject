@@ -58,9 +58,9 @@ function switchToSignin() {
 }
 
 $(document).ready(function () {
+    // התחברות
     $("#signinFormSubmit").submit(function (e) {
         e.preventDefault();
-
         const email = $("#signinEmail").val().trim();
         const password = $("#signinPassword").val().trim();
 
@@ -75,35 +75,72 @@ $(document).ready(function () {
             body: JSON.stringify({ email, password })
         })
             .then(res => {
-                if (res.status === 403) {
-                    throw new Error("blocked");
-                }
+                if (res.status === 403) throw new Error("blocked");
                 if (!res.ok) throw new Error("invalid");
                 return res.json();
             })
             .then(user => {
                 if (!user.active) {
-                    alert("🚫 Your account is blocked. Please contact support.");
+                    alert("🚫 Your account is blocked.");
                     return;
                 }
 
                 sessionStorage.setItem("loggedUser", JSON.stringify(user));
                 sessionStorage.setItem("canShare", user.canShare);
                 sessionStorage.setItem("canComment", user.canComment);
-
                 window.location.href = "../html/index.html";
             })
             .catch(err => {
-                if (err.message === "blocked") {
-                    alert("🚫 Your account is blocked. Please contact support.");
-                } else {
+                if (err.message === "blocked")
+                    alert("🚫 Your account is blocked.");
+                else
                     $("#signinError").text("Invalid email or password");
-                }
             });
+    });
 
+    // הרשמה
+    $("#signupFormSubmit").submit(function (e) {
+        e.preventDefault();
 
+        const name = $("#signupName").val().trim();
+        const email = $("#signupEmail").val().trim();
+        const password = $("#signupPassword").val().trim();
+
+        if (!name || !email || !password) {
+            $("#signupError").text("Please fill in all fields");
+            return;
+        }
+
+        const selectedTags = [];
+        $("#signupTagsContainer input:checked").each(function () {
+            selectedTags.push(parseInt($(this).val()));
+        });
+
+        fetch("/api/Users/Register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name,
+                email,
+                password,
+                tags: selectedTags
+            })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to register");
+                return res.json();
+            })
+            .then(user => {
+                sessionStorage.setItem("loggedUser", JSON.stringify(user));
+                window.location.href = "../html/index.html";
+            })
+            .catch(err => {
+                console.error(err);
+                $("#signupError").text("Registration failed. Try a different email.");
+            });
     });
 });
+
 
 // ✅ פונקציה לשמירת תחומי עניין
 function saveUserTags() {

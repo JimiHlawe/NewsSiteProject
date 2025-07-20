@@ -44,13 +44,13 @@ namespace NewsSite1.DAL
         // ============= USERS ========================
         // ============================================
 
-
         public int RegisterUser(UserWithTags user)
         {
             int newUserId;
 
-            using (SqlConnection con = connect())
+            using (SqlConnection con = connect()) // חיבור כבר נפתח בפנים
             {
+                // 🔹 הוספת המשתמש
                 SqlCommand cmd = new SqlCommand(@"
             INSERT INTO News_Users (Name, Email, Password, Active)
             OUTPUT INSERTED.Id
@@ -62,26 +62,27 @@ namespace NewsSite1.DAL
                 cmd.Parameters.AddWithValue("@Active", user.Active);
 
                 newUserId = (int)cmd.ExecuteScalar();
-            }
 
-            // שמירת תחומי עניין
-            using (SqlConnection con = connect())
-            {
+                // 🔹 שמירת תגיות
                 foreach (int tagId in user.Tags)
                 {
-                    SqlCommand cmd = new SqlCommand(@"
+                    SqlCommand tagCmd = new SqlCommand(@"
                 INSERT INTO News_UserTags (userId, tagId)
                 VALUES (@UserId, @TagId)", con);
 
-                    cmd.Parameters.AddWithValue("@UserId", newUserId);
-                    cmd.Parameters.AddWithValue("@TagId", tagId);
+                    tagCmd.Parameters.AddWithValue("@UserId", newUserId);
+                    tagCmd.Parameters.AddWithValue("@TagId", tagId);
 
-                    cmd.ExecuteNonQuery();
+                    tagCmd.ExecuteNonQuery();
                 }
             }
 
             return newUserId;
         }
+
+
+
+
 
 
         public User LoginUser(string email, string password)
