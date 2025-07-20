@@ -8,6 +8,7 @@
         public string Password { get; set; }
         public int Active { get; set; } = 1;
         public List<int> Tags { get; set; }
+        public bool IsAdmin { get; set; }
     }
 
 }

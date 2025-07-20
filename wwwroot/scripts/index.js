@@ -16,6 +16,7 @@ function getLoggedUser() {
 document.addEventListener("DOMContentLoaded", () => {
     loadAllArticlesAndSplit();
     loadSidebarSections();
+    checkAdminAndShowAddForm();
 });
 
 // ✅ Load all articles and split for carousel and grid
@@ -721,3 +722,22 @@ document.addEventListener('click', function (e) {
         closeShareSuccessModal();
     }
 });
+
+function checkAdminAndShowAddForm() {
+    const user = getLoggedUser();
+    const addSection = document.querySelector(".add-article-section");
+
+    if (user?.isAdmin) {
+        // מציג את כפתור הוספת הכתבה
+        addSection.style.display = "block";
+    } else {
+        // מסתיר לגמרי את החלק
+        addSection.style.display = "none";
+    }
+}
+
+
+function logout() {
+    sessionStorage.clear(); 
+    window.location.href = "/html/login.html";
+}

@@ -84,36 +84,36 @@ namespace NewsSite1.DAL
 
 
 
-
         public User LoginUser(string email, string password)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_LoginUser", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                SqlCommand cmd = new SqlCommand("SELECT * FROM News_Users WHERE Email = @Email AND Password = @Password", con);
                 cmd.Parameters.AddWithValue("@Email", email);
                 cmd.Parameters.AddWithValue("@Password", password);
 
                 SqlDataReader reader = cmd.ExecuteReader();
-
                 if (reader.Read())
                 {
-                    return new User
+                    User user = new User
                     {
                         Id = (int)reader["id"],
                         Name = (string)reader["name"],
                         Email = (string)reader["email"],
-                        Active = (bool)reader["active"],
-                        CanShare = reader["CanShare"] != DBNull.Value ? (bool)reader["CanShare"] : true,
-                        CanComment = reader["CanComment"] != DBNull.Value ? (bool)reader["CanComment"] : true
+                        Password = null, // לא מחזירים סיסמה
+                        Active = Convert.ToBoolean(reader["active"]),
+                        CanShare = Convert.ToBoolean(reader["CanShare"]),
+                        CanComment = Convert.ToBoolean(reader["CanComment"]),
+                        IsAdmin = Convert.ToBoolean(reader["isAdmin"]) 
                     };
+
+                    return user;
                 }
 
                 return null;
             }
         }
+
 
         public List<User> GetAllUsers()
         {

@@ -1,6 +1,9 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("navbar");
 
+    const userJson = sessionStorage.getItem("loggedUser");
+    const user = userJson ? JSON.parse(userJson) : null;
+
     if (container) {
         let html = "";
         html += "<nav class='navbar'>";
@@ -12,6 +15,11 @@
         html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
         html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
         html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
+
+        if (user && user.isAdmin) {
+            html += "      <li><a class='nav-link' href='/html/admin.html'>Admin</a></li>";
+        }
+
         html += "    </ul>";
         html += "    <a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a>";
         html += "  </div>";
@@ -20,9 +28,6 @@
         container.innerHTML = html;
     }
 
-    const userJson = sessionStorage.getItem("loggedUser");
-    const user = userJson ? JSON.parse(userJson) : null;
-
     const path = window.location.pathname;
     const isLoginPage = path.includes("login.html") || path.includes("register.html");
 
@@ -30,8 +35,3 @@
         window.location.href = "/html/login.html";
     }
 });
-
-function logout() {
-    sessionStorage.clear();
-    window.location.href = "/html/login.html";
-}
