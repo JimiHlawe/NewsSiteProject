@@ -665,6 +665,81 @@ ORDER BY Priority, publishedAt DESC
         }
 
         // ============================================
+        // ============== LIKES =====================
+        // ============================================
+
+        public void AddLike(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_AddLike", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public void RemoveLike(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_RemoveLike", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        public int GetLikesCount(int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetLikesCount", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+        public void AddThreadLike(int userId, int articleId)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("NewsSP_AddThreadLike", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void RemoveThreadLike(int userId, int articleId)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("NewsSP_RemoveThreadLike", con);
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@UserId", userId);
+            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public int GetThreadLikeCount(int articleId)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE ArticleId = @ArticleId", con);
+            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            return (int)cmd.ExecuteScalar();
+        }
+
+
+
+        // ============================================
         // ============== SHARING =====================
         // ============================================
 

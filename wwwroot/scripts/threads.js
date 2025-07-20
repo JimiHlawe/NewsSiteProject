@@ -65,6 +65,12 @@ function createThreadCard(article) {
                 <strong>Author:</strong> ${article.author || 'Unknown'} |
                 <strong>Date:</strong> ${formattedDate}
             </div>
+            <div class="thread-actions mb-2">
+            <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${id}" onclick="toggleThreadLike(${id}); event.stopPropagation();">
+                ❤️ Like
+            </button>
+            <span id="like-thread-count-${id}" class="ms-2">0 ❤️</span>
+            </div>
 
             <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}'); event.stopPropagation();">Block ${article.senderName}</button>
             <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id}); event.stopPropagation();">Report Article</button>
@@ -88,6 +94,33 @@ function createThreadCard(article) {
     });
 
     return div;
+}
+function toggleThreadLike(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const btn = document.getElementById(`like-thread-btn-${articleId}`);
+    const isLiked = btn.classList.contains("liked");
+
+    const endpoint = isLiked ? "RemoveThreadLike" : "AddThreadLike";
+
+    fetch(`/api/Articles/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, articleId })
+    })
+        .then(res => {
+            if (res.ok) {
+                btn.classList.toggle("liked");
+                loadThreadLikeCount(articleId);
+            }
+        });
+}
+
+function loadThreadLikeCount(articleId) {
+    fetch(`/api/Articles/GetThreadLikeCount/${articleId}`)
+        .then(res => res.json())
+        .then(count => {
+            document.getElementById(`like-thread-count-${articleId}`).innerText = `${count} ❤️`;
+        });
 }
 
 function blockUser(senderName) {

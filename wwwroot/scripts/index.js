@@ -75,9 +75,11 @@ function renderVisibleArticles() {
                 <span>${formattedDate}</span>
             </div>
             <div class="article-actions">
-                <button class="like-btn" onclick="likeArticle(${article.id}); event.stopPropagation();">
+                <button class="like-btn" id="like-btn-${article.id}" onclick="toggleLike(${article.id}); event.stopPropagation();">
                     <img src="../pictures/like.png" alt="Like" title="Like">
                 </button>
+                <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
+
                 <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id}); event.stopPropagation();">
                     <img src="../pictures/comment.png" alt="Comment" title="Comment">
                 </button>
@@ -87,10 +89,11 @@ function renderVisibleArticles() {
                 <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
                     <img src="../pictures/share.png" alt="Share" title="Share">
                 </button>
-                 <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
+                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
                     <img src="../pictures/report.png" alt="Report" title="Report">
                 </button>
             </div>
+
             <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
                 <h6>Comments:</h6>
                 <div id="comments-${article.id}"></div>
@@ -99,6 +102,7 @@ function renderVisibleArticles() {
             </div>
         </div>
     `;
+        updateLikeCount(article.id);
 
         // הוספת event listener לכרטיס כולו
         div.addEventListener('click', function () {
@@ -260,6 +264,34 @@ function toggleShareModalType() {
         targetUserGroup.style.display = 'block';
     }
 }
+
+function toggleLike(articleId) {
+    const user = getLoggedUser();
+    const isLiked = document.getElementById(`like-btn-${articleId}`).classList.contains("liked");
+
+    const endpoint = isLiked ? "Unlike" : "Like";
+
+    fetch(`/api/Articles/${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, articleId })
+    })
+        .then(res => {
+            if (res.ok) {
+                updateLikeCount(articleId);
+                document.getElementById(`like-btn-${articleId}`).classList.toggle("liked");
+            }
+        });
+}
+
+function updateLikeCount(articleId) {
+    fetch(`/api/Articles/LikesCount/${articleId}`)
+        .then(res => res.json())
+        .then(count => {
+            document.getElementById(`like-count-${articleId}`).innerText = `${count} ❤️`;
+        });
+}
+
 
 // Function to submit share from modal
 function submitShare(articleId) {

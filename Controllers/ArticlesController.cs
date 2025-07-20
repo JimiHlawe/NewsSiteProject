@@ -206,6 +206,49 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    [HttpPost("Like")]
+    public IActionResult Like([FromBody] LikeRequest req)
+    {
+        _db.AddLike(req.UserId, req.ArticleId);
+        return Ok();
+    }
+
+    [HttpPost("Unlike")]
+    public IActionResult Unlike([FromBody] LikeRequest req)
+    {
+        _db.RemoveLike(req.UserId, req.ArticleId);
+        return Ok();
+    }
+
+    [HttpGet("LikesCount/{articleId}")]
+    public IActionResult GetLikesCount(int articleId)
+    {
+        int count = _db.GetLikesCount(articleId);
+        return Ok(count);
+    }
+
+    [HttpPost("AddThreadLike")]
+    public IActionResult AddThreadLike([FromBody] LikeRequest req)
+    {
+        _db.AddThreadLike(req.UserId, req.ArticleId);
+        return Ok();
+    }
+
+    [HttpPost("RemoveThreadLike")]
+    public IActionResult RemoveThreadLike([FromBody] LikeRequest req)
+    {
+        _db.RemoveThreadLike(req.UserId, req.ArticleId);
+        return Ok();
+    }
+
+    [HttpGet("GetThreadLikeCount/{articleId}")]
+    public IActionResult GetThreadLikeCount(int articleId)
+    {
+        int count = _db.GetThreadLikeCount(articleId);
+        return Ok(count);
+    }
+
+
     [HttpPost("AddComment")]
     public IActionResult AddComment([FromBody] CommentRequest comment)
     {
@@ -260,6 +303,13 @@ public class ArticlesController : ControllerBase
             cmd.Parameters.AddWithValue("@Id", userId);
             return (bool)cmd.ExecuteScalar();
         }
+    }
+
+
+    public class LikeRequest
+    {
+        public int UserId { get; set; }
+        public int ArticleId { get; set; }
     }
 
     public class CommentRequest
