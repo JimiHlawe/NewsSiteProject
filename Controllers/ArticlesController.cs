@@ -125,15 +125,22 @@ public class ArticlesController : ControllerBase
     public async Task<IActionResult> ImportExternalArticles()
     {
         List<Article> externalArticles = await _newsApiService.GetTopHeadlinesAsync();
+        List<Article> addedArticles = new List<Article>();
 
         foreach (var article in externalArticles)
         {
-            int id = _db.AddUserArticle(article); 
+            if (_db.ArticleExists(article.SourceUrl))
+                continue;
+
+
+            int id = _db.AddUserArticle(article);
             article.Id = id;
+            addedArticles.Add(article);
         }
 
-        return Ok(externalArticles);
+        return Ok(addedArticles);
     }
+
 
 
     [HttpGet("WithTags")]

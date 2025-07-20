@@ -389,6 +389,9 @@ namespace NewsSite1.DAL
 
         public int AddUserArticle(Article article)
         {
+            if (ArticleExists(article.SourceUrl))
+                return -1; 
+
             int newArticleId;
 
             using (SqlConnection con = connect())
@@ -410,7 +413,6 @@ namespace NewsSite1.DAL
                 newArticleId = (int)cmd.ExecuteScalar();
             }
 
-            // ✅ הגנה כפולה
             if (article.Tags == null)
             {
                 article.Tags = new List<string>();
@@ -424,6 +426,18 @@ namespace NewsSite1.DAL
 
             return newArticleId;
         }
+
+        public bool ArticleExists(string url)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM News_Articles WHERE Url = @Url", con);
+                cmd.Parameters.AddWithValue("@Url", url);
+                int count = (int)cmd.ExecuteScalar();
+                return count > 0;
+            }
+        }
+
 
         public void RemoveSavedArticle(int userId, int articleId)
         {

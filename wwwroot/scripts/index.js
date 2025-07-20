@@ -728,10 +728,8 @@ function checkAdminAndShowAddForm() {
     const addSection = document.querySelector(".add-article-section");
 
     if (user?.isAdmin) {
-        // מציג את כפתור הוספת הכתבה
         addSection.style.display = "block";
     } else {
-        // מסתיר לגמרי את החלק
         addSection.style.display = "none";
     }
 }
