@@ -107,7 +107,17 @@ $(document).ready(function () {
         const password = $("#signupPassword").val().trim();
 
         if (!name || !email || !password) {
-            $("#signupError").text("Please fill in all fields");
+            const msg = "Please fill in all fields";
+            $("#signupError").text(msg);
+            alert(msg);
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        if (!passwordRegex.test(password)) {
+            const msg = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+            $("#signupError").text(msg);
+            alert(msg);
             return;
         }
 
@@ -126,19 +136,35 @@ $(document).ready(function () {
                 tags: selectedTags
             })
         })
-            .then(res => {
-                if (!res.ok) throw new Error("Failed to register");
+            .then(async res => {
+                if (!res.ok) {
+                    const text = await res.text();
+
+                    let msg = "❌ Registration failed.";
+                    if (text === "email")
+                        msg = "⚠️ Email is already in use";
+                    else if (text === "name")
+                        msg = "⚠️ Username is already taken";
+
+                    $("#signupError").text(msg);
+                    alert(msg);
+                    throw new Error(msg);
+                }
+
                 return res.json();
             })
+
+
             .then(user => {
                 sessionStorage.setItem("loggedUser", JSON.stringify(user));
                 window.location.href = "../html/index.html";
             })
             .catch(err => {
-                console.error(err);
-                $("#signupError").text("Registration failed. Try a different email.");
+                console.error("Registration error:", err.message);
             });
     });
+
+
 });
 
 

@@ -22,18 +22,23 @@ namespace NewsSite1.Controllers
             if (user == null)
                 return BadRequest("Invalid user data");
 
-            int newUserId = db.RegisterUser(user);
+            if (db.IsEmailExists(user.Email))
+                return Conflict("email");
 
-            if (newUserId > 0)
-            {
-                user.Id = newUserId;
+            if (db.IsNameExists(user.Name))
+                return Conflict("name");
+
+            bool success = db.RegisterUser(user);
+
+            if (success)
                 return Ok(user);
-            }
             else
-            {
-                return Conflict("Email already exists");
-            }
+                return StatusCode(500, "Registration failed.");
         }
+
+
+
+
 
         [HttpGet("AllUsers")]
         public IActionResult GetAllUsers()

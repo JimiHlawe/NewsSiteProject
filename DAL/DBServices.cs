@@ -44,44 +44,63 @@ namespace NewsSite1.DAL
         // ============= USERS ========================
         // ============================================
 
-        public int RegisterUser(UserWithTags user)
+        public bool RegisterUser(UserWithTags user)
         {
-            int newUserId;
-
-            using (SqlConnection con = connect()) // חיבור כבר נפתח בפנים
+            try
             {
-                // 🔹 הוספת המשתמש
-                SqlCommand cmd = new SqlCommand(@"
-            INSERT INTO News_Users (Name, Email, Password, Active)
-            OUTPUT INSERTED.Id
-            VALUES (@Name, @Email, @Password, @Active)", con);
-
-                cmd.Parameters.AddWithValue("@Name", user.Name);
-                cmd.Parameters.AddWithValue("@Email", user.Email);
-                cmd.Parameters.AddWithValue("@Password", user.Password);
-                cmd.Parameters.AddWithValue("@Active", user.Active);
-
-                newUserId = (int)cmd.ExecuteScalar();
-
-                // 🔹 שמירת תגיות
-                foreach (int tagId in user.Tags)
+                using (SqlConnection con = connect())
                 {
-                    SqlCommand tagCmd = new SqlCommand(@"
-                INSERT INTO News_UserTags (userId, tagId)
-                VALUES (@UserId, @TagId)", con);
+                    SqlCommand cmd = new SqlCommand(@"
+                INSERT INTO News_Users (Name, Email, Password)
+                OUTPUT INSERTED.Id
+                VALUES (@Name, @Email, @Password)", con);
 
-                    tagCmd.Parameters.AddWithValue("@UserId", newUserId);
-                    tagCmd.Parameters.AddWithValue("@TagId", tagId);
+                    cmd.Parameters.AddWithValue("@Name", user.Name);
+                    cmd.Parameters.AddWithValue("@Email", user.Email);
+                    cmd.Parameters.AddWithValue("@Password", user.Password);
 
-                    tagCmd.ExecuteNonQuery();
+                    int userId = (int)cmd.ExecuteScalar();
+                    user.Id = userId;
+
+                    // הוספת תגיות אם יש
+                    foreach (int tagId in user.Tags)
+                        AddUserTag(userId, tagId);
+
+                    return true;
                 }
             }
+            catch (SqlException ex)
+            {
+                // בדיקה האם מדובר על כפילות במייל
+                if (ex.Number == 2627 || ex.Message.Contains("UQ__News_Users") || ex.Message.Contains("UQ_News_Users_Name"))
+                    // violation of UNIQUE constraint
+                    return false;
 
-            return newUserId;
+                throw; // כל שגיאה אחרת - נזרוק כרגיל
+            }
         }
 
+        public bool IsEmailExists(string email)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM News_Users WHERE Email = @Email", con);
+                cmd.Parameters.AddWithValue("@Email", email);
+                int count = (int)cmd.ExecuteScalar();
+                return count > 0;
+            }
+        }
 
-
+        public bool IsNameExists(string name)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM News_Users WHERE Name = @Name", con);
+                cmd.Parameters.AddWithValue("@Name", name);
+                int count = (int)cmd.ExecuteScalar();
+                return count > 0;
+            }
+        }
 
 
         public User LoginUser(string email, string password)
