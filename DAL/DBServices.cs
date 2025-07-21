@@ -203,6 +203,51 @@ namespace NewsSite1.DAL
             }
         }
 
+        public List<User> GetBlockedUsers(int userId)
+        {
+            List<User> result = new List<User>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT u.id, u.name, u.email
+            FROM News_UserBlocks b
+            JOIN News_Users u ON b.blockedUserId = u.id
+            WHERE b.blockerUserId = @userId
+        ", con);
+                cmd.Parameters.AddWithValue("@userId", userId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(new User
+                    {
+                        Id = (int)reader["id"],
+                        Name = (string)reader["name"],
+                        Email = (string)reader["email"]
+                    });
+                }
+            }
+
+            return result;
+        }
+
+        public bool UnblockUser(int blockerUserId, int blockedUserId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            DELETE FROM News_UserBlocks
+            WHERE blockerUserId = @blockerUserId AND blockedUserId = @blockedUserId
+        ", con);
+                cmd.Parameters.AddWithValue("@blockerUserId", blockerUserId);
+                cmd.Parameters.AddWithValue("@blockedUserId", blockedUserId);
+
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+
+
         public void RemoveUserTag(int userId, int tagId)
         {
             using (SqlConnection con = connect())
@@ -1318,6 +1363,11 @@ ORDER BY Priority, publishedAt DESC
             public string CommentText { get; set; }
             public string Reason { get; set; }
             public DateTime ReportedAt { get; set; }
+        }
+        public class UserBlockRequest
+        {
+            public int BlockerUserId { get; set; }
+            public int BlockedUserId { get; set; }
         }
 
     }

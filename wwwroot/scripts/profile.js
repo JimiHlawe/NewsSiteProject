@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load user data
     loadUserTags();
     loadAllTags();
+    loadBlockedUsers();
+
 });
 
 function loadUserTags() {
@@ -278,6 +280,60 @@ function getNotificationColor(type) {
     return colors[type] || colors.info;
 }
 
+function loadBlockedUsers() {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const container = document.getElementById("blockedUsersContainer");
+    if (!container) return;
+
+    container.innerHTML = "<p>Loading blocked users...</p>";
+
+    fetch(`/api/Users/BlockedByUser/${user.id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                container.innerHTML = "<p>You haven't blocked anyone.</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+            data.forEach(u => {
+                const div = document.createElement("div");
+                div.className = "blocked-user-item";
+                div.innerHTML = `
+                    <strong>${u.name}</strong>
+                    <button class="btn btn-sm btn-outline-danger ms-2" onclick="unblockUser(${u.id})">Unblock</button>
+                `;
+                container.appendChild(div);
+            });
+        })
+        .catch(err => {
+            console.error("Error loading blocked users", err);
+            container.innerHTML = "<p class='text-danger'>Failed to load blocked users.</p>";
+        });
+}
+
+
+function unblockUser(blockedUserId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!confirm("Are you sure you want to unblock this user?")) return;
+
+    fetch("/api/Users/UnblockUser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blockerUserId: user.id, blockedUserId })
+    })
+        .then(res => {
+            if (res.ok) {
+                showNotification("✅ Unblocked successfully", "success");
+                loadBlockedUsers();
+            } else {
+                throw new Error("Failed to unblock");
+            }
+        })
+        .catch(() => showNotification("❌ Failed to unblock", "error"));
+}
+
+
 // Add notification animations to CSS
 const style = document.createElement('style');
 style.textContent = `
@@ -342,3 +398,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+

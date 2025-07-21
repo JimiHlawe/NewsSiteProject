@@ -72,7 +72,7 @@ function renderVisibleArticles() {
             <h3 class="article-title">${article.title}</h3>
             <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
             <div class="article-meta">
-                <span>${article.author || 'Unknown Author'}</span>
+                <span>${article.author}</span>
                 <span>${formattedDate}</span>
             </div>
             <div class="article-actions">

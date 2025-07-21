@@ -157,6 +157,23 @@ namespace NewsSite1.Controllers
             return Ok("Blocked");
         }
 
+        [HttpGet("BlockedByUser/{userId}")]
+        public IActionResult GetBlockedUsers(int userId)
+        {
+            var blockedUsers = db.GetBlockedUsers(userId);
+            return Ok(blockedUsers);
+        }
+
+        [HttpPost("UnblockUser")]
+        public IActionResult UnblockUser([FromBody] UserBlockRequest req)
+        {
+            bool success = db.UnblockUser(req.BlockerUserId, req.BlockedUserId);
+            if (success)
+                return Ok();
+            else
+                return BadRequest();
+        }
+
         [HttpPost("SetActiveStatus")]
         public IActionResult SetActiveStatus([FromBody] SetStatusRequest req)
         {
@@ -225,6 +242,12 @@ namespace NewsSite1.Controllers
         public int BlockerUserId { get; set; }
         public string BlockedUsername { get; set; }
     }
+    public class UserBlockRequest
+    {
+        public int BlockerUserId { get; set; }
+        public int BlockedUserId { get; set; }
+    }
+
 
     public class UpdatePasswordRequest
     {
