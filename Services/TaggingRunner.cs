@@ -35,7 +35,7 @@ public class TaggingRunner
                 SaveTagsToDb(article.Id, tags);
                 Console.WriteLine($"✓ Tagged article ID: {article.Id}");
 
-                await Task.Delay(1000); // ❗ השהיה של 5 שניות בין בקשות
+                await Task.Delay(1000); 
             }
             catch (Exception ex)
             {
@@ -77,7 +77,6 @@ public class TaggingRunner
         return list;
     }
 
-
     private int GetOrCreateTagId(string tagName, SqlConnection con)
     {
         var checkCmd = new SqlCommand("SELECT id FROM News_Tags WHERE name = @name", con);
@@ -101,19 +100,19 @@ public class TaggingRunner
         {
             int tagId = GetOrCreateTagId(tag, con);
 
-            var checkCmd = new SqlCommand("SELECT COUNT(*) FROM News_ArticleTags WHERE articleId = @articleId AND tagId = @tagId", con);
-            checkCmd.Parameters.AddWithValue("@articleId", articleId);
-            checkCmd.Parameters.AddWithValue("@tagId", tagId);
-            int count = (int)checkCmd.ExecuteScalar();
-
-            if (count == 0)
+            try
             {
                 var cmd = new SqlCommand("INSERT INTO News_ArticleTags (articleId, tagId) VALUES (@articleId, @tagId)", con);
                 cmd.Parameters.AddWithValue("@articleId", articleId);
                 cmd.Parameters.AddWithValue("@tagId", tagId);
                 cmd.ExecuteNonQuery();
             }
+            catch (SqlException ex)
+            {
+                if (ex.Number == 2627 || ex.Number == 2601)
+                    continue;
+                throw;
+            }
         }
     }
-
 }

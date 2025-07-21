@@ -989,15 +989,26 @@ ORDER BY Priority, publishedAt DESC
 
         public int AddArticleWithTags(ArticleWithTags article)
         {
+            if (!string.IsNullOrWhiteSpace(article.SourceUrl))
+            {
+                using (SqlConnection con = connect())
+                {
+                    SqlCommand checkCmd = new SqlCommand("SELECT Id FROM News_Articles WHERE Url = @Url", con);
+                    checkCmd.Parameters.AddWithValue("@Url", article.SourceUrl);
+                    object result = checkCmd.ExecuteScalar();
+                    if (result != null)
+                        return (int)result; 
+                }
+            }
+
             int newArticleId;
 
             using (SqlConnection con = connect())
             {
                 SqlCommand cmd = new SqlCommand(@"
-            INSERT INTO News_Articles (Title, Description, ImageUrl, Url, PublishedAt, Author)
-            OUTPUT INSERTED.Id
-            VALUES (@Title, @Description, @ImageUrl, @Url, @PublishedAt, @Author)
-        ", con);
+        INSERT INTO News_Articles (Title, Description, ImageUrl, Url, PublishedAt, Author)
+        OUTPUT INSERTED.Id
+        VALUES (@Title, @Description, @ImageUrl, @Url, @PublishedAt, @Author)", con);
 
                 cmd.Parameters.AddWithValue("@Title", article.Title ?? "");
                 cmd.Parameters.AddWithValue("@Description", article.Description ?? "");
@@ -1009,7 +1020,6 @@ ORDER BY Priority, publishedAt DESC
                 newArticleId = (int)cmd.ExecuteScalar();
             }
 
-            // אחרי הוספת הכתבה: טיפול בתגיות
             foreach (string tagName in article.Tags)
             {
                 int tagId = GetOrAddTagId(tagName);
@@ -1018,6 +1028,7 @@ ORDER BY Priority, publishedAt DESC
 
             return newArticleId;
         }
+
 
         public int GetOrAddTagId(string tagName)
         {
@@ -1038,7 +1049,7 @@ ORDER BY Priority, publishedAt DESC
                 return (int)cmd.ExecuteScalar();
             }
         }
-
+            
         public List<Tag> GetAllTags()
         {
             List<Tag> tags = new List<Tag>();
@@ -1066,6 +1077,14 @@ ORDER BY Priority, publishedAt DESC
         {
             using (SqlConnection con = connect())
             {
+                SqlCommand checkCmd = new SqlCommand(
+                    "SELECT COUNT(*) FROM News_ArticleTags WHERE ArticleId = @ArticleId AND TagId = @TagId", con);
+                checkCmd.Parameters.AddWithValue("@ArticleId", articleId);
+                checkCmd.Parameters.AddWithValue("@TagId", tagId);
+
+                int count = (int)checkCmd.ExecuteScalar();
+                if (count > 0) return; 
+
                 SqlCommand cmd = new SqlCommand(
                     "INSERT INTO News_ArticleTags (ArticleId, TagId) VALUES (@ArticleId, @TagId)", con);
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
@@ -1074,6 +1093,7 @@ ORDER BY Priority, publishedAt DESC
                 cmd.ExecuteNonQuery();
             }
         }
+
 
         public List<string> GetTagsForArticle(int articleId)
         {

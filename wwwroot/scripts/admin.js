@@ -1,7 +1,9 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
     loadUsers();
-    loadAllStats(); // טוען גם את הסטטיסטיקות הכלליות וגם הלייקים
+    loadAllStats();
     loadReports();
+    setupImportExternal();
+    setupTagging(); // ✅ חדש – כפתור לתיוג כתבות
 });
 
 function loadUsers() {
@@ -39,8 +41,7 @@ function setStatus(userId, isActive) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, isActive })
-    })
-        .then(() => loadUsers());
+    }).then(() => loadUsers());
 }
 
 function loadAllStats() {
@@ -101,7 +102,7 @@ function loadReports() {
                     <thead>
                         <tr>
                             <th>Reporter</th>
-                            <th>Target</th> <!-- חדש -->
+                            <th>Target</th>
                             <th>Type</th>
                             <th>Reason</th>
                             <th>Content</th>
@@ -133,4 +134,52 @@ function loadReports() {
             if (container)
                 container.innerHTML = `<div class="alert alert-danger">⚠️ Failed to load reports</div>`;
         });
+}
+
+function setupImportExternal() {
+    const importBtn = document.getElementById("importBtn");
+
+    if (importBtn) {
+        importBtn.addEventListener("click", function () {
+            fetch("/api/Articles/ImportExternal", {
+                method: "POST"
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Import failed");
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById("importStatus").innerHTML =
+                        `<div class='alert alert-success'>✅ ${data.length} new articles were imported successfully</div>`;
+                })
+                .catch(err => {
+                    document.getElementById("importStatus").innerHTML =
+                        `<div class='alert alert-danger'>❌ Error: ${err.message}</div>`;
+                });
+        });
+    }
+}
+
+function setupTagging() {
+    const taggingBtn = document.getElementById("taggingBtn");
+
+    if (taggingBtn) {
+        taggingBtn.addEventListener("click", function () {
+            fetch("/api/Tagging/Run", {
+                method: "POST"
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Tagging failed");
+                    return res.text();
+                })
+                .then(msg => {
+                    document.getElementById("taggingStatus").innerHTML =
+                        `<div class='alert alert-success'>🏷️ Tagging completed successfully</div>`;
+                })
+                .catch(err => {
+                    document.getElementById("taggingStatus").innerHTML =
+                        `<div class='alert alert-danger'>❌ Error: ${err.message}</div>`;
+                });
+        });
+    }
 }
