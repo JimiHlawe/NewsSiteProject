@@ -92,7 +92,7 @@ public class ArticlesController : ControllerBase
 
         try
         {
-            db.ShareArticleByUsernames(req.senderUsername, req.toUsername, req.publicArticleId, req.comment);
+            _db.ShareArticleByUsernames(req.senderUsername, req.toUsername, req.publicArticleId, req.comment);
             return Ok("Thread shared via existing share mechanism.");
         }
         catch (Exception ex)
