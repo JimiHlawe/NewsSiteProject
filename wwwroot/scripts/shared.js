@@ -4,14 +4,17 @@
         window.location.href = "/html/login.html";
         return;
     }
+
     var user = JSON.parse(userJson);
     var url = "https://localhost:7084/api/Articles/SharedWithMe/" + user.id;
+
     fetch(url)
         .then(function (res) {
             if (!res.ok) throw new Error("Failed to fetch shared articles");
             return res.json();
         })
         .then(function (data) {
+            console.log("📥 Shared articles from API:", data);
             renderSharedArticles(data);
         })
         .catch(function () {
@@ -34,29 +37,24 @@ function renderSharedArticles(articles) {
         return;
     }
 
-    for (var i = 0; i < articles.length; i++) {
-        var article = articles[i];
+    for (let i = 0; i < articles.length; i++) {
+        const article = articles[i];
+        const imageUrl = article.imageUrl || 'https://via.placeholder.com/400x200?text=Article+Image';
 
-        // תמונה ברירת מחדל אם אין תמונה
-        var imageUrl = article.imageUrl || 'https://via.placeholder.com/400x200?text=Article+Image';
-
-        // עיצוב תאריך
-        var formattedDate = "";
-        if (article.publishedAt) {
-            formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+        const formattedDate = article.publishedAt
+            ? new Date(article.publishedAt).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric'
-            });
-        }
+            })
+            : "";
 
-        // יצירת אלמנט הכרטיס
-        var articleCard = document.createElement('div');
+        const articleCard = document.createElement('div');
         articleCard.className = 'shared-article-card fade-in';
         articleCard.style.animationDelay = (i * 0.1) + 's';
         articleCard.style.cursor = 'pointer';
 
-        var html = `
+        articleCard.innerHTML = `
             <div class='shared-image-container'>
                 <img src='${imageUrl}' class='shared-image' alt='${article.title}'>
             </div>
@@ -86,12 +84,17 @@ function renderSharedArticles(articles) {
                     <span class='shared-author'><strong>Author:</strong> ${article.author || 'Unknown'}</span>
                     ${formattedDate ? ` | <span class='shared-date'><strong>Date:</strong> ${formattedDate}</span>` : ''}
                 </div>
+
+                <button class='btn btn-danger btn-sm remove-btn'>🗑 Remove</button>
             </div>
         `;
 
-        articleCard.innerHTML = html;
+        articleCard.querySelector(".remove-btn").addEventListener("click", function (event) {
+            event.stopPropagation();
+            removeSharedArticle(article.sharedId, articleCard);
+        });
 
-        // הוספת event listener לכרטיס כולו
+
         articleCard.addEventListener('click', function () {
             if (article.sourceUrl && article.sourceUrl !== '#') {
                 window.open(article.sourceUrl, '_blank');
@@ -102,4 +105,21 @@ function renderSharedArticles(articles) {
 
         container.appendChild(articleCard);
     }
+}
+
+function removeSharedArticle(sharedId, cardElement) {
+    if (!confirm("Are you sure you want to remove this shared article?")) return;
+
+    fetch("/api/Articles/RemoveShared/" + sharedId, {
+        method: "DELETE"
+    })
+
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to remove");
+            cardElement.remove();
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("❌ Failed to remove shared article");
+        });
 }

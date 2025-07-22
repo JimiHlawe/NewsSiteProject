@@ -163,6 +163,21 @@ public class ArticlesController : ControllerBase
         return Ok(addedArticles);
     }
 
+    [HttpDelete("RemoveShared/{sharedId}")]
+    public IActionResult RemoveSharedArticle(int sharedId)
+    {
+        try
+        {
+            _db.RemoveSharedArticle(sharedId); // זו אמורה לקרוא ל-SP
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+
 
 
     [HttpGet("WithTags")]
