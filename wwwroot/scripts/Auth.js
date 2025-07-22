@@ -105,7 +105,7 @@ $(document).ready(function () {
             })
             .then(user => {
                 if (!user.active) {
-                    alert("🚫 Your account is blocked.");
+                    alert("Your account is blocked.");
                     return;
                 }
 
@@ -116,7 +116,7 @@ $(document).ready(function () {
             })
             .catch(err => {
                 if (err.message === "blocked")
-                    alert("🚫 Your account is blocked.");
+                    alert("Your account is blocked.");
                 else {
                     $("#signinError").text("Invalid email or password");
                     $("#signinError").addClass("show");
@@ -136,7 +136,6 @@ $(document).ready(function () {
             const msg = "Please fill in all fields";
             $("#signupError").text(msg);
             $("#signupError").addClass("show");
-            alert(msg);
             return;
         }
 
@@ -145,7 +144,6 @@ $(document).ready(function () {
             const msg = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
             $("#signupError").text(msg);
             $("#signupError").addClass("show");
-            alert(msg);
             return;
         }
 
@@ -170,9 +168,9 @@ $(document).ready(function () {
 
                     let msg = "❌ Registration failed.";
                     if (text === "email")
-                        msg = "⚠️ Email is already in use";
+                        msg = "Email is already in use";
                     else if (text === "name")
-                        msg = "⚠️ Username is already taken";
+                        msg = "Username is already taken";
 
                     $("#signupError").text(msg);
                     $("#signupError").addClass("show");
