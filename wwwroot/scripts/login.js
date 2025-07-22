@@ -1,14 +1,36 @@
 ﻿var apiBase = "https://localhost:7084/api";
 
-function switchToSignup() {
-    document.getElementById("signinForm").style.display = "none";
-    document.getElementById("signupForm").style.display = "block";
+// DOM Elements
+const container = document.getElementById("container");
+const registerBtn = document.getElementById("register");
+const loginBtn = document.getElementById("login");
 
-    // טען את התגיות ברגע שעוברים למסך ההרשמה
+// פאנלים במובייל
+const signupSwitches = document.querySelectorAll(".signup .form-switch");
+const signinSwitches = document.querySelectorAll(".signin .form-switch");
+
+// מעבר בין Sign In ל־Sign Up
+function toggleActiveClass(showSignup) {
+    container.classList.toggle("active", showSignup);
+    if (showSignup) loadTags();
+}
+
+// כפתורי דסקטופ
+if (registerBtn) {
+    registerBtn.addEventListener("click", () => toggleActiveClass(true));
+}
+if (loginBtn) {
+    loginBtn.addEventListener("click", () => toggleActiveClass(false));
+}
+
+// הטעינת תגיות
+function loadTags() {
     fetch(apiBase + "/Users/AllTags")
         .then(res => res.json())
         .then(tags => {
             const container = document.getElementById("signupTagsContainer");
+            if (!container) return;
+
             container.innerHTML = "";
 
             tags.forEach(tag => {
@@ -19,7 +41,6 @@ function switchToSignup() {
                     <label for="tag-${tag.id}">${tag.name}</label>
                 `;
 
-                // הוספת אירוע קליק לתגית
                 const checkbox = tagBubble.querySelector('input[type="checkbox"]');
                 const label = tagBubble.querySelector('label');
 
@@ -27,20 +48,17 @@ function switchToSignup() {
                     e.preventDefault();
 
                     if (!checkbox.checked) {
-                        // אם התגית לא נבחרת - בחר אותה
                         checkbox.checked = true;
                         label.style.background = 'var(--primary-slate)';
                         label.style.color = 'white';
                     } else {
-                        // אם התגית נבחרת - התנפצות ובטל בחירה
                         tagBubble.classList.add('exploding');
-
                         setTimeout(() => {
                             checkbox.checked = false;
                             tagBubble.classList.remove('exploding');
                             label.style.background = '';
                             label.style.color = '';
-                        }, 600); // זמן האנימציה
+                        }, 600);
                     }
                 });
 
@@ -52,11 +70,16 @@ function switchToSignup() {
         });
 }
 
-function switchToSignin() {
-    document.getElementById("signupForm").style.display = "none";
-    document.getElementById("signinForm").style.display = "block";
-}
+// כפתורים בטפסים (מובייל)
+signupSwitches.forEach(btn =>
+    btn.addEventListener("click", () => toggleActiveClass(false))
+);
 
+signinSwitches.forEach(btn =>
+    btn.addEventListener("click", () => toggleActiveClass(true))
+);
+
+// JQuery on document ready
 $(document).ready(function () {
     // התחברות
     $("#signinFormSubmit").submit(function (e) {
@@ -66,6 +89,7 @@ $(document).ready(function () {
 
         if (!email || !password) {
             $("#signinError").text("Please enter email and password");
+            $("#signinError").addClass("show");
             return;
         }
 
@@ -93,8 +117,10 @@ $(document).ready(function () {
             .catch(err => {
                 if (err.message === "blocked")
                     alert("🚫 Your account is blocked.");
-                else
+                else {
                     $("#signinError").text("Invalid email or password");
+                    $("#signinError").addClass("show");
+                }
             });
     });
 
@@ -109,6 +135,7 @@ $(document).ready(function () {
         if (!name || !email || !password) {
             const msg = "Please fill in all fields";
             $("#signupError").text(msg);
+            $("#signupError").addClass("show");
             alert(msg);
             return;
         }
@@ -117,6 +144,7 @@ $(document).ready(function () {
         if (!passwordRegex.test(password)) {
             const msg = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
             $("#signupError").text(msg);
+            $("#signupError").addClass("show");
             alert(msg);
             return;
         }
@@ -147,14 +175,13 @@ $(document).ready(function () {
                         msg = "⚠️ Username is already taken";
 
                     $("#signupError").text(msg);
+                    $("#signupError").addClass("show");
                     alert(msg);
                     throw new Error(msg);
                 }
 
                 return res.json();
             })
-
-
             .then(user => {
                 sessionStorage.setItem("loggedUser", JSON.stringify(user));
                 window.location.href = "../html/index.html";
@@ -165,11 +192,11 @@ $(document).ready(function () {
     });
 });
 
-
-// ✅ פונקציה לשמירת תחומי עניין
+// שמירת תחומי עניין
 function saveUserTags() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const checked = document.querySelectorAll("#tagsContainer input:checked");
+
     checked.forEach(chk => {
         fetch(apiBase + "/Users/AddTag", {
             method: "POST",
