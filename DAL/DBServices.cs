@@ -867,7 +867,8 @@ ORDER BY Priority, publishedAt DESC
                         PublishedAt = (DateTime)reader["publishedAt"],
                         Comment = reader["comment"].ToString(),
                         SharedAt = (DateTime)reader["sharedAt"],
-                        SenderName = reader["senderName"].ToString()
+                        SenderName = reader["senderName"].ToString(),
+                        SharedId = (int)reader["id"]
                     };
 
                     sharedArticles.Add(article);
@@ -876,6 +877,7 @@ ORDER BY Priority, publishedAt DESC
 
             return sharedArticles;
         }
+
 
         public void ShareArticlePublic(int userId, int articleId, string comment)
         {
@@ -891,6 +893,22 @@ ORDER BY Priority, publishedAt DESC
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public void RemoveSharedArticle(int sharedId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_RemoveSharedArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@sharedId", sharedId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+
+
+
 
         // ============================================
         // ======= PUBLIC ARTICLES & COMMENTS =========

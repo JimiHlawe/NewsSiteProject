@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <title>Admin Panel</title>
     <link href="../css/admin.css" rel="stylesheet" />
+    <link href="../css/navbar.css" rel="stylesheet" />
+    <script src="../scripts/navbar.js"></script>
     <script src="../scripts/admin.js"></script>
 </head>
 <body>
+    <div id="navbar"></div>
+
     <h1>Admin Dashboard</h1>
 
     <section>
@@ -32,6 +36,7 @@
         <h2>Site Statistics</h2>
         <div id="statsContainer"></div>
     </section>
+
     <div id="reportsContainer" class="admin-section"></div>
 
     <button id="importBtn">📥 Import Articles</button>
@@ -39,8 +44,5 @@
 
     <button id="taggingBtn">🏷️ Tag Articles</button>
     <div id="taggingStatus"></div>
-
-
-
 </body>
 </html>

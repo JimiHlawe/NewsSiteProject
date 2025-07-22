@@ -35,3 +35,15 @@
         window.location.href = "/html/login.html";
     }
 });
+
+function bindNavbarEvents() {
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", logout);
+    }
+}
+
+function logout() {
+    sessionStorage.clear();
+    window.location.href = "/html/login.html";
+}
