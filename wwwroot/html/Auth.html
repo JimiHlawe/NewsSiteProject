@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Auth Page</title>
-    <link href="../css/login.css" rel="stylesheet" />
+    <link href="../css/Auth.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="../scripts/login.js" defer></script>
+    <script src="../scripts/Auth.js" defer></script>
 </head>
 <body>
     <!-- Floating Particles -->
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
+
+    <!-- Main Logo Above Container -->
+    <div class="main-logo">
+        <a href="index.html">
+        <h1>NEWSPAPER</h1></a>
+    </div>
 
     <div class="container" id="container">
         <!-- Sign In Form -->
@@ -24,13 +30,6 @@
                 </div>
                 <div class="form-group">
                     <input type="password" id="signinPassword" class="form-input" placeholder="Password" required>
-                </div>
-                <div class="remember-group">
-                    <label class="checkbox-container">
-                        <input type="checkbox" id="rememberMe">
-                        <span class="checkmark"></span>
-                        <span class="checkbox-label">Remember me</span>
-                    </label>
                 </div>
                 <button type="submit" class="form-button">Sign In</button>
                 <div class="error-message" id="signinError"></div>
@@ -71,12 +70,12 @@
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
                     <h1>Welcome Back!</h1>
-                    <p>Enter your personal details to use all of site features</p>
+                    <p>Could we be any happier to see you again?</p>
                     <button id="login">SIGN IN</button>
                 </div>
                 <div class="toggle-panel toggle-right">
-                    <h1>Hello, Friend!</h1>
-                    <p>Sign up with your personal information to enjoy our website</p>
+                    <h1>Hey You!</h1>
+                    <p>Sign up now — we’ll be there for you!</p>
                     <button id="register">SIGN UP</button>
                 </div>
             </div>

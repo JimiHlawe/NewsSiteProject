@@ -190,8 +190,6 @@ $(document).ready(function () {
                 console.error("Registration error:", err.message);
             });
     });
-
-
 });
 
 // שמירת תחומי עניין
