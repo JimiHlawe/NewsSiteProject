@@ -23,6 +23,59 @@ if (loginBtn) {
     loginBtn.addEventListener("click", () => toggleActiveClass(false));
 }
 
+// ✅ NOTIFICATION SYSTEM
+function showNotification(message, type = 'error') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.auth-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    const notification = document.createElement('div');
+    notification.className = `auth-notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <span class="notification-message">${message}</span>
+            <button class="notification-close" onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+    `;
+
+    const bgColor = getNotificationColor(type);
+    const isMobile = window.innerWidth <= 768;
+
+    notification.style.cssText = `
+        position: fixed;
+        ${isMobile ? 'top: 15px; left: 15px; right: 15px; width: auto;' : 'top: 20px; right: 20px; max-width: 400px;'}
+        background: ${bgColor};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        z-index: 10000;
+        animation: ${isMobile ? 'slideInTop' : 'slideInRight'} 0.3s ease-out;
+        font-weight: 500;
+        border: 1px solid rgba(255,255,255,0.2);
+    `;
+
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = `${isMobile ? 'slideOutTop' : 'slideOutRight'} 0.3s ease-in`;
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 5000);
+}
+
+function getNotificationColor(type) {
+    const colors = {
+        success: 'linear-gradient(135deg, #10b981, #059669)',
+        error: 'linear-gradient(135deg, #ef4444, #dc2626)',
+        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
+        info: 'linear-gradient(135deg, #3b82f6, #2563eb)'
+    };
+    return colors[type] || colors.error;
+}
+
 // הטעינת תגיות
 function loadTags() {
     fetch(apiBase + "/Users/AllTags")
@@ -67,6 +120,7 @@ function loadTags() {
         })
         .catch(error => {
             console.error('Error loading tags:', error);
+            showNotification('Failed to load interest tags', 'error');
         });
 }
 
@@ -88,10 +142,14 @@ $(document).ready(function () {
         const password = $("#signinPassword").val().trim();
 
         if (!email || !password) {
-            $("#signinError").text("Please enter email and password");
-            $("#signinError").addClass("show");
+            showNotification("Please enter email and password", "warning");
             return;
         }
+
+        // Show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.text();
+        submitBtn.text('Signing In...').prop('disabled', true);
 
         fetch("/api/Users/Login", {
             method: "POST",
@@ -105,22 +163,28 @@ $(document).ready(function () {
             })
             .then(user => {
                 if (!user.active) {
-                    alert("Your account is blocked.");
+                    showNotification("Your account is blocked. Please contact support.", "error");
                     return;
                 }
 
                 sessionStorage.setItem("loggedUser", JSON.stringify(user));
                 sessionStorage.setItem("canShare", user.canShare);
                 sessionStorage.setItem("canComment", user.canComment);
-                window.location.href = "../html/index.html";
+
+                showNotification("Welcome back! Redirecting...", "success");
+                setTimeout(() => {
+                    window.location.href = "../html/index.html";
+                }, 1500);
             })
             .catch(err => {
-                if (err.message === "blocked")
-                    alert("Your account is blocked.");
-                else {
-                    $("#signinError").text("Invalid email or password");
-                    $("#signinError").addClass("show");
+                if (err.message === "blocked") {
+                    showNotification("Your account is blocked. Please contact support.", "error");
+                } else {
+                    showNotification("Invalid email or password. Please try again.", "error");
                 }
+            })
+            .finally(() => {
+                submitBtn.text(originalText).prop('disabled', false);
             });
     });
 
@@ -133,17 +197,13 @@ $(document).ready(function () {
         const password = $("#signupPassword").val().trim();
 
         if (!name || !email || !password) {
-            const msg = "Please fill in all fields";
-            $("#signupError").text(msg);
-            $("#signupError").addClass("show");
+            showNotification("Please fill in all fields", "warning");
             return;
         }
 
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
         if (!passwordRegex.test(password)) {
-            const msg = "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
-            $("#signupError").text(msg);
-            $("#signupError").addClass("show");
+            showNotification("Password must be at least 8 characters and include uppercase, lowercase, number, and special character", "warning");
             return;
         }
 
@@ -151,6 +211,11 @@ $(document).ready(function () {
         $("#signupTagsContainer input:checked").each(function () {
             selectedTags.push(parseInt($(this).val()));
         });
+
+        // Show loading state
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.text();
+        submitBtn.text('Creating Account...').prop('disabled', true);
 
         fetch("/api/Users/Register", {
             method: "POST",
@@ -166,15 +231,13 @@ $(document).ready(function () {
                 if (!res.ok) {
                     const text = await res.text();
 
-                    let msg = "❌ Registration failed.";
+                    let msg = "Registration failed. Please try again.";
                     if (text === "email")
-                        msg = "Email is already in use";
+                        msg = "Email is already in use. Please use a different email.";
                     else if (text === "name")
-                        msg = "Username is already taken";
+                        msg = "Username is already taken. Please choose a different name.";
 
-                    $("#signupError").text(msg);
-                    $("#signupError").addClass("show");
-                    alert(msg);
+                    showNotification(msg, "error");
                     throw new Error(msg);
                 }
 
@@ -182,10 +245,16 @@ $(document).ready(function () {
             })
             .then(user => {
                 sessionStorage.setItem("loggedUser", JSON.stringify(user));
-                window.location.href = "../html/index.html";
+                showNotification("Account created successfully! Welcome aboard!", "success");
+                setTimeout(() => {
+                    window.location.href = "../html/index.html";
+                }, 1500);
             })
             .catch(err => {
                 console.error("Registration error:", err.message);
+            })
+            .finally(() => {
+                submitBtn.text(originalText).prop('disabled', false);
             });
     });
 });
@@ -203,6 +272,8 @@ function saveUserTags() {
         });
     });
 
-    alert("Tags saved!");
-    window.location.href = "index.html";
+    showNotification("Interests saved successfully!", "success");
+    setTimeout(() => {
+        window.location.href = "index.html";
+    }, 1000);
 }

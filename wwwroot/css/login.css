@@ -36,7 +36,6 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
     padding: 20px;
 }
 
@@ -48,6 +47,7 @@ body {
         height: 200%;
         background: radial-gradient(circle at 20% 80%, rgba(74, 144, 226, 0.15) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.8) 0%, transparent 50%), radial-gradient(circle at 40% 40%, rgba(100, 181, 246, 0.12) 0%, transparent 50%);
         animation: backgroundShift 20s ease-in-out infinite;
+        z-index: -1;
     }
 
 @keyframes backgroundShift {
@@ -233,10 +233,6 @@ body {
         font-size: 2rem;
         font-weight: 800;
         margin-bottom: 25px;
-        flex-shrink: 0; /* מונע מהכותרת להצטמק */
-        position: sticky; /* שומר אותה במקום */
-        top: 0;
-        z-index: 10;
     }
 
 /* --- FORM GROUPS --- */
@@ -395,6 +391,12 @@ body {
         transform: scale(0.95);
     }
 
+    .form-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
 /* --- TOGGLE CONTAINER --- */
 .toggle-container {
     position: absolute;
@@ -420,7 +422,6 @@ body {
     color: #ffffff;
     position: relative;
     left: -100%;
-    height: 100%;
     width: 200%;
     transform: translateX(0);
     transition: transform 0.6s ease-in-out;
@@ -514,36 +515,87 @@ body {
         box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
     }
 
-/* --- ERROR MESSAGES --- */
-.error-message {
-    color: #dc2626;
-    font-size: 13px;
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: rgba(220, 38, 38, 0.08);
-    border-radius: 8px;
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    display: none;
-    position: relative;
-    line-height: 1.4;
-    text-align: center;
+/* --- NOTIFICATION STYLES --- */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
-    .error-message.show {
-        display: block;
-        animation: slideInError 0.3s ease-out;
-    }
-
-@keyframes slideInError {
-    0% {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    100% {
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
         opacity: 1;
-        transform: translateY(0);
     }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInTop {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutTop {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.notification-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+    .notification-close:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+.notification-message {
+    flex: 1;
+    line-height: 1.4;
 }
 
 /* --- MOBILE FORM SWITCH --- */
@@ -560,34 +612,73 @@ body {
 }
 
 /* --- RESPONSIVE DESIGN --- */
+
+/* טאבלט */
+@media (max-width: 1024px) {
+    .container {
+        width: 95%;
+        max-width: 700px;
+    }
+
+    .main-logo h1 {
+        font-size: 3rem;
+        letter-spacing: 3px;
+    }
+}
+
+/* מובייל גדול */
 @media (max-width: 768px) {
     body {
-        padding: 10px;
+        padding: 15px;
+        justify-content: flex-start;
+        padding-top: 30px;
+    }
+
+    .main-logo h1 {
+        font-size: 2.5rem;
+        letter-spacing: 2px;
+    }
+
+    .main-logo {
+        margin-bottom: 25px;
     }
 
     .container {
-        min-height: 480px;
-        height: 100vh;
-        border-radius: 16px;
         width: 100%;
+        max-width: 100%;
+        min-height: 500px;
+        border-radius: 20px;
     }
 
+    /* הסתרת האנימציה הצידית במובייל */
     .sign-in, .sign-up {
         width: 100%;
+        position: static;
+        height: auto;
+        transition: none;
+    }
+
+    .sign-in {
+        display: block;
+    }
+
+    .sign-up {
+        display: none;
     }
 
     .container.active .sign-in {
-        transform: translateX(0);
-        opacity: 0;
-        z-index: 1;
-        visibility: hidden;
+        display: none;
+        transform: none;
+        opacity: 1;
+        visibility: visible;
     }
 
     .container.active .sign-up {
-        transform: translateX(0);
+        display: block;
+        transform: none;
         opacity: 1;
-        z-index: 10;
         visibility: visible;
+        animation: none;
     }
 
     .toggle-container {
@@ -596,19 +687,140 @@ body {
 
     .mobile {
         display: block;
-        z-index: 10;
     }
 
     .custom-form {
-        padding: 0 30px;
+        padding: 40px 30px;
+        height: auto;
+        min-height: auto;
+        justify-content: flex-start;
+    }
+
+        .custom-form h1 {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+        }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-input {
+        padding: 15px 18px;
+        font-size: 16px;
+        border-radius: 15px;
+    }
+
+    #signupTagsContainer {
+        max-height: 140px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+
+    .tag-bubble label {
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 15px;
+    }
+
+    .form-button {
+        padding: 15px 50px;
+        font-size: 15px;
+        margin-top: 20px;
+        border-radius: 15px;
+        width: 100%;
+    }
+
+    .form-switch {
+        font-size: 14px;
+        margin-top: 20px;
+        padding: 10px;
+    }
+}
+
+/* מובייל קטן */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+        padding-top: 20px;
+    }
+
+    .main-logo h1 {
+        font-size: 2rem;
+        letter-spacing: 1px;
+    }
+
+    .container {
+        border-radius: 16px;
+        min-height: 450px;
+    }
+
+    .custom-form {
+        padding: 30px 20px;
+    }
+
+        .custom-form h1 {
+            font-size: 1.6rem;
+            margin-bottom: 25px;
+        }
+
+    .form-input {
+        padding: 14px 16px;
+    }
+
+    #signupTagsContainer {
+        max-height: 120px;
+        padding: 12px;
+        gap: 6px;
+    }
+
+    .tag-bubble label {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .form-button {
+        padding: 14px 40px;
+        font-size: 14px;
+    }
+
+    .form-group label {
+        font-size: 14px;
+        margin-bottom: 6px;
+    }
+}
+
+/* מובייל זעיר */
+@media (max-width: 360px) {
+    .main-logo h1 {
+        font-size: 1.8rem;
+    }
+
+    .container {
+        min-height: 420px;
+    }
+
+    .custom-form {
+        padding: 25px 15px;
+    }
+
+        .custom-form h1 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+        }
+
+    .form-input {
+        padding: 12px 14px;
     }
 
     #signupTagsContainer {
         max-height: 100px;
+        padding: 10px;
     }
 
-    .main-logo h1 {
-        font-size: 2.5rem;
+    .tag-bubble label {
+        padding: 5px 8px;
+        font-size: 10px;
     }
 }
 
