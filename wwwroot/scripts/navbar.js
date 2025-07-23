@@ -10,9 +10,6 @@
         html += "    <a class='navbar-brand' href='/html/index.html'>NEWSPAPER</a>";
         html += "    <ul class='navbar-nav'>";
 
-        // Always show Home
-        html += "      <li><a class='nav-link' href='/html/index.html'>Home</a></li>";
-
         if (user) {
             html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
             html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
