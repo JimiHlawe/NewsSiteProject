@@ -4,9 +4,11 @@
     height: 85vh;
     overflow: hidden;
     background: #000;
-    border-radius: 0 0 30px 30px;
+    border-radius: 30px 30px 30px 30px;
     box-shadow: var(--shadow-xl);
-    margin-top: 80px;
+    margin-top: 110px;
+    margin-left: 3rem;
+    margin-right: 3rem;
 }
 
 .carousel-container {
@@ -546,14 +548,18 @@
 
 .sidebar-header {
     background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
-    color: white;
+    background-image: url('../pictures/navbar.png');
+    background-size: cover;
+    background-position: center;
+    color: #ffffff;
     padding: 1.5rem 2rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: 0.9rem;
     position: relative;
     overflow: hidden;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
     .sidebar-header::before {
