@@ -96,5 +96,5 @@ function bindNavbarEvents() {
 
 function logout() {
     sessionStorage.clear();
-    window.location.href = "/html/login.html";
+    window.location.href = "/html/index.html";
 }

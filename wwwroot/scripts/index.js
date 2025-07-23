@@ -32,10 +32,8 @@ function loadAllArticlesAndSplit() {
                 return;
             }
 
-            // אם המשתמש הוא 3, התחל רק מהכתבה ה-9 (אינדקס 8)
-            if (userId === 3) {
-                data = data.slice(8); // דילוג על 8 כתבות ראשונות
-            }
+            // תמיד לדלג על 8 הראשונות (מוקצות ל־Side Articles)
+            data = data.slice(8);
 
             carouselArticles = data.slice(0, 5);
             allArticles = data.slice(5);
