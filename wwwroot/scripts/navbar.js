@@ -8,25 +8,29 @@
         html += "<nav class='navbar'>";
         html += "  <div class='container'>";
         html += "    <a class='navbar-brand' href='/html/index.html'>NEWSPAPER</a>";
-
-        // Desktop Navigation
         html += "    <ul class='navbar-nav'>";
+
+        // Always show Home
         html += "      <li><a class='nav-link' href='/html/index.html'>Home</a></li>";
-        html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
-        html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
-        html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
-        html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
-        if (user && user.isAdmin) {
-            html += "      <li><a class='nav-link' href='/html/admin.html'>Admin</a></li>";
+
+        if (user) {
+            html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
+            html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
+            html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
+            html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
+            if (user.isAdmin) {
+                html += "      <li><a class='nav-link' href='/html/admin.html'>Admin</a></li>";
+            }
+            html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a></li>";
+        } else {
+            html += "      <li><a class='nav-link' href='/html/login.html'>Sign In</a></li>";
         }
-        html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a></li>";
+
         html += "    </ul>";
 
         // Hamburger Menu
         html += "    <div class='hamburger' onclick='toggleMobileMenu()'>";
-        html += "      <span></span>";
-        html += "      <span></span>";
-        html += "      <span></span>";
+        html += "      <span></span><span></span><span></span>";
         html += "    </div>";
 
         html += "  </div>";
@@ -37,25 +41,27 @@
         html += "<div class='mobile-menu'>";
         html += "  <ul class='mobile-nav'>";
         html += "    <li><a class='nav-link' href='/html/index.html' onclick='closeMobileMenu()'>Home</a></li>";
-        html += "    <li><a class='nav-link' href='/html/favorites.html' onclick='closeMobileMenu()'>My Favorites</a></li>";
-        html += "    <li><a class='nav-link' href='/html/shared.html' onclick='closeMobileMenu()'>Articles Inbox</a></li>";
-        html += "    <li><a class='nav-link' href='/html/threads.html' onclick='closeMobileMenu()'>Threads</a></li>";
-        html += "    <li><a class='nav-link' href='/html/profile.html' onclick='closeMobileMenu()'>Profile</a></li>";
-        if (user && user.isAdmin) {
-            html += "    <li><a class='nav-link' href='/html/admin.html' onclick='closeMobileMenu()'>Admin</a></li>";
+
+        if (user) {
+            html += "    <li><a class='nav-link' href='/html/favorites.html' onclick='closeMobileMenu()'>My Favorites</a></li>";
+            html += "    <li><a class='nav-link' href='/html/shared.html' onclick='closeMobileMenu()'>Articles Inbox</a></li>";
+            html += "    <li><a class='nav-link' href='/html/threads.html' onclick='closeMobileMenu()'>Threads</a></li>";
+            html += "    <li><a class='nav-link' href='/html/profile.html' onclick='closeMobileMenu()'>Profile</a></li>";
+            if (user.isAdmin) {
+                html += "    <li><a class='nav-link' href='/html/admin.html' onclick='closeMobileMenu()'>Admin</a></li>";
+            }
+            html += "    <li><a class='nav-link logout-link' href='#' onclick='logout(); closeMobileMenu()'>Logout</a></li>";
+        } else {
+            html += "    <li><a class='nav-link' href='/html/login.html' onclick='closeMobileMenu()'>Sign In</a></li>";
         }
-        html += "    <li><a class='nav-link logout-link' href='#' onclick='logout()'>Logout</a></li>";
+
         html += "  </ul>";
         html += "</div>";
 
         container.innerHTML = html;
     }
 
-    const path = window.location.pathname;
-    const isLoginPage = path.includes("login.html") || path.includes("register.html");
-    if (!user && !isLoginPage) {
-        window.location.href = "/html/login.html";
-    }
+    bindNavbarEvents();
 });
 
 // Mobile Menu Functions
@@ -67,8 +73,6 @@ function toggleMobileMenu() {
     hamburger.classList.toggle('active');
     mobileMenu.classList.toggle('active');
     overlay.classList.toggle('active');
-
-    // Prevent body scroll when menu is open
     document.body.style.overflow = mobileMenu.classList.contains('active') ? 'hidden' : '';
 }
 
@@ -80,8 +84,6 @@ function closeMobileMenu() {
     hamburger.classList.remove('active');
     mobileMenu.classList.remove('active');
     overlay.classList.remove('active');
-
-    // Restore body scroll
     document.body.style.overflow = '';
 }
 

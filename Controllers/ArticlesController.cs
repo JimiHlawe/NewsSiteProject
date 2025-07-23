@@ -104,7 +104,6 @@ public class ArticlesController : ControllerBase
     }
 
 
-
     [HttpGet("Public/{userId}")]
     public IActionResult GetPublicArticles(int userId)
     {

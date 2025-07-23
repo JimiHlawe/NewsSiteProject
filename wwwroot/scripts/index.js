@@ -22,15 +22,24 @@ document.addEventListener("DOMContentLoaded", () => {
 // ✅ Load all articles and split for carousel and grid
 function loadAllArticlesAndSplit() {
     const user = getLoggedUser();
-    fetch(`/api/Articles/AllFiltered?userId=${user.id}`)
+    const userId = user ? user.id : 3;
+
+    fetch(`/api/Articles/AllFiltered?userId=${userId}`)
         .then(res => res.json())
         .then(data => {
             if (!data || data.length === 0) {
                 console.warn("No articles found");
                 return;
             }
+
+            // אם המשתמש הוא 3, התחל רק מהכתבה ה-9 (אינדקס 8)
+            if (userId === 3) {
+                data = data.slice(8); // דילוג על 8 כתבות ראשונות
+            }
+
             carouselArticles = data.slice(0, 5);
             allArticles = data.slice(5);
+
             initCarousel();
             renderVisibleArticles();
 
@@ -42,6 +51,8 @@ function loadAllArticlesAndSplit() {
         })
         .catch(err => console.error("❌ Error loading articles:", err));
 }
+
+
 
 // ✅ Grid - with tag positioning fix only
 function renderVisibleArticles() {
