@@ -32,13 +32,10 @@ function renderThreadsArticles(articles) {
         loadComments(id);
     }
 }
-
 function createThreadCard(article) {
     var id = article.articleId;
     var div = document.createElement("div");
     div.className = "thread-card p-3 mb-4 border rounded bg-light";
-
-    // הוספת cursor pointer וקליק לכרטיס כולו
     div.style.cursor = 'pointer';
 
     var formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
@@ -48,43 +45,53 @@ function createThreadCard(article) {
     });
 
     var html = `
-        <div class="initial-comment border-bottom pb-2 mb-3">
-            <strong>${article.senderName}</strong> wrote:
-            <p class="mb-0"><em>${article.initialComment || ""}</em></p>
+    <div class="initial-comment border-bottom pb-2 mb-3">
+        <strong>${article.senderName}</strong> wrote:
+        <p class="mb-0"><em>${article.initialComment || ""}</em></p>
+    </div>
+
+    <div class="thread-content">
+        <div class="thread-image mb-2">
+            <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="img-fluid rounded">
         </div>
+        <h5>${article.title}</h5>
+        <p>${article.description || ""}</p>
 
-        <div class="thread-content">
-            <div class="thread-image mb-2">
-                <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="img-fluid rounded">
-            </div>
-            <h5>${article.title}</h5>
-            <p>${article.description || ""}</p>
-
-            <div class="thread-meta mb-2">
-                <strong>Author:</strong> ${article.author || 'Unknown'} |
-                <strong>Date:</strong> ${formattedDate}
-            </div>
-            <div class="thread-actions mb-2">
-            <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${id}" onclick="toggleThreadLike(${id}); event.stopPropagation();">
+        <div class="thread-meta mb-2">
+            <strong>Author:</strong> ${article.author || 'Unknown'} |
+            <strong>Date:</strong> ${formattedDate}
+        </div>
+        <div class="thread-actions mb-2">
+            <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${article.publicArticleId}">
                 ❤️ Like
             </button>
-            <span id="like-thread-count-${id}" class="ms-2">0 ❤️</span>
-            </div>
-
-            <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}'); event.stopPropagation();">Block ${article.senderName}</button>
-            <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id}); event.stopPropagation();">Report Article</button>
-<button class='btn btn-sm btn-success mb-2' onclick="showThreadShareModal(${id}); event.stopPropagation();">Share</button>
-
-            <h6>💬 Comments:</h6>
-            <div id="comments-${id}" onclick="event.stopPropagation();"></div>
-            <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
-            <button class='btn btn-sm btn-primary' onclick='sendComment(${id}); event.stopPropagation();'>Send</button>
+            <span id="like-thread-count-${article.publicArticleId}" class="ms-2">0 ❤️</span>
         </div>
-    `;
+
+        <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}'); event.stopPropagation();">Block ${article.senderName}</button>
+        <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id}); event.stopPropagation();">Report Article</button>
+        <button class='btn btn-sm btn-success mb-2' onclick="showThreadShareModal(${article.publicArticleId}); event.stopPropagation();">Share</button>
+
+        <h6>💬 Comments:</h6>
+        <div id="comments-${id}" onclick="event.stopPropagation();"></div>
+        <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
+        <button class='btn btn-sm btn-primary' onclick='sendComment(${id}); event.stopPropagation();'>Send</button>
+    </div>
+`;
+
 
     div.innerHTML = html;
 
-    // הוספת event listener לכרטיס כולו
+    // הפעלת toggleThreadLike עם article המלא
+    var likeBtn = div.querySelector(`#like-thread-btn-${article.publicArticleId}`);
+    if (likeBtn) {
+        likeBtn.onclick = function (event) {
+            event.stopPropagation();
+            toggleThreadLike(article);
+        };
+    }
+
+    // פתיחת מקור הכתבה בלחיצה על הכרטיס
     div.addEventListener('click', function () {
         if (article.sourceUrl && article.sourceUrl !== '#') {
             window.open(article.sourceUrl, '_blank');
@@ -95,31 +102,59 @@ function createThreadCard(article) {
 
     return div;
 }
-function toggleThreadLike(articleId) {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    const btn = document.getElementById(`like-thread-btn-${articleId}`);
-    const isLiked = btn.classList.contains("liked");
 
+function toggleThreadLike(article) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    const btn = document.getElementById(`like-thread-btn-${article.publicArticleId}`);
+    if (!btn) {
+        console.error("❌ Like button not found for article:", article);
+        return;
+    }
+
+    const isLiked = btn.classList.contains("liked");
     const endpoint = isLiked ? "RemoveThreadLike" : "AddThreadLike";
 
     fetch(`/api/Articles/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, articleId })
+        body: JSON.stringify({
+            userId: user.id,
+            publicArticleId: article.publicArticleId // ✅ תיקון כאן
+        })
     })
         .then(res => {
             if (res.ok) {
                 btn.classList.toggle("liked");
-                loadThreadLikeCount(articleId);
+                loadThreadLikeCount(article.publicArticleId);
+            } else {
+                alert("❌ Failed to toggle like");
             }
+        })
+        .catch(err => {
+            console.error("Error toggling thread like:", err);
+            alert("❌ Network error");
         });
 }
+
+
+
+
+
+
 
 function loadThreadLikeCount(articleId) {
     fetch(`/api/Articles/GetThreadLikeCount/${articleId}`)
         .then(res => res.json())
         .then(count => {
             document.getElementById(`like-thread-count-${articleId}`).innerText = `${count} ❤️`;
+        })
+        .catch(err => {
+            console.error("Error loading like count:", err);
         });
 }
 
@@ -193,9 +228,11 @@ function loadComments(articleId) {
                 var c = comments[i];
                 var commentDiv = document.createElement('div');
                 commentDiv.className = 'border rounded p-2 mb-1';
-                commentDiv.innerHTML = "<strong>" +
-                    c.username + "</strong>: " + c.comment +
-                    ` <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>`;
+                commentDiv.innerHTML = `
+    <strong>${c.username}</strong>: ${c.comment}
+    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
+`;
+
 
                 // מניעת קליק על התגובה עצמה
                 commentDiv.addEventListener('click', function (event) {
@@ -238,11 +275,14 @@ function showReportModal(referenceType, referenceId) {
             </div>
         </div>
     `;
+
     document.body.insertAdjacentHTML("beforeend", modalHTML);
+
     setTimeout(() => {
         document.getElementById("reportModalOverlay").classList.add("show");
     }, 100);
 }
+
 
 function toggleOtherReason() {
     const select = document.getElementById("reportReasonSelect");
@@ -315,7 +355,7 @@ function showThreadShareModal(threadId) {
                         <label for="targetUser">Username</label>
                         <input type="text" id="targetUser" placeholder="Enter username" required />
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="shareComment">Comment (optional)</label>
                         <textarea id="shareComment" placeholder="Add a message..."></textarea>
@@ -334,6 +374,7 @@ function showThreadShareModal(threadId) {
         document.getElementById("shareModalOverlay").classList.add("show");
     }, 100);
 }
+
 
 
 function submitThreadShare(articleId) {
@@ -390,6 +431,7 @@ function showShareSuccessModal() {
         closeShareSuccessModal();
     }, 3000);
 }
+
 
 function closeShareSuccessModal() {
     const overlay = document.getElementById('shareSuccessOverlay');

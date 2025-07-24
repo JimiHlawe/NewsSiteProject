@@ -788,33 +788,38 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
-        public void AddThreadLike(int userId, int articleId)
+        public void AddThreadLike(int userId, int publicArticleId)
         {
             using var con = connect();
             using var cmd = new SqlCommand("NewsSP_AddThreadLike", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@UserId", userId);
-            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
             cmd.ExecuteNonQuery();
         }
 
-        public void RemoveThreadLike(int userId, int articleId)
+
+
+
+        public void RemoveThreadLike(int userId, int publicArticleId)
         {
             using var con = connect();
             using var cmd = new SqlCommand("NewsSP_RemoveThreadLike", con);
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@UserId", userId);
-            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId); // ✅ תואם לשם ב-SP
             cmd.ExecuteNonQuery();
         }
+
 
         public int GetThreadLikeCount(int articleId)
         {
             using var con = connect();
-            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE ArticleId = @ArticleId", con);
+            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE PublicArticleId = @ArticleId", con);
             cmd.Parameters.AddWithValue("@ArticleId", articleId);
             return (int)cmd.ExecuteScalar();
         }
+
 
 
 

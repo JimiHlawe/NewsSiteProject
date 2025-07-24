@@ -271,18 +271,19 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpPost("AddThreadLike")]
-    public IActionResult AddThreadLike([FromBody] LikeRequest req)
+    public IActionResult AddThreadLike([FromBody] LikeThreadRequest req)
     {
-        _db.AddThreadLike(req.UserId, req.ArticleId);
+        _db.AddThreadLike(req.UserId, req.PublicArticleId);
         return Ok();
     }
 
     [HttpPost("RemoveThreadLike")]
-    public IActionResult RemoveThreadLike([FromBody] LikeRequest req)
+    public IActionResult RemoveThreadLike([FromBody] LikeThreadRequest req)
     {
-        _db.RemoveThreadLike(req.UserId, req.ArticleId);
+        _db.RemoveThreadLike(req.UserId, req.PublicArticleId);
         return Ok();
     }
+
 
     [HttpGet("GetThreadLikeCount/{articleId}")]
     public IActionResult GetThreadLikeCount(int articleId)
@@ -353,6 +354,14 @@ public class ArticlesController : ControllerBase
         public int UserId { get; set; }
         public int ArticleId { get; set; }
     }
+
+    public class LikeThreadRequest
+    {
+        public int UserId { get; set; }
+        public int PublicArticleId { get; set; }  
+    }
+
+
 
     public class CommentRequest
     {
