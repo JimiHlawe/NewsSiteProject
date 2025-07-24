@@ -812,13 +812,61 @@ ORDER BY Priority, publishedAt DESC
         }
 
 
-        public int GetThreadLikeCount(int articleId)
+        public int GetThreadLikeCount(int publicArticleId)
         {
             using var con = connect();
-            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE PublicArticleId = @ArticleId", con);
-            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE PublicArticleId = @id", con);
+            cmd.Parameters.AddWithValue("@id", publicArticleId);
             return (int)cmd.ExecuteScalar();
         }
+
+
+        public bool ToggleThreadLike(int userId, int publicArticleId)
+        {
+            using (var con = connect())
+            {
+                if (con.State != ConnectionState.Open)
+                    con.Open();
+
+                // בדיקת קיום לייק קיים
+                using (var checkCmd = new SqlCommand(
+                    "SELECT COUNT(*) FROM News_ThreadLikes WHERE UserId = @UserId AND PublicArticleId = @PublicArticleId", con))
+                {
+                    checkCmd.Parameters.AddWithValue("@UserId", userId);
+                    checkCmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                    int exists = (int)checkCmd.ExecuteScalar();
+
+                    if (exists > 0)
+                    {
+                        // אם כבר קיים לייק – הסר אותו
+                        using (var deleteCmd = new SqlCommand(
+                            "DELETE FROM News_ThreadLikes WHERE UserId = @UserId AND PublicArticleId = @PublicArticleId", con))
+                        {
+                            deleteCmd.Parameters.AddWithValue("@UserId", userId);
+                            deleteCmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                            deleteCmd.ExecuteNonQuery();
+                            return false; // הסרנו את הלייק
+                        }
+                    }
+                    else
+                    {
+                        // אם אין לייק – הוסף אותו
+                        using (var insertCmd = new SqlCommand(
+                            "INSERT INTO News_ThreadLikes (UserId, PublicArticleId) VALUES (@UserId, @PublicArticleId)", con))
+                        {
+                            insertCmd.Parameters.AddWithValue("@UserId", userId);
+                            insertCmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                            insertCmd.ExecuteNonQuery();
+                            return true; // הוספנו לייק
+                        }
+                    }
+                }
+            }
+        }
+
+
+
+
 
 
 

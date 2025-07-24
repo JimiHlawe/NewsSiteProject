@@ -77,10 +77,12 @@ function createThreadCard(article) {
         <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
         <button class='btn btn-sm btn-primary' onclick='sendComment(${id}); event.stopPropagation();'>Send</button>
     </div>
-`;
-
+    `;
 
     div.innerHTML = html;
+
+    // ✅ טען את מספר הלייקים מהשרת
+    loadThreadLikeCount(article.publicArticleId);
 
     // הפעלת toggleThreadLike עם article המלא
     var likeBtn = div.querySelector(`#like-thread-btn-${article.publicArticleId}`);
@@ -103,58 +105,18 @@ function createThreadCard(article) {
     return div;
 }
 
-function toggleThreadLike(article) {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    if (!user?.id) {
-        alert("Please login first.");
-        return;
-    }
-
-    const btn = document.getElementById(`like-thread-btn-${article.publicArticleId}`);
-    if (!btn) {
-        console.error("❌ Like button not found for article:", article);
-        return;
-    }
-
-    const isLiked = btn.classList.contains("liked");
-    const endpoint = isLiked ? "RemoveThreadLike" : "AddThreadLike";
-
-    fetch(`/api/Articles/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            userId: user.id,
-            publicArticleId: article.publicArticleId // ✅ תיקון כאן
-        })
-    })
-        .then(res => {
-            if (res.ok) {
-                btn.classList.toggle("liked");
-                loadThreadLikeCount(article.publicArticleId);
-            } else {
-                alert("❌ Failed to toggle like");
-            }
-        })
-        .catch(err => {
-            console.error("Error toggling thread like:", err);
-            alert("❌ Network error");
-        });
-}
-
-
-
-
-
-
 
 function loadThreadLikeCount(articleId) {
     fetch(`/api/Articles/GetThreadLikeCount/${articleId}`)
         .then(res => res.json())
         .then(count => {
-            document.getElementById(`like-thread-count-${articleId}`).innerText = `${count} ❤️`;
+            const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
+            if (likeCountSpan) {
+                likeCountSpan.textContent = `${count} ❤️`;
+            }
         })
         .catch(err => {
-            console.error("Error loading like count:", err);
+            console.error("Failed to fetch like count:", err);
         });
 }
 
@@ -446,3 +408,30 @@ document.addEventListener('click', function (e) {
         closeShareModal();
     }
 });
+
+function toggleThreadLike(article) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    const payload = {
+        userId: user.id,
+        publicArticleId: article.publicArticleId
+    };
+
+    fetch("/api/Articles/ToggleThreadLike", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("Failed to toggle like");
+            // לאחר שינוי הלייק נרענן את מספר הלייקים
+            loadThreadLikeCount(article.publicArticleId);
+        })
+        .catch(err => {
+            console.error("❌ Failed to toggle like:", err);
+        });
+}

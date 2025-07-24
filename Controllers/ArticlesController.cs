@@ -292,6 +292,14 @@ public class ArticlesController : ControllerBase
         return Ok(count);
     }
 
+    [HttpPost("ToggleThreadLike")]
+    public IActionResult ToggleThreadLike([FromBody] LikeThreadRequest req)
+    {
+        bool liked = _db.ToggleThreadLike(req.UserId, req.PublicArticleId);
+        return Ok(new { liked });
+    }
+
+
 
     [HttpPost("AddComment")]
     public IActionResult AddComment([FromBody] CommentRequest comment)
