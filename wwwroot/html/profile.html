@@ -15,78 +15,75 @@
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Profile Avatar and Info Section -->
+        <!-- Profile Header with Password Section -->
         <div class="profile-avatar-section">
-            <div class="avatar-container">
-                <div class="profile-avatar" onclick="triggerImageUpload()">
-                    <span id="avatarIcon">👤</span>
-                    <img id="profileImage" style="display: none;" alt="Profile Picture">
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-container">
+                    <div class="imageUpload" onclick="triggerImageUpload()">
+                        <span id="avatarIcon">👤</span>
+                        <img id="profileImage" style="display: none;" alt="Profile Picture">
+                    </div>
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>
-                <div class="avatar-upload" onclick="triggerImageUpload()">
-                    📷
-                </div>
-                <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                <div class="upload-hint">Click to change photo</div>
             </div>
 
-            <div class="profile-info">
+            <!-- Profile Info Section -->
+            <div class="profile-info-section">
                 <h1 class="profile-name" id="profileName">Loading...</h1>
                 <p class="profile-email" id="profileEmail">Loading...</p>
             </div>
+
+            <!-- Password Section -->
+            <div class="password-section">
+                <h3>Change Password</h3>
+                <div class="password-form">
+                    <input type="password"
+                           id="newPassword"
+                           class="password-input"
+                           placeholder="Enter new password"
+                           autocomplete="new-password" />
+                    <button class="password-btn" onclick="updatePassword()">
+                        Update Password
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <!-- Profile Cards -->
+        <!-- Profile Cards Grid -->
         <div class="profile-cards-grid">
-            <!-- Change Password Card -->
+            <!-- Blocked Users Card -->
             <div class="profile-card">
                 <div class="card-header">
-                    <div class="card-icon">🔒</div>
-                    <h2 class="card-title">Change Password</h2>
+                    <h2 class="card-title">Blocked Users</h2>
                 </div>
-                <div class="form-group">
-                    <input type="password" id="newPassword" class="form-control"
-                           placeholder="Enter new password (min 8 chars, 1 uppercase, 1 number)" />
+                <div id="blockedUsersContainer">
+                    <div class="loading-placeholder">Loading blocked users...</div>
                 </div>
-                <button class="btn" onclick="updatePassword()">
-                    <span>🔄</span>
-                    <span>Update Password</span>
-                </button>
             </div>
 
             <!-- Current Interests Card -->
             <div class="profile-card">
                 <div class="card-header">
-                    <div class="card-icon">⭐</div>
                     <h2 class="card-title">Your Interests</h2>
                 </div>
                 <div id="userTags" class="tags-container">
-                    <!-- User tags will be loaded here -->
+                    <div class="loading-placeholder">Loading your interests...</div>
                 </div>
             </div>
 
             <!-- Add New Interests Card -->
             <div class="profile-card">
                 <div class="card-header">
-                    <div class="card-icon">➕</div>
                     <h2 class="card-title">Add New Interests</h2>
                 </div>
                 <div id="allTagsContainer" class="available-tags-container">
-                    <!-- Available tags will be loaded here -->
+                    <div class="loading-placeholder">Loading available interests...</div>
                 </div>
-                <button class="btn btn-secondary" onclick="addSelectedTags()">
-                    <span>✨</span>
+                <button class="btn" onclick="addSelectedTags()">
                     <span>Add Selected Interests</span>
                 </button>
-            </div>
-
-            <!-- Blocked Users Card -->
-            <div class="profile-card">
-                <div class="card-header">
-                    <div class="card-icon">🚫</div>
-                    <h2 class="card-title">Blocked Users</h2>
-                </div>
-                <div id="blockedUsersContainer">
-                    <!-- Blocked users will be loaded here -->
-                </div>
             </div>
         </div>
     </div>
