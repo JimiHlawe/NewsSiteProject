@@ -82,7 +82,7 @@ function renderSharedArticles(articles) {
                 
                 <div class='shared-meta mb-2'>
                     <span class='shared-author'><strong>Author:</strong> ${article.author || 'Unknown'}</span>
-                    ${formattedDate ? ` | <span class='shared-date'><strong>Date:</strong> ${formattedDate}</span>` : ''}
+                    ${formattedDate ? `<span class='shared-date'><strong>Date:</strong> ${formattedDate}</span>` : ''}
                 </div>
 
                 <button class='btn btn-danger btn-sm remove-btn'>🗑 Remove</button>

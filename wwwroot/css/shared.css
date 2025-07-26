@@ -1,22 +1,43 @@
-﻿/* Fixed Main Container - התיקון העיקרי */
+﻿/* CSS Variables - אותם צבעים כמו בThreads */
+:root {
+    --primary-slate: #334155;
+    --primary-gray: #475569;
+    --primary-blue: #3b82f6;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    --bg-card: #ffffff;
+    --border-light: #e2e8f0;
+    --hover-bg: #f8fafc;
+    --accent-red: #ef4444;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --accent-orange: #f59e0b;
+    --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --shadow-heavy: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced Header Section - תואם לThreads */
 .main-container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
-    margin-top: 120px; /* התיקון לבעיה עם navbar */
+    padding: 0 2rem;
+    margin-top: 80px;
 }
 
 .page-header {
-    text-align: center;
-    margin-bottom: 4rem;
-    padding: 3rem 0;
-    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(255,255,255,0.9) 100%);
-    border-radius: 25px;
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(203, 213, 225, 0.5);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4rem 0 3rem;
+    margin-bottom: 3rem;
     position: relative;
+    border-radius: 0 0 40px 40px;
+    box-shadow: var(--shadow-heavy);
     overflow: hidden;
+    text-align: center;
 }
 
     .page-header::before {
@@ -25,115 +46,108 @@
         top: 0;
         left: 0;
         right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-slate) 0%, var(--primary-gray) 50%, var(--primary-blue) 100%);
-        border-radius: 25px 25px 0 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></svg>');
+        animation: float 20s ease-in-out infinite;
     }
 
 .page-title {
-    font-size: 3rem;
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
     font-weight: 800;
-    color: var(--primary-slate);
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--primary-slate), var(--primary-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 2;
 }
 
 .page-subtitle {
-    font-size: 1.2rem;
-    color: var(--text-light);
-    font-weight: 500;
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-bottom: 0;
+    font-weight: 400;
+    position: relative;
+    z-index: 2;
 }
 
-/* Enhanced Shared Articles Container - קטן יותר */
 .articles-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 2rem;
-    margin-bottom: 3rem;
+    margin-top: 2rem;
 }
 
-/* Enhanced Shared Article Card */
+/* Enhanced Shared Article Card - צר יותר */
 .shared-article-card {
     background: var(--bg-card);
     border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08), 0 3px 10px rgba(0,0,0,0.04);
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    border: 1px solid rgba(203, 213, 225, 0.4);
+    padding: 0;
+    box-shadow: var(--shadow-light);
+    border: 1px solid var(--border-light);
+    transition: var(--transition);
     position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
     cursor: pointer;
-    border-left: 4px solid var(--primary-slate);
+    max-width: 500px; /* רוחב מקסימלי קבוע */
+    width: 100%;
 }
 
-    .shared-article-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, var(--primary-slate) 0%, var(--primary-gray) 50%, var(--primary-blue) 100%);
-        border-radius: 20px 20px 0 0;
-        z-index: 3;
-    }
-
     .shared-article-card:hover {
-        transform: translateY(-12px) scale(1.02);
-        box-shadow: 0 20px 45px rgba(0,0,0,0.15), 0 8px 20px rgba(51, 65, 85, 0.12);
-        border-left-color: var(--primary-gray);
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-heavy);
+        border-color: var(--primary-slate);
     }
 
-/* Image Container - קטן יותר */
+/* Image Container */
 .shared-image-container {
     position: relative;
     height: 220px;
     overflow: hidden;
-    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+    border-radius: 20px 20px 0 0;
 }
 
 .shared-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: all 0.6s ease;
-    filter: brightness(0.95) contrast(1.05) saturate(1.1);
+    transition: transform 0.4s ease;
 }
 
 .shared-article-card:hover .shared-image {
-    transform: scale(1.1);
-    filter: brightness(1.05) contrast(1.15) saturate(1.2);
+    transform: scale(1.05);
 }
 
-/* Content Container - padding קטן יותר */
+/* Content Container */
 .shared-content {
     padding: 1.5rem;
-    position: relative;
-    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Shared Info Section - padding קטן יותר */
+/* Shared Info Section - תואם לThreads initial comment */
 .shared-info {
-    background: linear-gradient(135deg, rgba(51, 65, 85, 0.1), rgba(71, 85, 105, 0.05));
-    border-radius: 15px;
-    padding: 1.2rem;
-    margin-bottom: 1.2rem;
-    border: 1px solid rgba(51, 65, 85, 0.2);
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
     position: relative;
-    backdrop-filter: blur(10px);
 }
 
     .shared-info::before {
         content: '';
         position: absolute;
-        top: 0;
         left: 0;
+        top: 0;
+        bottom: 0;
         width: 4px;
-        height: 100%;
-        background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
-        border-radius: 2px 0 0 2px;
+        background: linear-gradient(180deg, var(--accent-blue), var(--primary-slate));
+        border-radius: 0 2px 2px 0;
     }
 
 .shared-by {
@@ -151,13 +165,9 @@
 }
 
 .shared-name {
-    font-size: 1rem;
     color: var(--primary-slate);
     font-weight: 700;
-    background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 1rem;
 }
 
 .shared-comment {
@@ -177,120 +187,169 @@
     color: var(--text-dark);
     font-style: italic;
     line-height: 1.5;
-    padding: 1rem 1.2rem;
+    padding: 1rem;
     background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
+    border-radius: 8px;
     border-left: 3px solid var(--primary-slate);
     position: relative;
-    backdrop-filter: blur(5px);
 }
 
     .comment-text::before {
         content: '"';
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         color: var(--primary-slate);
         position: absolute;
-        left: 0.5rem;
-        top: -0.2rem;
+        left: 0.3rem;
+        top: -0.1rem;
         font-weight: bold;
     }
 
     .comment-text::after {
         content: '"';
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         color: var(--primary-slate);
         position: absolute;
-        right: 0.5rem;
-        bottom: -0.7rem;
+        right: 0.3rem;
+        bottom: -0.5rem;
         font-weight: bold;
     }
 
-/* Article Title - קצת יותר קטן */
+/* Article Title - תואם לThreads */
 .shared-title {
-    font-size: 1.25rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    margin-bottom: 0.8rem;
     color: var(--text-dark);
-    line-height: 1.4;
-    transition: all 0.4s ease;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .shared-article-card:hover .shared-title {
     color: var(--primary-slate);
-    transform: translateY(-2px);
 }
 
-/* Article Description - קצת יותר קטן */
+/* Article Description - תואם לThreads */
 .shared-description {
     color: var(--text-light);
-    margin-bottom: 1.2rem;
+    margin-bottom: 1.5rem;
     line-height: 1.6;
-    font-size: 0.95rem;
-    transition: color 0.3s ease;
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
 }
 
 .shared-article-card:hover .shared-description {
     color: var(--text-dark);
 }
 
-/* Read Article Button */
-.read-article-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.8rem 2rem;
-    background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
-    color: white;
-    text-decoration: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(51, 65, 85, 0.3);
+/* Meta Information - עיצוב יפה יותר */
+.shared-meta {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.05), rgba(71, 85, 105, 0.02));
+    padding: 1.2rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(51, 65, 85, 0.1);
+    font-size: 0.95rem;
+    color: var(--text-dark);
     position: relative;
-    overflow: hidden;
-    text-transform: capitalize;
-    letter-spacing: 0.5px;
+    backdrop-filter: blur(5px);
 }
 
-    .read-article-btn::before {
+    .shared-meta::before {
         content: '';
         position: absolute;
         top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        transition: left 0.6s ease;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary-slate) 0%, var(--accent-blue) 100%);
+        border-radius: 16px 16px 0 0;
     }
 
-    .read-article-btn:hover::before {
-        left: 100%;
+.shared-author,
+.shared-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 20px;
+    margin-right: 0.8rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid rgba(51, 65, 85, 0.1);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+    .shared-author:hover,
+    .shared-date:hover {
+        background: white;
+        box-shadow: var(--shadow-light);
+        transform: translateY(-1px);
     }
 
-    .read-article-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(51, 65, 85, 0.4);
-        background: linear-gradient(135deg, var(--primary-gray), var(--primary-blue));
-        text-decoration: none;
-        color: white;
+    .shared-author::before {
+        content: '✍️';
+        font-size: 1rem;
+    }
+
+    .shared-date::before {
+        content: '📅';
+        font-size: 1rem;
+    }
+
+    .shared-author strong,
+    .shared-date strong {
+        color: var(--primary-slate);
+        font-weight: 700;
+        margin-right: 0.3rem;
+    }
+
+/* Remove Button - תואם לסגנון הכפתורים בThreads */
+.remove-btn {
+    background: linear-gradient(135deg, var(--accent-red), #dc2626);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    align-self: flex-start;
+    box-shadow: var(--shadow-light);
+}
+
+    .remove-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+        background: linear-gradient(135deg, #dc2626, var(--accent-red));
     }
 
 /* No Articles Message */
 .no-articles-message {
     text-align: center;
     padding: 4rem 2rem;
-    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(255,255,255,0.9) 100%);
+    background: var(--bg-card);
     border-radius: 20px;
-    box-shadow: var(--shadow-lg);
-    border: 1px solid rgba(203, 213, 225, 0.5);
+    box-shadow: var(--shadow-light);
+    border: 1px solid var(--border-light);
     margin: 2rem 0;
+    grid-column: 1 / -1;
 }
 
     .no-articles-message h3 {
         font-size: 1.5rem;
-        color: var(--text-light);
+        color: var(--text-dark);
         margin-bottom: 1rem;
+        font-weight: 700;
     }
 
     .no-articles-message p {
@@ -298,8 +357,25 @@
         color: var(--text-light);
     }
 
+/* Alert Styles */
+.alert {
+    padding: 1.5rem 2rem;
+    border-radius: 15px;
+    border: none;
+    font-weight: 500;
+    box-shadow: var(--shadow-medium);
+    text-align: center;
+    margin: 2rem 0;
+    grid-column: 1 / -1;
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, var(--accent-red), #dc2626);
+    color: white;
+}
+
 /* Animations */
-@keyframes slideInUp {
+@keyframes fadeInUp {
     from {
         opacity: 0;
         transform: translateY(30px);
@@ -311,63 +387,79 @@
     }
 }
 
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
 .fade-in {
-    animation: slideInUp 0.6s ease-out forwards;
+    animation: fadeInUp 0.6s ease-out forwards;
     opacity: 0;
 }
 
-/* Alert Styles */
-.alert {
-    padding: 1.5rem 2rem;
-    border-radius: 15px;
-    border: none;
-    font-weight: 500;
-    box-shadow: var(--shadow-md);
-    text-align: center;
-    margin: 2rem 0;
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .articles-container {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 450px));
+        gap: 1.5rem;
+        max-width: 500px;
+    }
 }
 
-.alert-danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-}
-
-/* Responsive Design - עדכון */
 @media (max-width: 768px) {
-    .main-container {
-        padding: 1rem;
-        margin-top: 100px;
+    .page-header {
+        padding: 3rem 1rem 2rem;
+    }
+
+    .articles-wrapper {
+        padding: 0 1rem;
     }
 
     .articles-container {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+        max-width: 400px;
+    }
+
+    .shared-article-card {
+        border-radius: 16px;
+        max-width: 400px;
+    }
+
+    .shared-content {
+        padding: 1.25rem;
+    }
+
+    .shared-image-container {
+        height: 180px;
     }
 
     .page-title {
         font-size: 2rem;
     }
 
-    .shared-content {
-        padding: 1.2rem;
-    }
-
-    .shared-info {
-        padding: 1rem;
-    }
-
-    .shared-image-container {
-        height: 180px;
+    .shared-author,
+    .shared-date {
+        display: flex;
+        margin-right: 0;
+        margin-bottom: 0.8rem;
+        width: fit-content;
     }
 }
 
 @media (max-width: 480px) {
-    .main-container {
-        padding: 0.5rem;
+    .page-header {
+        padding: 2rem 1rem 1.5rem;
     }
 
-    .page-header {
-        padding: 2rem 1rem;
+    .shared-article-card {
+        border-radius: 12px;
+        max-width: 350px;
     }
 
     .shared-content {
@@ -376,5 +468,14 @@
 
     .shared-image-container {
         height: 160px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .articles-container {
+        max-width: 350px;
     }
 }
