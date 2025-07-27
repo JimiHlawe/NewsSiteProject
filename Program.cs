@@ -1,3 +1,4 @@
+using NewsSite.Services;
 using NewsSite1.DAL;
 using NewsSite1.Services;
 using System.Text.Json;
@@ -12,6 +13,8 @@ builder.Services.AddScoped<OpenAiTagService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DBServices>();
+builder.Services.AddSingleton<ImageGenerationService>();
+
 builder.Services.AddSingleton<NewsApiService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

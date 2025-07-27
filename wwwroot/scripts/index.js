@@ -1,5 +1,6 @@
 ﻿// ✅ Global Variables
 let currentPage = 1;
+let filteredPage = 1;
 const pageSize = 6;
 let allArticles = [];
 let carouselArticles = [];
@@ -671,19 +672,33 @@ function loadSidebarSections() {
                     const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
                         year: 'numeric', month: 'short', day: 'numeric'
                     });
+
                     const div = document.createElement("div");
                     div.className = "sidebar-item";
+                    div.style.cursor = "pointer";
+
                     div.innerHTML = `
                         <img src="${article.imageUrl || 'https://via.placeholder.com/60'}" />
                         <div class="sidebar-item-content">
                             <h6>${article.title?.substring(0, 40)}...</h6>
                             <div class="date">${formattedDate}</div>
                         </div>`;
+
+                    // ✅ פתיחת הכתבה בלחיצה
+                    div.addEventListener("click", () => {
+                        if (article.sourceUrl && article.sourceUrl !== "#") {
+                            window.open(article.sourceUrl, "_blank");
+                        } else {
+                            alert("No article URL available");
+                        }
+                    });
+
                     section.appendChild(div);
                 });
             });
         });
 }
+
 
 function toggleAddArticleForm() {
     const form = document.getElementById("addArticleForm");
@@ -743,5 +758,98 @@ function checkAdminAndShowAddForm() {
     }
 }
 
+function filterArticles() {
+    const titleInput = document.getElementById("searchTitle").value.toLowerCase();
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
+
+    const filtered = allArticles.filter(article => {
+        const titleMatch = article.title?.toLowerCase().includes(titleInput);
+
+        const articleDate = new Date(article.publishedAt);
+        const afterStart = !startDate || articleDate >= new Date(startDate);
+        const beforeEnd = !endDate || articleDate <= new Date(endDate);
+
+        return titleMatch && afterStart && beforeEnd;
+    });
+
+    renderFilteredArticles(filtered);
+}
 
 
+function renderFilteredArticles(filteredArticles) {
+    const grid = document.getElementById("articlesGrid");
+    grid.innerHTML = "";
+
+    if (filteredArticles.length === 0) {
+        grid.innerHTML = `<div class="alert alert-warning">No articles found for your search</div>`;
+        return;
+    }
+
+    filteredArticles.forEach(article => {
+        const div = document.createElement("div");
+        div.className = "article-card";
+        div.style.cursor = "pointer";
+
+        const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
+        const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        div.innerHTML = `
+            <div class="article-image-container">
+                <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="article-image">
+                <div class="article-tags">${tagsHtml}</div>
+                <div class="article-overlay"></div>
+            </div>
+            <div class="article-content">
+                <h3 class="article-title">${article.title}</h3>
+                <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
+                <div class="article-meta">
+                    <span>${article.author}</span>
+                    <span>${formattedDate}</span>
+                </div>
+                <div class="article-actions">
+                    <button class="like-btn" id="like-btn-${article.id}" onclick="toggleLike(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/like.png" alt="Like" title="Like">
+                    </button>
+                    <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
+
+                    <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/comment.png" alt="Comment" title="Comment">
+                    </button>
+                    <button class="save-btn" onclick="saveArticle(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/save.png" alt="Save" title="Save">
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/share.png" alt="Share" title="Share">
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/report.png" alt="Report" title="Report">
+                    </button>
+                </div>
+
+                <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
+                    <h6>Comments:</h6>
+                    <div id="comments-${article.id}"></div>
+                    <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
+                    <button onclick="sendComment(${article.id}); event.stopPropagation();" class="btn btn-sm btn-primary">Send</button>
+                </div>
+            </div>`;
+
+        div.addEventListener("click", () => {
+            if (article.sourceUrl && article.sourceUrl !== "#") {
+                window.open(article.sourceUrl, "_blank");
+            } else {
+                alert("No article URL available");
+            }
+        });
+
+        grid.appendChild(div);
+
+        updateLikeCount(article.id);
+        loadComments(article.id);
+    });
+
+    document.getElementById("loadMoreBtn").style.display = "none";
+}

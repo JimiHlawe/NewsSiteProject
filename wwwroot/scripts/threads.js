@@ -25,7 +25,7 @@ function renderThreadsArticles(articles) {
 
     for (var i = 0; i < articles.length; i++) {
         var article = articles[i];
-        var id = article.articleId;
+        var id = article.publicArticleId; // ✔️
         var card = createThreadCard(article);
         container.appendChild(card);
 
@@ -34,7 +34,7 @@ function renderThreadsArticles(articles) {
 }
 
 function createThreadCard(article) {
-    var id = article.articleId;
+    var id = article.publicArticleId;
     var div = document.createElement("div");
     div.className = "thread-card p-3 mb-4 border rounded bg-light";
     div.style.cursor = 'pointer';

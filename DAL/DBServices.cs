@@ -695,6 +695,51 @@ ORDER BY Priority, publishedAt DESC
             return articles.Values.ToList();
         }
 
+
+        public List<Article> GetArticlesWithMissingImages()
+        {
+            List<Article> list = new List<Article>();
+            using (SqlConnection conn = connect()) // connect() כבר פותח את החיבור
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT id, title, description, content, author, url 
+            FROM News_Articles 
+            WHERE imageUrl IS NULL OR imageUrl = ''", conn);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new Article
+                    {
+                        Id = (int)reader["id"],
+                        Title = reader["title"] as string ?? "",
+                        Description = reader["description"] as string ?? "",
+                        Content = reader["content"] as string ?? "",
+                        Author = reader["author"] as string ?? "",
+                        SourceUrl = reader["url"] as string ?? "",
+                        Tags = new List<string>()
+                    });
+                }
+            }
+            return list;
+        }
+
+
+
+
+        public void UpdateArticleImageUrl(int articleId, string imageUrl)
+        {
+            using (SqlConnection conn = connect()) // connect() כבר פותח את החיבור
+            {
+                SqlCommand cmd = new SqlCommand("UPDATE News_Articles SET imageUrl = @url WHERE Id = @id", conn);
+                cmd.Parameters.AddWithValue("@url", imageUrl);
+                cmd.Parameters.AddWithValue("@id", articleId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
+
         // ============================================
         // ============ COMMENTS ======================
         // ============================================
@@ -864,6 +909,21 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
+
+        public bool CheckIfUserLikedThread(int userId, int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+     "SELECT COUNT(*) FROM News_ThreadLikes WHERE UserId = @userId AND PublicArticleId = @articleId", con);
+
+                cmd.Parameters.AddWithValue("@userId", userId);
+                cmd.Parameters.AddWithValue("@articleId", articleId);
+
+                int count = (int)cmd.ExecuteScalar();
+                return count > 0;
+            }
+        }
 
 
 

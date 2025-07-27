@@ -195,6 +195,8 @@ namespace NewsSite1.Controllers
             return Ok("Commenting status updated");
         }
 
+
+
         [HttpGet("GetStatistics")]
         public IActionResult GetStatistics()
         {

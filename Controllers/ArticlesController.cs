@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using NewsSite.Services;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 using NewsSite1.Services;
@@ -10,12 +11,14 @@ public class ArticlesController : ControllerBase
 {
     private readonly DBServices _db;
     private readonly NewsApiService _newsApiService;
-
-    public ArticlesController(DBServices db, NewsApiService newsApiService)
+    private readonly ImageGenerationService _openAiService;
+    public ArticlesController(DBServices db, NewsApiService newsApiService, ImageGenerationService openAiService)
     {
         _db = db;
         _newsApiService = newsApiService;
+        _openAiService = openAiService;
     }
+
 
     [HttpGet("AllFiltered")]
     public IActionResult GetAllFiltered(int userId)
@@ -299,6 +302,12 @@ public class ArticlesController : ControllerBase
         return Ok(new { liked });
     }
 
+    [HttpGet("CheckUserLike/{userId}/{articleId}")]
+    public IActionResult CheckUserLike(int userId, int articleId)
+    {
+        bool liked = _db.CheckIfUserLikedThread(userId, articleId);
+        return Ok(liked);
+    }
 
 
     [HttpPost("AddComment")]
@@ -357,6 +366,51 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    [HttpPost("FixMissingImages")]
+    public async Task<IActionResult> FixMissingImages()
+    {
+        var articles = _db.GetArticlesWithMissingImages();
+        int success = 0, skipped = 0, failed = 0;
+
+        foreach (var article in articles)
+        {
+            try
+            {
+                // שינה את הקריאה ל־title + description
+                string imageUrl = await _openAiService.GenerateImageUrlFromPrompt(article.Title, article.Description);
+
+                if (!string.IsNullOrEmpty(imageUrl))
+                {
+                    _db.UpdateArticleImageUrl(article.Id, imageUrl);
+                    success++;
+                }
+                else
+                {
+                    skipped++; // נחסם או בעיה אחרת
+                }
+
+                // 🕒 המתן כדי לא לחרוג מהמכסה
+                await Task.Delay(12000); // 12 שניות בין בקשות = מקסימום 5 לדקה
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error generating image for article {article.Id}: {ex.Message}");
+                failed++;
+            }
+        }
+
+        return Ok(new
+        {
+            Total = articles.Count,
+            Success = success,
+            SkippedDueToContentPolicy = skipped,
+            Failed = failed
+        });
+    }
+
+
+
+
     public class LikeRequest
     {
         public int UserId { get; set; }
@@ -366,7 +420,7 @@ public class ArticlesController : ControllerBase
     public class LikeThreadRequest
     {
         public int UserId { get; set; }
-        public int PublicArticleId { get; set; }  
+        public int PublicArticleId { get; set; }
     }
 
 
@@ -393,5 +447,6 @@ public class ArticlesController : ControllerBase
         public string toUsername { get; set; }
         public string comment { get; set; }
     }
-
 }
+
+
