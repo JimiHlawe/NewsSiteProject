@@ -22,15 +22,18 @@
 
 /* Enhanced Header Section - תואם לThreads */
 .main-container {
-    max-width: 1400px;
+    max-width: 1200px; /* קטן יותר מ-1400px */
     margin: 0 auto;
     padding: 0 2rem;
     margin-top: 80px;
 }
 
 .page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background-image: url('../pictures/title.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: local;
+    color: #333333;
     padding: 4rem 0 3rem;
     margin-bottom: 3rem;
     position: relative;
@@ -38,6 +41,10 @@
     box-shadow: var(--shadow-heavy);
     overflow: hidden;
     text-align: center;
+    max-width: 1000px; /* רוחב מופחת */
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 3rem;
 }
 
     .page-header::before {
@@ -47,7 +54,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></svg>');
+        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>');
         animation: float 20s ease-in-out infinite;
     }
 
@@ -56,18 +63,21 @@
     font-weight: 800;
     margin-bottom: 1rem;
     letter-spacing: -0.02em;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 8px rgba(255, 255, 255, 0.6);
     position: relative;
     z-index: 2;
+    color: #2d3748;
 }
 
 .page-subtitle {
     font-size: 1.25rem;
-    opacity: 0.9;
+    opacity: 0.8;
     margin-bottom: 0;
-    font-weight: 400;
+    font-weight: 500;
     position: relative;
     z-index: 2;
+    color: #4a5568;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
 }
 
 .articles-container {
@@ -75,6 +85,39 @@
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 2rem;
     margin-top: 2rem;
+}
+
+/* Animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-container {
+        max-width: 100%;
+        padding: 0 1rem;
+    }
+
+    .page-header {
+        max-width: 95%;
+        padding: 3rem 0 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+    }
 }
 
 /* Enhanced Shared Article Card - צר יותר */

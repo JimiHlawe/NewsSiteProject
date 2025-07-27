@@ -30,20 +30,21 @@ body {
 
 /* === NAVBAR WITH ENHANCED BACKGROUND === */
 .navbar {
-    background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
-    background-image: url('../pictures/navbar.png');
-    background-size: cover;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(248, 250, 252, 0.2) 50%, rgba(226, 232, 240, 0.1) 100%);
+    background-image: url('../pictures/navbar1.png');
+    background-size: 120% auto; /* גדול יותר = נראה יותר רחוק */
     background-position: center;
     background-attachment: fixed;
+    background-repeat: no-repeat;
     padding: 1.2rem 0;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    backdrop-filter: blur(5px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
     overflow: hidden;
 }
 
@@ -80,6 +81,7 @@ body {
     }
 }
 
+/* === BALANCED CONTAINER LAYOUT === */
 .navbar .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -91,7 +93,7 @@ body {
     z-index: 10;
 }
 
-/* === AUTH-STYLE LOGO === */
+/* === LOGO STAYS LEFT === */
 .navbar-brand {
     font-size: 2.5rem;
     font-weight: 900;
@@ -106,6 +108,7 @@ body {
     filter: drop-shadow(0 4px 8px rgba(74, 144, 226, 0.3));
     transition: all 0.3s ease;
     position: relative;
+    flex-shrink: 0;
 }
 
     .navbar-brand::after {
@@ -126,13 +129,17 @@ body {
         filter: drop-shadow(0 6px 12px rgba(74, 144, 226, 0.4));
     }
 
+/* === BALANCED NAVIGATION - ADJUSTS TO CONTENT === */
 .navbar-nav {
     display: flex;
     list-style: none;
     gap: 2rem;
     align-items: center;
+    margin-left: auto;
+    padding-left:0.5rem;
 }
 
+/* === NAVIGATION LINKS === */
 .nav-link {
     position: relative;
     display: inline-block;
@@ -176,7 +183,6 @@ body {
 .logout-link {
     background: rgba(220, 38, 38, 0.2);
     border: 1px solid rgba(220, 38, 38, 0.4);
-    margin-left: 1rem;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
@@ -333,6 +339,22 @@ body {
     }
 
 /* === RESPONSIVE NAVBAR === */
+@media (max-width: 968px) {
+    .navbar .container {
+        padding: 0 1.5rem;
+    }
+
+    .navbar-nav {
+        gap: 1.5rem;
+        padding-left: 1rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
 @media (max-width: 768px) {
     .navbar .container {
         justify-content: space-between;

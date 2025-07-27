@@ -17,18 +17,23 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Enhanced Header Section */
+/* Enhanced Header Section - רוחב מופחת ועיצוב מותאם */
 .threads-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background-image: url('../pictures/title.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: local;
+    color: #333333;
     padding: 4rem 0 3rem;
     position: relative;
     border-radius: 0 0 40px 40px;
     box-shadow: var(--shadow-heavy);
     overflow: hidden;
-    max-width: 1400px;
+    max-width: 1000px; /* רוחב מופחת מ-1400px */
     margin: 0 auto;
     margin-top: 80px;
+    margin-bottom: 3rem;
+    text-align: center;
 }
 
     .threads-header::before {
@@ -38,12 +43,12 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></svg>');
+        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>');
         animation: float 20s ease-in-out infinite;
     }
 
 .threads-header-content {
-    max-width: 1200px;
+    max-width: 900px; /* רוחב מופחת מ-1200px */
     margin: 0 auto;
     padding: 0 2rem;
     text-align: center;
@@ -56,21 +61,108 @@
     font-weight: 800;
     margin-bottom: 1rem;
     letter-spacing: -0.02em;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8), 0 0 8px rgba(255, 255, 255, 0.6);
+    position: relative;
+    z-index: 2;
+    color: #2d3748;
 }
 
 .threads-subtitle {
     font-size: 1.25rem;
-    opacity: 0.9;
+    opacity: 0.8;
     margin-bottom: 0;
-    font-weight: 400;
+    font-weight: 500;
+    position: relative;
+    z-index: 2;
+    color: #4a5568;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
 }
 
-/* Main Container */
+/* Main Container - מותאם לרוחב חדש */
 .threads-main {
-    max-width: 1400px;
+    max-width: 1200px; /* רוחב מופחת מ-1400px */
     margin: 3rem auto 4rem;
     padding: 0 2rem;
+}
+
+/* Animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .threads-main {
+        max-width: 100%;
+        padding: 0 1rem;
+        margin: 2rem auto 3rem;
+    }
+
+    .threads-header {
+        max-width: 95%;
+        padding: 3rem 0 2rem;
+        margin-bottom: 2rem;
+        margin-top: 70px;
+    }
+
+    .threads-header-content {
+        max-width: 100%;
+        padding: 0 1.5rem;
+    }
+
+    .threads-title {
+        font-size: 2rem;
+    }
+
+    .threads-subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* Animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .threads-main {
+        max-width: 100%;
+        padding: 0 1rem;
+        margin: 2rem auto 3rem;
+    }
+
+    .threads-header {
+        max-width: 95%;
+        padding: 3rem 0 2rem;
+        margin-bottom: 2rem;
+        margin-top: 70px;
+    }
+
+    .threads-header-content {
+        max-width: 100%;
+        padding: 0 1.5rem;
+    }
+
+    .threads-title {
+        font-size: 2rem;
+    }
+
+    .threads-subtitle {
+        font-size: 1rem;
+    }
 }
 
 /* Grid Layout for Thread Cards */
