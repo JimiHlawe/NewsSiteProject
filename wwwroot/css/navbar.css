@@ -30,11 +30,11 @@ body {
 
 /* === NAVBAR WITH ENHANCED BACKGROUND === */
 .navbar {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(248, 250, 252, 0.2) 50%, rgba(226, 232, 240, 0.1) 100%);
+    /*  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(248, 250, 252, 0.2) 50%, rgba(226, 232, 240, 0.1) 100%);*/
     background-image: url('../pictures/navbar1.png');
-    background-size: 120% auto; /* גדול יותר = נראה יותר רחוק */
+    background-size: 100% auto; /* גודל סביר - 4200% זה מוגזם מדי */
     background-position: center;
-    background-attachment: fixed;
+    background-attachment: scroll; /* fixed לפעמים גורם לבעיות */
     background-repeat: no-repeat;
     padding: 1.2rem 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
@@ -43,7 +43,6 @@ body {
     left: 0;
     right: 0;
     z-index: 1000;
-    backdrop-filter: blur(10px);
     border-bottom: 1px solid rgba(226, 232, 240, 0.5);
     overflow: hidden;
 }
