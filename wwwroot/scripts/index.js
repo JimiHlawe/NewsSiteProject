@@ -92,13 +92,13 @@ function renderVisibleArticles() {
                 <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
 
                 <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/comment.png" alt="Comment" title="Comment">
+                    <img src="../pictures/comment1.png" alt="Comment" title="Comment">
                 </button>
                 <button class="save-btn" onclick="saveArticle(${article.id}); event.stopPropagation();">
                     <img src="../pictures/save.png" alt="Save" title="Save">
                 </button>
                 <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/share.png" alt="Share" title="Share">
+                    <img src="../pictures/send.png" alt="Share" title="Share">
                 </button>
                 <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
                     <img src="../pictures/report.png" alt="Report" title="Report">
