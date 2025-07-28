@@ -1032,34 +1032,39 @@ ORDER BY Priority, publishedAt DESC
 
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetAllPublicArticles", con)
+                using (SqlCommand cmd = new SqlCommand("NewsSP_GetAllPublicArticles", con))
                 {
-                    CommandType = CommandType.StoredProcedure
-                };
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    var article = new PublicArticle
+                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        PublicArticleId = (int)reader["publicArticleId"],
-                        ArticleId = (int)reader["id"],
-                        Title = reader["title"].ToString(),
-                        Description = reader["description"].ToString(),
-                        Content = reader["content"].ToString(),
-                        Author = reader["author"].ToString(),
-                        SourceUrl = reader["sourceUrl"].ToString(),
-                        ImageUrl = reader["imageUrl"].ToString(),
-                        PublishedAt = (DateTime)reader["publishedAt"],
-                        SenderName = reader["senderName"].ToString(),
-                        InitialComment = reader["initialComment"].ToString(),
-                        SharedAt = (DateTime)reader["sharedAt"]
-                    };
+                        while (reader.Read())
+                        {
+                            var article = new PublicArticle
+                            {
+                                PublicArticleId = (int)reader["publicArticleId"],
+                                ArticleId = (int)reader["id"],
+                                Title = reader["title"].ToString(),
+                                Description = reader["description"].ToString(),
+                                Content = reader["content"].ToString(),
+                                Author = reader["author"].ToString(),
+                                SourceUrl = reader["sourceUrl"].ToString(),
+                                ImageUrl = reader["imageUrl"].ToString(),
+                                PublishedAt = (DateTime)reader["publishedAt"],
+                                SenderName = reader["senderName"].ToString(),
+                                InitialComment = reader["initialComment"].ToString(),
+                                SharedAt = (DateTime)reader["sharedAt"]
+                            };
 
-                    // שליפת תגובות לכתבה
-                    article.PublicComments = GetCommentsForPublicArticle(article.PublicArticleId);
+                            // שליפת תגובות
+                            article.PublicComments = GetCommentsForPublicArticle(article.PublicArticleId);
 
-                    list.Add(article);
+                            // שליפת תגיות מהטבלה החדשה של PublicArticleTags
+                            article.Tags = GetTagsForPublicArticle(article.PublicArticleId);
+
+                            list.Add(article);
+                        }
+                    }
                 }
             }
 
@@ -1067,7 +1072,6 @@ ORDER BY Priority, publishedAt DESC
             var blocked = GetBlockedUserIds(userId);
             return list.Where(a => !blocked.Contains(GetUserIdByUsername(a.SenderName) ?? -1)).ToList();
         }
-
 
         public List<int> GetBlockedUserIds(int userId)
         {
@@ -1287,6 +1291,34 @@ ORDER BY Priority, publishedAt DESC
                 cmd.ExecuteNonQuery();
             }
         }
+
+
+        public List<string> GetTagsForPublicArticle(int publicArticleId)
+        {
+            List<string> tags = new List<string>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetTagsForPublicArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+
+                using (SqlDataReader rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        tags.Add(rdr["Name"].ToString());
+                    }
+                }
+            }
+
+            return tags;
+        }
+
+
+
+
+
 
 
         public List<string> GetTagsForArticle(int articleId)

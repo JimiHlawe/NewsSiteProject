@@ -45,6 +45,11 @@ function createThreadCard(article) {
         day: 'numeric'
     });
 
+    // ✅ יצירת HTML לתגיות
+    var tagsHtml = (article.tags && article.tags.length > 0)
+        ? article.tags.map(tag => `<span class="tag badge bg-secondary me-1">${tag}</span>`).join(" ")
+        : `<span class="text-muted">No tags</span>`;
+
     var html = `
     <div class="initial-comment border-bottom pb-2 mb-3">
         <strong>${article.senderName}</strong> wrote:
@@ -55,6 +60,8 @@ function createThreadCard(article) {
         <div class="thread-image mb-2" data-date="${formattedDate}" data-author="${article.author || 'Unknown'}">
             <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="img-fluid rounded">
         </div>
+
+
         <h5>${article.title}</h5>
         <p>${article.description || ""}</p>
 
@@ -62,6 +69,7 @@ function createThreadCard(article) {
             <strong>Author:</strong> ${article.author || 'Unknown'} |
             <strong>Date:</strong> ${formattedDate}
         </div>
+
         <div class="thread-actions mb-2">
             <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${article.publicArticleId}"></button>
             <span id="like-thread-count-${article.publicArticleId}" class="ms-2">0 ❤️</span>
@@ -89,10 +97,9 @@ function createThreadCard(article) {
 
     div.innerHTML = html;
 
-    // ✅ טען את מספר הלייקים מהשרת
+    // ✅ לייקים
     loadThreadLikeCount(article.publicArticleId);
 
-    // הפעלת toggleThreadLike עם article המלא
     var likeBtn = div.querySelector(`#like-thread-btn-${article.publicArticleId}`);
     if (likeBtn) {
         likeBtn.onclick = function (event) {
@@ -101,7 +108,7 @@ function createThreadCard(article) {
         };
     }
 
-    // פתיחת מקור הכתבה בלחיצה על הכרטיס
+    // ✅ פתיחת מקור הכתבה
     div.addEventListener('click', function () {
         if (article.sourceUrl && article.sourceUrl !== '#') {
             window.open(article.sourceUrl, '_blank');
@@ -110,8 +117,11 @@ function createThreadCard(article) {
         }
     });
 
+
+
     return div;
 }
+
 
 // פונקציה חדשה להצגת תגובות במודאל
 function showCommentsModal(articleId) {

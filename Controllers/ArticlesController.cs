@@ -110,9 +110,19 @@ public class ArticlesController : ControllerBase
     [HttpGet("Public/{userId}")]
     public IActionResult GetPublicArticles(int userId)
     {
-        var all = _db.GetAllPublicArticles(userId);
-        return Ok(all);
+        try
+        {
+            var articles = _db.GetAllPublicArticles(userId);
+            return Ok(articles);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ שגיאה בהבאת כתבות ציבוריות: " + ex.Message);
+            return StatusCode(500, "Server error: " + ex.Message); // תוכל לראות ב־Network > Response
+        }
     }
+
+
 
     [HttpPost("AddPublicComment")]
     public IActionResult AddPublicComment([FromBody] PublicCommentRequest comment)
