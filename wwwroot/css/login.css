@@ -277,7 +277,6 @@ body {
         transform: translateY(-2px);
     }
 
-    /* תיקון ספציפי לאוטופיל */
     .form-input:-webkit-autofill,
     .form-input:-webkit-autofill:hover,
     .form-input:-webkit-autofill:focus {
@@ -613,7 +612,6 @@ body {
 
 /* --- RESPONSIVE DESIGN --- */
 
-/* טאבלט */
 @media (max-width: 1024px) {
     .container {
         width: 95%;
@@ -626,7 +624,6 @@ body {
     }
 }
 
-/* מובייל גדול */
 @media (max-width: 768px) {
     body {
         padding: 15px;
@@ -738,7 +735,6 @@ body {
     }
 }
 
-/* מובייל קטן */
 @media (max-width: 480px) {
     body {
         padding: 10px;
@@ -790,7 +786,6 @@ body {
     }
 }
 
-/* מובייל זעיר */
 @media (max-width: 360px) {
     .main-logo h1 {
         font-size: 1.8rem;

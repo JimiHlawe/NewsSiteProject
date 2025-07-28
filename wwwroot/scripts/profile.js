@@ -140,10 +140,6 @@ function loadAllTags() {
 function removeTag(tagId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    if (!confirm("Are you sure you want to remove this interest?")) {
-        return;
-    }
-
     const tagElement = event.target.closest('.user-tag');
     tagElement.style.opacity = '0.5';
 

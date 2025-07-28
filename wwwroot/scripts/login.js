@@ -23,7 +23,7 @@ if (loginBtn) {
     loginBtn.addEventListener("click", () => toggleActiveClass(false));
 }
 
-// ✅ NOTIFICATION SYSTEM
+//  NOTIFICATION SYSTEM
 function showNotification(message, type = 'error') {
     // Remove existing notifications
     const existingNotifications = document.querySelectorAll('.auth-notification');
