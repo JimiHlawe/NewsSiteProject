@@ -1055,6 +1055,7 @@ ORDER BY Priority, publishedAt DESC
                                 InitialComment = reader["initialComment"].ToString(),
                                 SharedAt = (DateTime)reader["sharedAt"]
                             };
+                            EnsurePublicArticleTagsExist(article.PublicArticleId);
 
                             // שליפת תגובות
                             article.PublicComments = GetCommentsForPublicArticle(article.PublicArticleId);
@@ -1293,29 +1294,39 @@ ORDER BY Priority, publishedAt DESC
         }
 
 
-        public List<string> GetTagsForPublicArticle(int publicArticleId)
-        {
-            List<string> tags = new List<string>();
+public List<string> GetTagsForPublicArticle(int publicArticleId)
+{
+    List<string> tags = new List<string>();
 
-            using (SqlConnection con = connect())
+    using (SqlConnection con = connect())
+    {
+        SqlCommand cmd = new SqlCommand("NewsSP_GetTagsForPublicArticle", con);
+        cmd.CommandType = CommandType.StoredProcedure;
+        cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+
+        using (SqlDataReader rdr = cmd.ExecuteReader())
+        {
+            while (rdr.Read())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetTagsForPublicArticle", con);
+                tags.Add(rdr["Name"].ToString());
+            }
+        }
+    }
+
+    return tags;
+}
+
+
+        private void EnsurePublicArticleTagsExist(int publicArticleId)
+        {
+            using (SqlConnection con = connect())
+            using (SqlCommand cmd = new SqlCommand("NewsSP_CopyTagsToPublicArticle", con))
+            {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
-
-                using (SqlDataReader rdr = cmd.ExecuteReader())
-                {
-                    while (rdr.Read())
-                    {
-                        tags.Add(rdr["Name"].ToString());
-                    }
-                }
+                cmd.ExecuteNonQuery();
             }
-
-            return tags;
         }
-
-
 
 
 

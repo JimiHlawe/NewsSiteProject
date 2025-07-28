@@ -61,9 +61,11 @@ function createThreadCard(article) {
             <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="img-fluid rounded">
         </div>
 
-
         <h5>${article.title}</h5>
         <p>${article.description || ""}</p>
+
+        <!-- ✅ הצגת תגיות כאן -->
+        <div class="mb-2">${tagsHtml}</div>
 
         <div class="thread-meta mb-2">
             <strong>Author:</strong> ${article.author || 'Unknown'} |
@@ -97,7 +99,6 @@ function createThreadCard(article) {
 
     div.innerHTML = html;
 
-    // ✅ לייקים
     loadThreadLikeCount(article.publicArticleId);
 
     var likeBtn = div.querySelector(`#like-thread-btn-${article.publicArticleId}`);
@@ -108,7 +109,6 @@ function createThreadCard(article) {
         };
     }
 
-    // ✅ פתיחת מקור הכתבה
     div.addEventListener('click', function () {
         if (article.sourceUrl && article.sourceUrl !== '#') {
             window.open(article.sourceUrl, '_blank');
@@ -116,8 +116,6 @@ function createThreadCard(article) {
             alert('No article URL available');
         }
     });
-
-
 
     return div;
 }
