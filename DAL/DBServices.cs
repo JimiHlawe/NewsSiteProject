@@ -796,6 +796,27 @@ ORDER BY Priority, publishedAt DESC
         }
 
 
+        public int GetUnreadSharedCount(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT COUNT(*) FROM News_SharedArticles WHERE targetUserId = @id AND IsRead = 0", con);
+                cmd.Parameters.AddWithValue("@id", userId);
+                return (int)cmd.ExecuteScalar();
+            }
+        }
+
+        public void MarkSharedAsRead(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("UPDATE News_SharedArticles SET IsRead = 1 WHERE targetUserId = @id", con);
+                cmd.Parameters.AddWithValue("@id", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+
 
         // ============================================
         // ============ COMMENTS ======================

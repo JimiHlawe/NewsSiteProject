@@ -94,7 +94,6 @@ function renderSharedArticles(articles) {
             removeSharedArticle(article.sharedId, articleCard);
         });
 
-
         articleCard.addEventListener('click', function () {
             if (article.sourceUrl && article.sourceUrl !== '#') {
                 window.open(article.sourceUrl, '_blank');
@@ -105,6 +104,10 @@ function renderSharedArticles(articles) {
 
         container.appendChild(articleCard);
     }
+
+    // ✅ סימון כל השיתופים כנקראו
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    markAllSharedAsRead(user.id);
 }
 
 function removeSharedArticle(sharedId, cardElement) {
@@ -113,7 +116,6 @@ function removeSharedArticle(sharedId, cardElement) {
     fetch("/api/Articles/RemoveShared/" + sharedId, {
         method: "DELETE"
     })
-
         .then(res => {
             if (!res.ok) throw new Error("Failed to remove");
             cardElement.remove();
@@ -122,4 +124,11 @@ function removeSharedArticle(sharedId, cardElement) {
             console.error("Error:", err);
             alert("❌ Failed to remove shared article");
         });
+}
+
+// ✅ פונקציה לסימון כל השיתופים כנקראו
+function markAllSharedAsRead(userId) {
+    fetch(`/api/Articles/MarkSharedAsRead/${userId}`, {
+        method: "POST"
+    });
 }

@@ -404,6 +404,19 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    [HttpGet("UnreadCount/{userId}")]
+    public int GetUnreadSharedCount(int userId)
+    {
+        return _db.GetUnreadSharedCount(userId);
+    }
+
+    [HttpPost("MarkSharedAsRead/{userId}")]
+    public void MarkSharedAsRead(int userId)
+    {
+        _db.MarkSharedAsRead(userId);
+    }
+
+
     [HttpPost("FixMissingImages")]
     public async Task<IActionResult> FixMissingImages()
     {
