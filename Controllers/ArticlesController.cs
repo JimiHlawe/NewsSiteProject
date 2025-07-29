@@ -416,6 +416,33 @@ public class ArticlesController : ControllerBase
         _db.MarkSharedAsRead(userId);
     }
 
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AdsController : ControllerBase
+    {
+        private readonly AdsGenerationService _adsService;
+
+        public AdsController(AdsGenerationService adsService)
+        {
+            _adsService = adsService;
+        }
+
+        [HttpGet("Generate")]
+        public async Task<IActionResult> GenerateAd([FromQuery] string category)
+        {
+            if (string.IsNullOrWhiteSpace(category))
+                return BadRequest("Category is required");
+
+            var ad = await _adsService.GenerateAdWithImageAsync(category);
+            if (ad == null)
+                return StatusCode(500, "Failed to generate ad");
+
+            return Ok(ad);
+        }
+
+    }
+
+
 
     [HttpPost("FixMissingImages")]
     public async Task<IActionResult> FixMissingImages()

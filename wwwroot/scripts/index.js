@@ -7,6 +7,7 @@ let carouselArticles = [];
 let currentSlide = 0;
 let slideInterval;
 let isSearchActive = false;
+let adLoaded = false;
 
 // ✅ Get logged user
 function getLoggedUser() {
@@ -19,6 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAllArticlesAndSplit();
     loadSidebarSections();
     checkAdminAndShowAddForm();
+    loadAdBanner();
 });
 
 // ✅ Load all articles and split for carousel and grid
@@ -917,4 +919,23 @@ function updateLikeCount(commentId) {
         .then(count => {
             document.getElementById(`like-count-${commentId}`).innerText = count;
         });
+}
+
+
+function loadAdBanner() {
+    if (adLoaded) return;
+    adLoaded = true;
+
+    fetch("/api/Ads/Generate?category=technology")
+        .then(res => res.json())
+        .then(ad => {
+            const adSection = document.getElementById("adSection");
+            adSection.innerHTML = `
+                <div class="ad-content">
+                    <img src="${ad.imageUrl}" alt="Ad Image" class="ad-image" />
+                    <p class="ad-text">${ad.text}</p>
+                </div>
+            `;
+        })
+        .catch(err => console.error("Error loading ad:", err));
 }

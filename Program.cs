@@ -14,6 +14,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DBServices>();
 builder.Services.AddSingleton<ImageGenerationService>();
+builder.Services.AddSingleton<AdsGenerationService>();
+
 
 builder.Services.AddSingleton<NewsApiService>();
 builder.Services.AddControllers().AddJsonOptions(options =>
