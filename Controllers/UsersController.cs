@@ -10,10 +10,12 @@ namespace NewsSite1.Controllers
     public class UsersController : ControllerBase
     {
         private readonly DBServices db;
+        private readonly IWebHostEnvironment env;
 
-        public UsersController(DBServices db)
+        public UsersController(DBServices db, IWebHostEnvironment env)
         {
             this.db = db;
+            this.env = env;
         }
 
         [HttpPost("Register")]
@@ -224,7 +226,34 @@ namespace NewsSite1.Controllers
                 return (bool)cmd.ExecuteScalar();
             }
         }
+
+        [HttpPost("UploadProfileImage")]
+        public async Task<IActionResult> UploadProfileImage(IFormFile file, [FromQuery] int userId)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded");
+
+            string uploadsFolder = Path.Combine(env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            string fileName = $"user_{userId}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(file.FileName)}";
+            string filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            string relativePath = $"/uploads/{fileName}";
+            await db.UpdateProfileImagePath(userId, relativePath);
+
+            return Ok(new { imageUrl = relativePath });
+        }
+
     }
+
+
 
     public class SetStatusRequest
     {

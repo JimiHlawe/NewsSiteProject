@@ -6,6 +6,7 @@ let allArticles = [];
 let carouselArticles = [];
 let currentSlide = 0;
 let slideInterval;
+let isSearchActive = false;
 
 // ✅ Get logged user
 function getLoggedUser() {
@@ -58,13 +59,15 @@ function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
 
-    const visibleArticles = allArticles.slice(0, pageSize * currentPage);
+    // ✅ בחירת המקור: תוצאות חיפוש או כל הכתבות
+    const sourceList = isSearchActive ? filteredArticles : allArticles;
+    const currentPageUsed = isSearchActive ? filteredPage : currentPage;
+
+    const visibleArticles = sourceList.slice(0, pageSize * currentPageUsed);
 
     visibleArticles.forEach(article => {
         const div = document.createElement("div");
         div.className = "article-card";
-
-        // הוספת cursor pointer וקליק לכרטיס כולו
         div.style.cursor = 'pointer';
 
         const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
@@ -113,9 +116,9 @@ function renderVisibleArticles() {
             </div>
         </div>
     `;
+
         updateLikeCount(article.id);
 
-        // הוספת event listener לכרטיס כולו
         div.addEventListener('click', function () {
             if (article.sourceUrl && article.sourceUrl !== '#') {
                 window.open(article.sourceUrl, '_blank');
@@ -128,17 +131,32 @@ function renderVisibleArticles() {
         loadComments(article.id);
     });
 
-    if (pageSize * currentPage >= allArticles.length) {
-        document.getElementById("loadMoreBtn").style.display = "none";
+    // ✅ הצגת או הסתרת כפתור Load More
+    const loadMoreBtn = document.getElementById("loadMoreBtn");
+    if (pageSize * currentPageUsed >= sourceList.length) {
+        loadMoreBtn.style.display = "none";
     } else {
-        document.getElementById("loadMoreBtn").style.display = "block";
+        loadMoreBtn.style.display = "block";
     }
 }
 
 function loadMoreArticles() {
-    currentPage++;
+    if (isSearchActive) {
+        filteredPage++;
+    } else {
+        currentPage++;
+    }
     renderVisibleArticles();
 }
+
+function resetSearch() {
+    isSearchActive = false;
+    filteredArticles = [];
+    filteredPage = 1;
+    currentPage = 1;
+    renderVisibleArticles();
+}
+
 
 // ✅ Toggle comments display
 function toggleComments(articleId) {
@@ -763,18 +781,19 @@ function filterArticles() {
     const startDate = document.getElementById("startDate").value;
     const endDate = document.getElementById("endDate").value;
 
-    const filtered = allArticles.filter(article => {
+    filteredArticles = allArticles.filter(article => {
         const titleMatch = article.title?.toLowerCase().includes(titleInput);
-
         const articleDate = new Date(article.publishedAt);
         const afterStart = !startDate || articleDate >= new Date(startDate);
         const beforeEnd = !endDate || articleDate <= new Date(endDate);
-
         return titleMatch && afterStart && beforeEnd;
     });
 
-    renderFilteredArticles(filtered);
+    isSearchActive = true;
+    filteredPage = 1;
+    renderVisibleArticles(); // נשתמש באותה פונקציה לטעינה עם פאגינציה
 }
+
 
 
 function renderFilteredArticles(filteredArticles) {

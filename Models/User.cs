@@ -10,10 +10,10 @@
         private bool canShare;
         private bool canComment;
         private bool isAdmin;
-
+        private string profileImagePath; 
         public User() { }
 
-        public User(int id, string name, string email, string password, bool active, bool canShare, bool canComment, bool isAdmin)
+        public User(int id, string name, string email, string password, bool active, bool canShare, bool canComment, bool isAdmin, string profileImagePath = null)
         {
             this.id = id;
             this.name = name;
@@ -23,6 +23,7 @@
             this.canShare = canShare;
             this.canComment = canComment;
             this.isAdmin = isAdmin;
+            this.profileImagePath = profileImagePath;
         }
 
         public int Id { get => id; set => id = value; }
@@ -32,6 +33,7 @@
         public bool Active { get => active; set => active = value; }
         public bool CanShare { get => canShare; set => canShare = value; }
         public bool CanComment { get => canComment; set => canComment = value; }
-        public bool IsAdmin { get => isAdmin; set => isAdmin = value; } 
+        public bool IsAdmin { get => isAdmin; set => isAdmin = value; }
+        public string ProfileImagePath { get => profileImagePath; set => profileImagePath = value; } 
     }
 }

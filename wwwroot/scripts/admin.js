@@ -4,6 +4,7 @@
     loadReports();
     setupImportExternal();
     setupTagging();
+    setupFixMissingImages();
 
     // Add fade-in animations
     setTimeout(() => {
@@ -331,3 +332,36 @@ document.addEventListener('click', (e) => {
         }, 1000);
     }
 });
+
+function setupFixMissingImages() {
+    const fixImagesBtn = document.getElementById("fixImagesBtn");
+
+    if (fixImagesBtn) {
+        fixImagesBtn.addEventListener("click", function () {
+            fixImagesBtn.disabled = true;
+            fixImagesBtn.innerHTML = '⏳ Fixing...';
+
+            fetch("/api/Articles/FixMissingImages", {
+                method: "POST"
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Fixing failed");
+                    return res.json();
+                })
+                .then(data => {
+                    document.getElementById("fixImagesStatus").innerHTML = `
+                        <div class='status-message success'>
+                            ✅ Fixed: ${data.success}, Skipped: ${data.skippedDueToContentPolicy}, Failed: ${data.failed}
+                        </div>`;
+                })
+                .catch(err => {
+                    document.getElementById("fixImagesStatus").innerHTML = `
+                        <div class='status-message error'>❌ Error: ${err.message}</div>`;
+                })
+                .finally(() => {
+                    fixImagesBtn.disabled = false;
+                    fixImagesBtn.innerHTML = '🖼️ Fix Missing Images';
+                });
+        });
+    }
+}

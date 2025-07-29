@@ -396,3 +396,19 @@ body {
         font-size: 1.1rem;
     }
 }
+
+
+.nav-profile-image {
+    display: flex;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.profile-img-nav {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}

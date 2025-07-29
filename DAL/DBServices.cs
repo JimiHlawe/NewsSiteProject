@@ -119,11 +119,12 @@ namespace NewsSite1.DAL
                         Id = (int)reader["id"],
                         Name = (string)reader["name"],
                         Email = (string)reader["email"],
-                        Password = null, // לא מחזירים סיסמה
+                        Password = null, 
                         Active = Convert.ToBoolean(reader["active"]),
                         CanShare = Convert.ToBoolean(reader["CanShare"]),
                         CanComment = Convert.ToBoolean(reader["CanComment"]),
-                        IsAdmin = Convert.ToBoolean(reader["isAdmin"]) 
+                        IsAdmin = Convert.ToBoolean(reader["isAdmin"]),
+                        ProfileImagePath = reader["ProfileImagePath"] != DBNull.Value ? reader["ProfileImagePath"].ToString() : null 
                     };
 
                     return user;
@@ -132,6 +133,7 @@ namespace NewsSite1.DAL
                 return null;
             }
         }
+
 
 
         public List<User> GetAllUsers()
@@ -318,6 +320,22 @@ namespace NewsSite1.DAL
                 cmd.ExecuteNonQuery();
             }
         }
+        public async Task UpdateProfileImagePath(int userId, string path)
+        {
+            using (SqlConnection con = connect()) // כבר מחובר
+            {
+                using (SqlCommand cmd = new SqlCommand("UPDATE News_Users SET ProfileImagePath = @path WHERE Id = @userId", con))
+                {
+                    cmd.Parameters.AddWithValue("@path", path);
+                    cmd.Parameters.AddWithValue("@userId", userId);
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
+
+
+
+
 
 
         // ============================================

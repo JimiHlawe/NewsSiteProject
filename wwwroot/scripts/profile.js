@@ -23,16 +23,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ✅ LOAD SAVED PROFILE IMAGE
 function loadSavedProfileImage() {
-    const savedImage = localStorage.getItem('profileImage');
-    if (savedImage) {
-        const img = document.getElementById('profileImage');
-        const icon = document.getElementById('avatarIcon');
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const img = document.getElementById('profileImage');
+    const icon = document.getElementById('avatarIcon');
 
-        img.src = savedImage;
+    if (user.profileImagePath) {
+        img.src = user.profileImagePath;
         img.style.display = 'block';
         icon.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        icon.style.display = 'block';
     }
 }
+
 
 // ✅ IMAGE UPLOAD FUNCTIONALITY
 function triggerImageUpload() {
@@ -41,34 +45,44 @@ function triggerImageUpload() {
 
 function handleImageUpload(event) {
     const file = event.target.files[0];
-    if (file) {
-        // Check file size (limit to 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showNotification("Image size must be less than 5MB", "warning");
-            return;
-        }
+    if (!file) return;
 
-        // Check file type
-        if (!file.type.startsWith('image/')) {
-            showNotification("Please select a valid image file", "warning");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const img = document.getElementById('profileImage');
-            const icon = document.getElementById('avatarIcon');
-
-            img.src = e.target.result;
-            img.style.display = 'block';
-            icon.style.display = 'none';
-
-            // Save to localStorage for persistence
-            localStorage.setItem('profileImage', e.target.result);
-            showNotification("Profile image updated successfully!", "success");
-        };
-        reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+        showNotification("Image size must be under 5MB", "warning");
+        return;
     }
+
+    if (!file.type.startsWith('image/')) {
+        showNotification("Invalid image file", "warning");
+        return;
+    }
+
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const formData = new FormData();
+    formData.append("file", file);
+
+    fetch(`/api/Users/UploadProfileImage?userId=${user.id}`, {
+        method: "POST",
+        body: formData
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("Upload failed");
+            return res.json();
+        })
+        .then(data => {
+            document.getElementById("profileImage").src = data.imageUrl;
+            document.getElementById("avatarIcon").style.display = "none";
+
+            // שמירה ב-sessionStorage כדי לעדכן גם בצד הלקוח
+            user.profileImagePath = data.imageUrl;
+            sessionStorage.setItem("loggedUser", JSON.stringify(user));
+
+            showNotification("✅ Image uploaded!", "success");
+        })
+        .catch(err => {
+            console.error("Error uploading image:", err);
+            showNotification("❌ Failed to upload image", "error");
+        });
 }
 
 // ✅ LOAD USER TAGS
