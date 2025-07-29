@@ -11,24 +11,21 @@
         html += "    <ul class='navbar-nav'>";
 
         if (user) {
+            const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
+
             html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
             html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
             html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
-            html += "      <li><a class='nav-link' href='/html/profile.html'>Profile</a></li>";
-
 
             if (user.isAdmin) {
                 html += "      <li><a class='nav-link' href='/html/admin.html'>Admin</a></li>";
             }
 
-            if (user.profileImagePath) {
-                html += `      <li class='nav-profile-image'>
-                                  <a href="/html/profile.html">
-                                    <img src="${user.profileImagePath}" alt="Profile" class="profile-img-nav">
-                                  </a>
-                               </li>`;
-            }
-
+            html += `      <li class='nav-profile-image'>
+                              <a href="/html/profile.html">
+                                <img src="${profileImage}" alt="Profile" class="profile-img-nav">
+                              </a>
+                           </li>`;
 
             html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a></li>";
         } else {
@@ -52,18 +49,18 @@
         html += "    <li><a class='nav-link' href='/html/index.html' onclick='closeMobileMenu()'>Home</a></li>";
 
         if (user) {
+            const profileImage = user.profileImagePath || "../pictures/default-avatar.png";
+
             html += "    <li><a class='nav-link' href='/html/favorites.html' onclick='closeMobileMenu()'>My Favorites</a></li>";
             html += "    <li><a class='nav-link' href='/html/shared.html' onclick='closeMobileMenu()'>Articles Inbox</a></li>";
             html += "    <li><a class='nav-link' href='/html/threads.html' onclick='closeMobileMenu()'>Threads</a></li>";
             html += "    <li><a class='nav-link' href='/html/profile.html' onclick='closeMobileMenu()'>Profile</a></li>";
 
-            if (user.profileImagePath) {
-                html += `    <li class='nav-profile-image'>
-                                <a href="/html/profile.html" onclick='closeMobileMenu()'>
-                                    <img src="${user.profileImagePath}" alt="Profile" class="profile-img-nav">
-                                </a>
-                             </li>`;
-            }
+            html += `    <li class='nav-profile-image'>
+                            <a href="/html/profile.html" onclick='closeMobileMenu()'>
+                                <img src="${profileImage}" alt="Profile" class="profile-img-nav">
+                            </a>
+                         </li>`;
 
             if (user.isAdmin) {
                 html += "    <li><a class='nav-link' href='/html/admin.html' onclick='closeMobileMenu()'>Admin</a></li>";

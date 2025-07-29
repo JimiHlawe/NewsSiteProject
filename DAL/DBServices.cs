@@ -946,7 +946,59 @@ ORDER BY Priority, publishedAt DESC
 
 
 
+        public void ToggleCommentLike(int userId, int commentId)
+        {
+            using var con = connect();
+            var check = new SqlCommand("SELECT COUNT(*) FROM News_CommentLikes WHERE UserId = @u AND CommentId = @c", con);
+            check.Parameters.AddWithValue("@u", userId);
+            check.Parameters.AddWithValue("@c", commentId);
+            int exists = (int)check.ExecuteScalar();
 
+            SqlCommand cmd;
+            if (exists > 0)
+                cmd = new SqlCommand("DELETE FROM News_CommentLikes WHERE UserId = @u AND CommentId = @c", con);
+            else
+                cmd = new SqlCommand("INSERT INTO News_CommentLikes (UserId, CommentId) VALUES (@u, @c)", con);
+
+            cmd.Parameters.AddWithValue("@u", userId);
+            cmd.Parameters.AddWithValue("@c", commentId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public int GetCommentLikeCount(int commentId)
+        {
+            using var con = connect();
+            var cmd = new SqlCommand("SELECT COUNT(*) FROM News_CommentLikes WHERE CommentId = @id", con);
+            cmd.Parameters.AddWithValue("@id", commentId);
+            return (int)cmd.ExecuteScalar();
+        }
+
+        public void TogglePublicCommentLike(int userId, int publicCommentId)
+        {
+            using var con = connect();
+            var check = new SqlCommand("SELECT COUNT(*) FROM News_PublicCommentLikes WHERE UserId = @u AND PublicCommentId = @c", con);
+            check.Parameters.AddWithValue("@u", userId);
+            check.Parameters.AddWithValue("@c", publicCommentId);
+            int exists = (int)check.ExecuteScalar();
+
+            SqlCommand cmd;
+            if (exists > 0)
+                cmd = new SqlCommand("DELETE FROM News_PublicCommentLikes WHERE UserId = @u AND PublicCommentId = @c", con);
+            else
+                cmd = new SqlCommand("INSERT INTO News_PublicCommentLikes (UserId, PublicCommentId) VALUES (@u, @c)", con);
+
+            cmd.Parameters.AddWithValue("@u", userId);
+            cmd.Parameters.AddWithValue("@c", publicCommentId);
+            cmd.ExecuteNonQuery();
+        }
+
+        public int GetPublicCommentLikeCount(int publicCommentId)
+        {
+            using var con = connect();
+            var cmd = new SqlCommand("SELECT COUNT(*) FROM News_PublicCommentLikes WHERE PublicCommentId = @id", con);
+            cmd.Parameters.AddWithValue("@id", publicCommentId);
+            return (int)cmd.ExecuteScalar();
+        }
 
 
         // ============================================

@@ -319,6 +319,34 @@ public class ArticlesController : ControllerBase
         return Ok(liked);
     }
 
+    [HttpPost("ToggleCommentLike")]
+    public IActionResult ToggleCommentLike([FromBody] CommentLikeRequest req)
+    {
+        _db.ToggleCommentLike(req.UserId, req.CommentId);
+        return Ok();
+    }
+
+    [HttpGet("CommentLikeCount/{commentId}")]
+    public IActionResult GetCommentLikeCount(int commentId)
+    {
+        int count = _db.GetCommentLikeCount(commentId);
+        return Ok(count);
+    }
+
+    [HttpPost("TogglePublicCommentLike")]
+    public IActionResult TogglePublicCommentLike([FromBody] PublicCommentLikeRequest req)
+    {
+        _db.TogglePublicCommentLike(req.UserId, req.PublicCommentId);
+        return Ok();
+    }
+
+    [HttpGet("PublicCommentLikeCount/{publicCommentId}")]
+    public IActionResult GetPublicCommentLikeCount(int publicCommentId)
+    {
+        int count = _db.GetPublicCommentLikeCount(publicCommentId);
+        return Ok(count);
+    }
+
 
     [HttpPost("AddComment")]
     public IActionResult AddComment([FromBody] CommentRequest comment)
@@ -457,6 +485,19 @@ public class ArticlesController : ControllerBase
         public string toUsername { get; set; }
         public string comment { get; set; }
     }
+
+    public class CommentLikeRequest
+    {
+        public int UserId { get; set; }
+        public int CommentId { get; set; }
+    }
+
+    public class PublicCommentLikeRequest
+    {
+        public int UserId { get; set; }
+        public int PublicCommentId { get; set; }
+    }
+
 }
 
 

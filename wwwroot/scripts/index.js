@@ -59,10 +59,8 @@ function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
 
-    // ✅ בחירת המקור: תוצאות חיפוש או כל הכתבות
     const sourceList = isSearchActive ? filteredArticles : allArticles;
     const currentPageUsed = isSearchActive ? filteredPage : currentPage;
-
     const visibleArticles = sourceList.slice(0, pageSize * currentPageUsed);
 
     visibleArticles.forEach(article => {
@@ -76,46 +74,39 @@ function renderVisibleArticles() {
         });
 
         div.innerHTML = `
-        <div class="article-image-container">
-            <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="article-image">
-            <div class="article-tags">${tagsHtml}</div>
-            <div class="article-overlay"></div>
-        </div>
-        <div class="article-content">
-            <h3 class="article-title">${article.title}</h3>
-            <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
-            <div class="article-meta">
-                <span>${article.author}</span>
-                <span>${formattedDate}</span>
+            <div class="article-image-container">
+                <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="article-image">
+                <div class="article-tags">${tagsHtml}</div>
+                <div class="article-overlay"></div>
             </div>
-            <div class="article-actions">
-                <button class="like-btn" id="like-btn-${article.id}" onclick="toggleLike(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/like.png" alt="Like" title="Like">
-                </button>
-                <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
+            <div class="article-content">
+                <h3 class="article-title">${article.title}</h3>
+                <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
+                <div class="article-meta">
+                    <span>${article.author}</span>
+                    <span>${formattedDate}</span>
+                </div>
+                <div class="article-actions">
+                    <button class="like-btn" id="like-btn-${article.id}" onclick="toggleLike(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/like.png" alt="Like" title="Like">
+                    </button>
+                    <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
 
-                <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/comment1.png" alt="Comment" title="Comment">
-                </button>
-                <button class="save-btn" onclick="saveArticle(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/save.png" alt="Save" title="Save">
-                </button>
-                <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/send.png" alt="Share" title="Share">
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
-                    <img src="../pictures/report.png" alt="Report" title="Report">
-                </button>
+                    <button class="btn btn-sm btn-info" onclick="openCommentsModal(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/comment1.png" alt="Comment" title="Comment">
+                    </button>
+                    <button class="save-btn" onclick="saveArticle(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/save.png" alt="Save" title="Save">
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/send.png" alt="Share" title="Share">
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/report.png" alt="Report" title="Report">
+                    </button>
+                </div>
             </div>
-
-            <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
-                <h6>Comments:</h6>
-                <div id="comments-${article.id}"></div>
-                <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
-                <button onclick="sendComment(${article.id}); event.stopPropagation();" class="btn btn-sm btn-primary">Send</button>
-            </div>
-        </div>
-    `;
+        `;
 
         updateLikeCount(article.id);
 
@@ -128,10 +119,8 @@ function renderVisibleArticles() {
         });
 
         grid.appendChild(div);
-        loadComments(article.id);
     });
 
-    // ✅ הצגת או הסתרת כפתור Load More
     const loadMoreBtn = document.getElementById("loadMoreBtn");
     if (pageSize * currentPageUsed >= sourceList.length) {
         loadMoreBtn.style.display = "none";
@@ -139,6 +128,7 @@ function renderVisibleArticles() {
         loadMoreBtn.style.display = "block";
     }
 }
+
 
 function loadMoreArticles() {
     if (isSearchActive) {
@@ -436,16 +426,16 @@ function closeShareSuccessModal() {
 }
 
 // ✅ Add comment
-function sendComment(articleId) {
+function sendComment(articleId, isModal = false) {
     const user = getLoggedUser();
-    const comment = document.getElementById(`commentBox-${articleId}`).value.trim();
+    const commentBoxId = isModal ? `modal-commentBox-${articleId}` : `commentBox-${articleId}`;
+    const comment = document.getElementById(commentBoxId).value.trim();
 
     if (!comment) {
         alert("Please write a comment!");
         return;
     }
 
-    // Check if user is blocked from commenting
     const canComment = sessionStorage.getItem("canComment") === "true";
     if (!canComment) {
         alert("🚫 Your commenting ability is blocked!");
@@ -463,8 +453,8 @@ function sendComment(articleId) {
     })
         .then(res => {
             if (res.ok) {
-                document.getElementById(`commentBox-${articleId}`).value = "";
-                loadComments(articleId);
+                document.getElementById(commentBoxId).value = "";
+                loadComments(articleId, isModal);
             } else {
                 alert("❌ You may not be allowed to comment.");
             }
@@ -473,21 +463,37 @@ function sendComment(articleId) {
 }
 
 // ✅ Load comments
-function loadComments(articleId) {
+function loadComments(articleId, isModal = false) {
+    const targetId = isModal ? `modal-comments-${articleId}` : `comments-${articleId}`;
+    const container = document.getElementById(targetId);
+    if (!container) {
+        console.warn("⚠️ container not found:", targetId);
+        return;
+    }
+
     fetch(`/api/Articles/GetComments/${articleId}`)
         .then(res => res.json())
         .then(comments => {
-            const container = document.getElementById(`comments-${articleId}`);
             container.innerHTML = "";
             comments.forEach(c => {
-                container.innerHTML += `<div class="border rounded p-2 mb-1">
-                    <strong>${c.username}</strong>: ${c.commentText}
-                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>🚩</button>
-                </div>`;
+                container.innerHTML += `
+                    <div class="border rounded p-2 mb-1">
+                        <strong>${c.username}</strong>: ${c.commentText}
+                        <button class='btn btn-sm btn-outline-danger ms-2' onclick='toggleCommentLike(${c.id})'>
+                            ❤️
+                        </button>
+                        <span id="like-count-${c.id}" class="ms-1">0</span>
+                        <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>🚩</button>
+                    </div>`;
+
+                updateLikeCount(c.id);
             });
         })
         .catch(err => console.error(err));
 }
+
+
+
 
 function showReportModal(referenceType, referenceId) {
     // הסר מודל קודם אם קיים
@@ -795,7 +801,6 @@ function filterArticles() {
 }
 
 
-
 function renderFilteredArticles(filteredArticles) {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
@@ -847,13 +852,6 @@ function renderFilteredArticles(filteredArticles) {
                         <img src="../pictures/report.png" alt="Report" title="Report">
                     </button>
                 </div>
-
-                <div class="article-comments mt-3" id="commentsSection-${article.id}" style="display:none;">
-                    <h6>Comments:</h6>
-                    <div id="comments-${article.id}"></div>
-                    <textarea id="commentBox-${article.id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();"></textarea>
-                    <button onclick="sendComment(${article.id}); event.stopPropagation();" class="btn btn-sm btn-primary">Send</button>
-                </div>
             </div>`;
 
         div.addEventListener("click", () => {
@@ -867,8 +865,56 @@ function renderFilteredArticles(filteredArticles) {
         grid.appendChild(div);
 
         updateLikeCount(article.id);
-        loadComments(article.id);
     });
 
     document.getElementById("loadMoreBtn").style.display = "none";
+}
+function openCommentsModal(articleId) {
+    const user = getLoggedUser();
+
+    const modalHTML = `
+        <div class="comments-modal-overlay" id="commentsModalOverlay-${articleId}">
+            <div class="comments-modal">
+                <h3>Comments</h3>
+                <div id="modal-comments-${articleId}" class="modal-comments-container"></div>
+                <textarea id="modal-commentBox-${articleId}" class="form-control mt-2" placeholder="Write a comment..."></textarea>
+                <div class="modal-buttons">
+                    <button class="btn btn-sm btn-secondary" onclick="closeCommentsModal(${articleId})">Close</button>
+                    <button class="btn btn-sm btn-primary" onclick="sendComment(${articleId}, true)">Send</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    setTimeout(() => {
+        document.getElementById(`commentsModalOverlay-${articleId}`).classList.add("show");
+        loadComments(articleId, true);
+    }, 50);
+}
+
+function closeCommentsModal(articleId) {
+    const modal = document.getElementById(`commentsModalOverlay-${articleId}`);
+    if (modal) {
+        modal.classList.remove("show");
+        setTimeout(() => modal.remove(), 300);
+    }
+}
+
+
+function toggleCommentLike(commentId) {
+    const user = getLoggedUser();
+    fetch('/api/Articles/ToggleCommentLike', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, commentId })
+    }).then(() => updateLikeCount(commentId));
+}
+
+function updateLikeCount(commentId) {
+    fetch(`/api/Articles/CommentLikeCount/${commentId}`)
+        .then(res => res.json())
+        .then(count => {
+            document.getElementById(`like-count-${commentId}`).innerText = count;
+        });
 }

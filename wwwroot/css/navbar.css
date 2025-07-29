@@ -405,9 +405,9 @@ body {
 }
 
 .profile-img-nav {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+    width: 90px;
+    height: 90px;
+    border-radius: 70%;
     object-fit: cover;
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.2);

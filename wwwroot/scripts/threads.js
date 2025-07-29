@@ -161,29 +161,32 @@ function showCommentsModal(articleId) {
 
 function loadCommentsForModal(articleId) {
     fetch("/api/Articles/GetPublicComments/" + articleId)
-        .then(function (res) {
-            return res.json();
-        })
-        .then(function (comments) {
+        .then(res => res.json())
+        .then(comments => {
             var container = document.getElementById("modal-comments-" + articleId);
             container.innerHTML = "";
 
             for (var i = 0; i < comments.length; i++) {
                 var c = comments[i];
+
                 var commentDiv = document.createElement('div');
                 commentDiv.className = 'border rounded p-2 mb-1';
                 commentDiv.innerHTML = `
-    <strong>${c.username}</strong>: ${c.comment}
-    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
-`;
+                    <strong>${c.username}</strong>: ${c.comment}
+                    <button onclick="togglePublicCommentLike(${c.id})">👍 Like</button>
+                    <span id="public-like-count-${c.id}">0</span>
+                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
+                `;
 
                 container.appendChild(commentDiv);
+                updatePublicLikeCount(c.id);
             }
         })
-        .catch(function () {
+        .catch(() => {
             console.error("Error loading comments for modal");
         });
 }
+
 
 function sendCommentFromModal(articleId) {
     var user = JSON.parse(sessionStorage.getItem("loggedUser"));
@@ -631,5 +634,22 @@ function toggleThreadLike(article) {
         })
         .catch(err => {
             console.error("❌ Failed to toggle like:", err);
+        });
+}
+
+function togglePublicCommentLike(publicCommentId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    fetch('/api/Articles/TogglePublicCommentLike', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, publicCommentId })
+    }).then(() => updatePublicLikeCount(publicCommentId));
+}
+
+function updatePublicLikeCount(publicCommentId) {
+    fetch(`/api/Articles/PublicCommentLikeCount/${publicCommentId}`)
+        .then(res => res.json())
+        .then(count => {
+            document.getElementById(`public-like-count-${publicCommentId}`).innerText = count;
         });
 }
