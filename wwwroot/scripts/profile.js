@@ -27,15 +27,13 @@ function loadSavedProfileImage() {
     const img = document.getElementById('profileImage');
     const icon = document.getElementById('avatarIcon');
 
-    if (user.profileImagePath) {
-        img.src = user.profileImagePath;
-        img.style.display = 'block';
-        icon.style.display = 'none';
-    } else {
-        img.style.display = 'none';
-        icon.style.display = 'block';
-    }
+    const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
+
+    img.src = profileImage;
+    img.style.display = 'block';
+    icon.style.display = 'none';
 }
+
 
 
 // ✅ IMAGE UPLOAD FUNCTIONALITY
