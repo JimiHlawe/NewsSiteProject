@@ -23,7 +23,10 @@
                     <div class="imageUpload" onclick="triggerImageUpload()">
                         <span id="avatarIcon">👤</span>
                         <img id="profileImage" alt="Profile Picture" style="display: none;" />
+                        <img id="avatarRankImage" src="../pictures/avatar_bronze.png" alt="Avatar Rank" style="width:80px; height:80px;" />
                     </div>
+
+                    <div id="avatarRank" class="avatar-rank-label">BRONZE</div>
                     <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>
                 <div class="upload-hint">Click to change photo</div>

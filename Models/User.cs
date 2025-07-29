@@ -10,10 +10,12 @@
         private bool canShare;
         private bool canComment;
         private bool isAdmin;
-        private string profileImagePath; 
+        private string profileImagePath;
+        private string avatarLevel;
+
         public User() { }
 
-        public User(int id, string name, string email, string password, bool active, bool canShare, bool canComment, bool isAdmin, string profileImagePath = null)
+        public User(int id, string name, string email, string password, bool active, bool canShare, bool canComment, bool isAdmin, string profileImagePath = null, string avatarLevel = "BRONZE")
         {
             this.id = id;
             this.name = name;
@@ -24,6 +26,7 @@
             this.canComment = canComment;
             this.isAdmin = isAdmin;
             this.profileImagePath = profileImagePath;
+            this.avatarLevel = avatarLevel;
         }
 
         public int Id { get => id; set => id = value; }
@@ -34,6 +37,7 @@
         public bool CanShare { get => canShare; set => canShare = value; }
         public bool CanComment { get => canComment; set => canComment = value; }
         public bool IsAdmin { get => isAdmin; set => isAdmin = value; }
-        public string ProfileImagePath { get => profileImagePath; set => profileImagePath = value; } 
+        public string ProfileImagePath { get => profileImagePath; set => profileImagePath = value; }
+        public string AvatarLevel { get => avatarLevel; set => avatarLevel = value; }
     }
 }

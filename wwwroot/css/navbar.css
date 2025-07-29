@@ -412,3 +412,18 @@ body {
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.2);
 }
+
+.nav-profile-image {
+    position: relative;
+}
+
+.avatar-rank-icon {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: #fff;
+}

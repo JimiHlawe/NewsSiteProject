@@ -135,6 +135,45 @@ namespace NewsSite1.DAL
         }
 
 
+        public User GetUserById(int id)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", id);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return new User
+                    {
+                        Id = (int)reader["id"],
+                        Name = reader["name"].ToString(),
+                        Email = reader["email"].ToString(),
+                        Password = null, // לא מחזירים סיסמה
+                        Active = Convert.ToBoolean(reader["active"]),
+                        CanShare = Convert.ToBoolean(reader["canShare"]),
+                        CanComment = Convert.ToBoolean(reader["canComment"]),
+                        IsAdmin = Convert.ToBoolean(reader["isAdmin"]),
+                        ProfileImagePath = reader["ProfileImagePath"] as string,
+                        AvatarLevel = reader["AvatarLevel"] as string ?? "BRONZE"
+                    };
+                }
+
+                return null;
+            }
+        }
+        public void ExecuteStoredProcedure(string spName)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(spName, con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.ExecuteNonQuery();
+            }
+        }
+
 
         public List<User> GetAllUsers()
         {

@@ -19,6 +19,19 @@ document.addEventListener("DOMContentLoaded", () => {
     loadUserTags();
     loadAllTags();
     loadBlockedUsers();
+    // Load avatar rank with latest from DB
+    fetch(`${apiBase}/GetUserById/${user.id}`)
+        .then(res => res.json())
+        .then(updatedUser => {
+            // Update session
+            sessionStorage.setItem("loggedUser", JSON.stringify(updatedUser));
+            renderNavbar();
+            // Load rank from updated user object
+            loadAvatarLevel(updatedUser.avatarLevel);
+        })
+        .catch(err => {
+            console.error("Error loading avatar level:", err);
+        });
 });
 
 // ✅ LOAD SAVED PROFILE IMAGE
@@ -74,8 +87,12 @@ function handleImageUpload(event) {
             // שמירה ב-sessionStorage כדי לעדכן גם בצד הלקוח
             user.profileImagePath = data.imageUrl;
             sessionStorage.setItem("loggedUser", JSON.stringify(user));
-
             showNotification("✅ Image uploaded!", "success");
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000); 
+
         })
         .catch(err => {
             console.error("Error uploading image:", err);
@@ -446,3 +463,22 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// ✅ LOAD AVATAR RANK + IMAGE
+function loadAvatarLevel(level) {
+    const avatarLabel = document.getElementById("avatarRank");
+    const avatarImage = document.getElementById("avatarRankImage");
+
+    if (!avatarLabel || !avatarImage) return;
+
+    avatarLabel.innerText = level;
+
+    const avatarIcons = {
+        "BRONZE": "../pictures/avatar_bronze.png",
+        "SILVER": "../pictures/avatar_silver.png",
+        "GOLD": "../pictures/avatar_gold.png"
+    };
+
+    avatarImage.src = avatarIcons[level] || "../pictures/avatar_bronze.png";
+}
+

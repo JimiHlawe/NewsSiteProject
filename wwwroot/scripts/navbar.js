@@ -12,6 +12,12 @@
 
         if (user) {
             const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
+            const avatarIcons = {
+                "BRONZE": "../pictures/avatar_bronze.png",
+                "SILVER": "../pictures/avatar_silver.png",
+                "GOLD": "../pictures/avatar_gold.png"
+            };
+            const avatarIcon = avatarIcons[user.avatarLevel || "BRONZE"];
 
             html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
             html += "      <li><a class='nav-link' href='/html/shared.html'>Articles Inbox</a></li>";
@@ -21,11 +27,13 @@
                 html += "      <li><a class='nav-link' href='/html/admin.html'>Admin</a></li>";
             }
 
-            html += `      <li class='nav-profile-image'>
-                              <a href="/html/profile.html">
-                                <img src="${profileImage}" alt="Profile" class="profile-img-nav">
-                              </a>
-                           </li>`;
+            html += `
+        <li class='nav-profile-image'>
+            <a href="/html/profile.html">
+                <img src="${profileImage}" alt="Profile" class="profile-img-nav">
+                <img src="${avatarIcon}" alt="Rank" class="avatar-rank-icon">
+            </a>
+        </li>`;
 
             html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a></li>";
         } else {

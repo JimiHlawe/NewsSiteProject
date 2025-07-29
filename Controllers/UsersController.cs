@@ -67,6 +67,15 @@ namespace NewsSite1.Controllers
             return Ok(user);
         }
 
+        [HttpGet("GetUserById/{id}")]
+        public User GetUserById(int id)
+        {
+            DBServices db = new DBServices();
+            db.ExecuteStoredProcedure("NewsSP_UpdateUserAvatarLevels"); // מריץ את העדכון לפי הלייקים
+
+            return db.GetUserById(id); // מחזיר את המשתמש לאחר עדכון
+        }
+
 
 
         [HttpPost("AddTag")]
