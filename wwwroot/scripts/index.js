@@ -17,10 +17,11 @@ function getLoggedUser() {
 
 // ✅ Initialize on page load
 document.addEventListener("DOMContentLoaded", () => {
+    loadAdBanner();
     loadAllArticlesAndSplit();
     loadSidebarSections();
     checkAdminAndShowAddForm();
-    loadAdBanner();
+
 });
 
 // ✅ Load all articles and split for carousel and grid
@@ -929,13 +930,11 @@ function loadAdBanner() {
     fetch("/api/Ads/Generate?category=technology")
         .then(res => res.json())
         .then(ad => {
-            const adSection = document.getElementById("adSection");
-            adSection.innerHTML = `
-                <div class="ad-content">
-                    <img src="${ad.imageUrl}" alt="Ad Image" class="ad-image" />
-                    <p class="ad-text">${ad.text}</p>
-                </div>
-            `;
+            document.getElementById("adImage").src = ad.imageUrl;
+            document.getElementById("adText").innerText = ad.text;
         })
-        .catch(err => console.error("Error loading ad:", err));
+        .catch(err => {
+            console.error("Failed to load ad:", err);
+            document.getElementById("adText").innerText = "Ad failed to load.";
+        });
 }
