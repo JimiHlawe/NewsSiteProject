@@ -10,6 +10,7 @@ namespace NewsSite1.Services
     {
         private readonly string _apiKey;
         private readonly HttpClient _httpClient;
+        private readonly string _openAiApiKey;
 
         private static readonly List<string> AllowedTags = new List<string>
         {
@@ -20,8 +21,8 @@ namespace NewsSite1.Services
 
         public OpenAiTagService(IConfiguration config)
         {
-            _apiKey = "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";
             _httpClient = new HttpClient();
+            _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
         public async Task<List<string>> DetectTagsAsync(string title, string content)
