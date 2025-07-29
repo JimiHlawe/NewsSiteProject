@@ -1,38 +1,44 @@
 ﻿const apiBase = "/api/Users";
 
 document.addEventListener("DOMContentLoaded", () => {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    if (!user) {
+    const rawUser = sessionStorage.getItem("loggedUser");
+    if (!rawUser) {
         alert("Please log in");
         window.location.href = "index.html";
         return;
     }
 
-    // Load user information
-    document.getElementById("profileName").innerText = user.name;
-    document.getElementById("profileEmail").innerText = user.email;
+    const user = JSON.parse(rawUser);
 
-    // Load saved profile image
-    loadSavedProfileImage();
-
-    // Load user data
-    loadUserTags();
-    loadAllTags();
-    loadBlockedUsers();
-    // Load avatar rank with latest from DB
+    // שלב ראשון: נטען את המשתמש העדכני מהשרת
     fetch(`${apiBase}/GetUserById/${user.id}`)
         .then(res => res.json())
         .then(updatedUser => {
-            // Update session
+            // עדכון ה-sessionStorage
             sessionStorage.setItem("loggedUser", JSON.stringify(updatedUser));
-            renderNavbar();
-            // Load rank from updated user object
-            loadAvatarLevel(updatedUser.avatarLevel);
+
+            // כעת נטען את כל הנתונים לפי המשתמש המעודכן
+            loadUserProfile(updatedUser);
         })
         .catch(err => {
-            console.error("Error loading avatar level:", err);
+            console.error("Error loading updated user from server:", err);
         });
 });
+
+// ✅ פונקציה מרכזית לטעינת פרופיל המשתמש
+function loadUserProfile(user) {
+    document.getElementById("profileName").innerText = user.name;
+    document.getElementById("profileEmail").innerText = user.email;
+
+    loadSavedProfileImage();         // נטען תמונת פרופיל
+    loadUserTags();                 // נטען תגיות
+    loadAllTags();                 // נטען תגיות זמינות
+    loadBlockedUsers();           // נטען משתמשים חסומים
+    loadAvatarLevel(user.avatarLevel); // דרגת אווטאר
+
+    renderNavbar();               // נטען את ה־navbar עם הנתונים החדשים
+}
+
 
 // ✅ LOAD SAVED PROFILE IMAGE
 function loadSavedProfileImage() {
