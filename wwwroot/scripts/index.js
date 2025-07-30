@@ -727,10 +727,27 @@ function loadSidebarSections() {
 }
 
 
-function toggleAddArticleForm() {
-    const form = document.getElementById("addArticleForm");
-    form.style.display = form.style.display === "none" ? "block" : "none";
+function toggleAddArticleModal() {
+    const overlay = document.getElementById("addArticleModalOverlay");
+    overlay.classList.toggle("show");
 }
+
+// Close modal when clicking outside
+document.addEventListener('click', function (e) {
+    if (e.target && e.target.id === 'addArticleModalOverlay') {
+        toggleAddArticleModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById("addArticleModalOverlay");
+        if (overlay.classList.contains('show')) {
+            toggleAddArticleModal();
+        }
+    }
+});
 
 function submitNewArticle(event) {
     if (event) event.preventDefault();
@@ -804,19 +821,19 @@ function filterArticles() {
 }
 
 
-function renderFilteredArticles(filteredArticles) {
+// ✅ Grid - with proper author-date structure
+function renderVisibleArticles() {
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
 
-    if (filteredArticles.length === 0) {
-        grid.innerHTML = `<div class="alert alert-warning">No articles found for your search</div>`;
-        return;
-    }
+    const sourceList = isSearchActive ? filteredArticles : allArticles;
+    const currentPageUsed = isSearchActive ? filteredPage : currentPage;
+    const visibleArticles = sourceList.slice(0, pageSize * currentPageUsed);
 
-    filteredArticles.forEach(article => {
+    visibleArticles.forEach(article => {
         const div = document.createElement("div");
         div.className = "article-card";
-        div.style.cursor = "pointer";
+        div.style.cursor = 'pointer';
 
         const tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join(" ");
         const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
@@ -831,9 +848,9 @@ function renderFilteredArticles(filteredArticles) {
             </div>
             <div class="article-content">
                 <h3 class="article-title">${article.title}</h3>
-                <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
-                <div class="article-meta">
-                    <span>${article.author}</span>
+                <p class="article-description">${article.description?.substring(0, 200) || ''}</p>
+                <div class="article-author-date">
+                    <span class="article-author">${article.author || 'Unknown Author'}</span>
                     <span>${formattedDate}</span>
                 </div>
                 <div class="article-actions">
@@ -842,35 +859,41 @@ function renderFilteredArticles(filteredArticles) {
                     </button>
                     <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
 
-                    <button class="btn btn-sm btn-info" onclick="toggleComments(${article.id}); event.stopPropagation();">
-                        <img src="../pictures/comment.png" alt="Comment" title="Comment">
+                    <button class="btn btn-sm btn-info" onclick="openCommentsModal(${article.id}); event.stopPropagation();">
+                        <img src="../pictures/comment1.png" alt="Comment" title="Comment">
                     </button>
                     <button class="save-btn" onclick="saveArticle(${article.id}); event.stopPropagation();">
                         <img src="../pictures/save.png" alt="Save" title="Save">
                     </button>
                     <button class="btn btn-sm btn-success" onclick="toggleShare(${article.id}); event.stopPropagation();">
-                        <img src="../pictures/share.png" alt="Share" title="Share">
+                        <img src="../pictures/send.png" alt="Share" title="Share">
                     </button>
                     <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
                         <img src="../pictures/report.png" alt="Report" title="Report">
                     </button>
                 </div>
-            </div>`;
+            </div>
+        `;
 
-        div.addEventListener("click", () => {
-            if (article.sourceUrl && article.sourceUrl !== "#") {
-                window.open(article.sourceUrl, "_blank");
+        updateLikeCount(article.id);
+
+        div.addEventListener('click', function () {
+            if (article.sourceUrl && article.sourceUrl !== '#') {
+                window.open(article.sourceUrl, '_blank');
             } else {
-                alert("No article URL available");
+                alert('No article URL available');
             }
         });
 
         grid.appendChild(div);
-
-        updateLikeCount(article.id);
     });
 
-    document.getElementById("loadMoreBtn").style.display = "none";
+    const loadMoreBtn = document.getElementById("loadMoreBtn");
+    if (pageSize * currentPageUsed >= sourceList.length) {
+        loadMoreBtn.style.display = "none";
+    } else {
+        loadMoreBtn.style.display = "block";
+    }
 }
 function openCommentsModal(articleId) {
     const user = getLoggedUser();

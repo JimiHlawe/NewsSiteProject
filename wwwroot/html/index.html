@@ -40,23 +40,35 @@
         </div>
     </section>
 
-
     <!-- Add New Article Button -->
     <div class="add-article-section">
-        <button id="showAddArticleBtn" class="btn btn-primary" onclick="toggleAddArticleForm()">Add New Article</button>
+        <button id="showAddArticleBtn" onclick="toggleAddArticleModal()">Add New Article</button>
+    </div>
 
-        <div id="addArticleForm" class="add-article-form" style="display: none; margin-top: 20px;">
+    <!-- Add Article Modal -->
+    <div class="add-article-modal-overlay" id="addArticleModalOverlay">
+        <div class="add-article-form" id="addArticleForm">
+            <button class="modal-close" onclick="toggleAddArticleModal()">×</button>
+
             <h2>Add New Article</h2>
-            <input type="text" id="newTitle" placeholder="Title" required>
-            <textarea id="newDescription" placeholder="Description" required></textarea>
-            <textarea id="newContent" placeholder="Content" required></textarea>
-            <input type="text" id="newAuthor" placeholder="Author" required>
-            <input type="url" id="newSourceUrl" placeholder="Source URL" required>
-            <input type="url" id="newImageUrl" placeholder="Image URL" required>
-            <input type="date" id="newPublishedAt" required>
-            <input type="text" id="newTags" placeholder="Tags (comma separated)">
-            <button onclick="submitNewArticle()" class="btn btn-success">Submit</button>
-            <button onclick="toggleAddArticleForm()" class="btn btn-secondary">Cancel</button>
+
+            <div class="form-grid">
+                <input type="text" id="newTitle" placeholder="Title" required>
+                <input type="text" id="newAuthor" placeholder="Author" required>
+
+                <textarea class="full-width" id="newDescription" placeholder="Description" required></textarea>
+                <textarea class="full-width" id="newContent" placeholder="Content" required></textarea>
+
+                <input type="url" id="newSourceUrl" placeholder="Source URL" required>
+                <input type="url" id="newImageUrl" placeholder="Image URL" required>
+
+                <input type="date" id="newPublishedAt" required>
+                <input type="text" id="newTags" placeholder="Tags (comma separated)">
+            </div>
+
+            <div class="button-container">
+                <button onclick="submitNewArticle()" class="btn btn-success">Submit Article</button>
+            </div>
         </div>
     </div>
 
