@@ -14,12 +14,12 @@
             return res.json();
         })
         .then(function (data) {
-            console.log("📥 Shared articles from API:", data);
+            console.log("Shared articles from API:", data);
             renderSharedArticles(data);
         })
         .catch(function () {
             document.getElementById("sharedContainer").innerHTML =
-                "<div class='alert alert-danger'>⚠️ Error loading shared articles</div>";
+                "<div class='alert alert-danger'>Error loading shared articles</div>";
         });
 });
 
@@ -62,7 +62,7 @@ function renderSharedArticles(articles) {
             <div class='shared-content'>
                 <div class='shared-info' onclick='event.stopPropagation();'>
                     <div class='shared-by'>
-                        <span class='shared-label'>👤 Shared by:</span>
+                        <span class='shared-label'>Shared by:</span>
                         <span class='shared-name'>${article.senderName}</span>
                     </div>
                     
@@ -81,11 +81,11 @@ function renderSharedArticles(articles) {
                 ` : ''}
                 
                 <div class='shared-meta mb-2'>
-                    <span class='shared-author'><strong>Author:</strong> ${article.author || 'Unknown'}</span>
-                    ${formattedDate ? `<span class='shared-date'><strong>Date:</strong> ${formattedDate}</span>` : ''}
+                    <span class='shared-author'> ${article.author || 'Unknown'}</span>
+                    ${formattedDate ? `<span class='shared-date'>${formattedDate}</span>` : ''}
                 </div>
 
-                <button class='btn btn-danger btn-sm remove-btn'>🗑 Remove</button>
+                <button class='btn btn-danger btn-sm remove-btn'> Remove</button>
             </div>
         `;
 
