@@ -125,46 +125,6 @@
     }
 }
 
-/* Animation */
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0px);
-    }
-
-    50% {
-        transform: translateY(-20px);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .threads-main {
-        max-width: 100%;
-        padding: 0 1rem;
-        margin: 2rem auto 3rem;
-    }
-
-    .threads-header {
-        max-width: 95%;
-        padding: 3rem 0 2rem;
-        margin-bottom: 2rem;
-        margin-top: 70px;
-    }
-
-    .threads-header-content {
-        max-width: 100%;
-        padding: 0 1.5rem;
-    }
-
-    .threads-title {
-        font-size: 2rem;
-    }
-
-    .threads-subtitle {
-        font-size: 1rem;
-    }
-}
-
 /* Grid Layout for Thread Cards */
 #threadsContainer {
     display: grid;
@@ -195,7 +155,7 @@
         border-color: var(--primary-slate);
     }
 
-/* Initial Comment Section */
+/* Initial Comment Section - עיצוב יפה יותר */
 .initial-comment {
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     padding: 1.5rem;
@@ -216,21 +176,76 @@
         border-radius: 0 2px 2px 0;
     }
 
-    .initial-comment strong {
-        color: var(--primary-slate);
-        font-weight: 700;
-        font-size: 1rem;
-        display: block;
-        margin-bottom: 0.5rem;
+    /* השם עם WROTE מעוצב יפה */
+    .initial-comment .author-wrote {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: linear-gradient(135deg, var(--primary-slate), var(--accent-blue));
+        color: white;
+        padding: 0.6rem 1.5rem;
+        border-radius: 30px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 15px rgba(51, 65, 85, 0.3);
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
     }
 
-    .initial-comment p {
+        .initial-comment .author-wrote::before {
+            content: '✍️';
+            font-size: 1rem;
+        }
+
+        .initial-comment .author-wrote::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+    .initial-comment .comment-text {
         margin: 0;
-        color: var(--text-light);
+        color: var(--text-dark);
         font-style: italic;
-        line-height: 1.5;
-        font-size: 0.95rem;
+        line-height: 1.6;
+        font-size: 1rem;
+        font-weight: 600;
+        padding: 1rem 1.25rem;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        border-left: 4px solid var(--accent-blue);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        position: relative;
     }
+
+        .initial-comment .comment-text::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            font-size: 2rem;
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        .initial-comment .comment-text::after {
+            content: '"';
+            position: absolute;
+            bottom: -20px;
+            right: 15px;
+            font-size: 2rem;
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
 
 /* Thread Content */
 .thread-content {
@@ -240,7 +255,7 @@
     flex-direction: column;
 }
 
-/* Thread Image with Date and Author Overlay */
+/* Thread Image with Tags */
 .thread-image {
     position: relative;
     margin-bottom: 1.5rem;
@@ -261,44 +276,54 @@
     transform: scale(1.05);
 }
 
-/* Date Overlay on Image */
-.thread-image::after {
-    content: attr(data-date);
+/* Article tags - על התמונה בצד שמאל למעלה */
+.article-tags {
     position: absolute;
     top: 1rem;
-    right: 1rem;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 25px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    z-index: 2;
-}
-
-/* Author Overlay on Image */
-.thread-image::before {
-    content: "By " attr(data-author);
-    position: absolute;
-    bottom: 1rem;
     left: 1rem;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 25px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    z-index: 2;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    z-index: 10;
+    max-width: calc(100% - 2rem);
 }
 
-/* Hide the original meta section */
-.thread-content .thread-meta {
-    display: none;
+.tag {
+    background: linear-gradient(135deg, rgba(51, 65, 85, 0.95), rgba(71, 85, 105, 0.95));
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
 }
+
+    .tag::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .tag:hover::before {
+        left: 100%;
+    }
+
+    .tag:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    }
 
 /* Thread Title */
 .thread-content h5 {
@@ -324,6 +349,29 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
     flex: 1;
+}
+
+/* Meta Information - תאריך וכותב נפרדים ללא רקע */
+.thread-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0;
+}
+
+.meta-date {
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.meta-author {
+    color: var(--text-dark);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
 }
 
 /* Action Buttons Container */
@@ -435,7 +483,7 @@ span[id^="like-thread-count"] {
         transform: scale(1.05);
     }
 
-/* Three Dots Menu Styles */
+/* Three Dots Menu Styles - מתקן מיקום */
 .three-dots-menu {
     cursor: pointer;
     font-size: 1.5rem;
@@ -445,6 +493,7 @@ span[id^="like-thread-count"] {
     transition: var(--transition);
     user-select: none;
     margin-left: auto;
+    position: relative;
 }
 
     .three-dots-menu:hover {
@@ -453,184 +502,445 @@ span[id^="like-thread-count"] {
         transform: scale(1.1);
     }
 
-/* Thread Options Menu */
+/* Thread Options Menu - dropdown קרוב לכפתור */
 .thread-options-menu {
+    position: absolute;
+    top: calc(100% + 0.25rem);
+    right: 0;
+    min-width: 200px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--border-light);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+    .thread-options-menu.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    .thread-options-menu::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        right: 15px;
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 8px solid white;
+        filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.1));
+    }
+
+.thread-options-content {
+    padding: 0.5rem 0;
+}
+
+    .thread-options-content button {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: none;
+        background: transparent;
+        color: var(--text-dark);
+        cursor: pointer;
+        transition: var(--transition);
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+        .thread-options-content button:hover {
+            background: var(--hover-bg);
+            color: var(--primary-slate);
+        }
+
+        .thread-options-content button:first-child {
+            border-radius: 12px 12px 0 0;
+        }
+
+        .thread-options-content button:last-child {
+            border-radius: 0 0 12px 12px;
+        }
+
+/* Comments Modal Styles - עיצוב מחודש ויפה */
+.comments-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(3px);
-    z-index: 9998;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     pointer-events: none;
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-    .thread-options-menu.show {
+    .comments-modal-overlay.show {
         opacity: 1;
         pointer-events: all;
     }
 
-.thread-options-content {
+.comments-modal-content {
+    background: white;
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.2);
+    max-width: 650px;
+    width: 92%;
+    max-height: 85vh;
+    transform: scale(0.85) translateY(40px);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.comments-modal-overlay.show .comments-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+/* Header עם גרדיינט יפה */
+.comments-modal-header {
+    padding: 2rem 2rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+    .comments-modal-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="30" cy="30" r="2"/></g></svg>');
+        animation: float 20s ease-in-out infinite;
+    }
+
+    .comments-modal-header h3 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 800;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.02em;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+        .comments-modal-header h3::before {
+            content: '💬';
+            font-size: 1.5rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.75rem;
+    border-radius: 50%;
+    transition: var(--transition);
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(10px);
+}
+
+    .close-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: scale(1.1) rotate(90deg);
+    }
+
+/* Body של המודאל */
+.comments-modal-body {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+    background: #fafbfc;
+}
+
+/* רשימת תגובות */
+.comments-list {
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+    .comments-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .comments-list::-webkit-scrollbar-track {
+        background: #f1f3f4;
+        border-radius: 10px;
+    }
+
+    .comments-list::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--accent-blue), var(--primary-slate));
+        border-radius: 10px;
+    }
+
+/* תגובה בודדת */
+.comment-item {
     background: white;
     border-radius: 16px;
-    padding: 1rem;
-    box-shadow: var(--shadow-heavy);
-    min-width: 200px;
-    transform: scale(0.8);
+    padding: 1.25rem;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(226, 232, 240, 0.8);
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
 }
 
-.thread-options-menu.show .thread-options-content {
-    transform: scale(1);
-}
+    .comment-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(180deg, var(--accent-blue), var(--primary-slate));
+        border-radius: 0 2px 2px 0;
+    }
 
-.thread-options-content button {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: none;
-    background: transparent;
-    color: var(--text-dark);
-    cursor: pointer;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-    transition: var(--transition);
+    .comment-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        border-color: var(--accent-blue);
+    }
+
+.comment-author {
+    font-weight: 700;
+    color: var(--primary-slate);
     font-size: 0.95rem;
-    font-weight: 500;
-    text-align: left;
+    margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-    .thread-options-content button:last-child {
-        margin-bottom: 0;
+    .comment-author::before {
+        content: '👤';
+        font-size: 0.9rem;
     }
 
-    .thread-options-content button:hover {
-        background: var(--hover-bg);
-        transform: translateX(4px);
-    }
+.comment-text {
+    color: var(--text-dark);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin: 0;
+}
 
-/* Comments Modal Styles */
-.comments-modal-content {
+/* סקציית כתיבת תגובה */
+.comment-input-section {
     background: white;
     border-radius: 20px;
-    padding: 0;
-    box-shadow: var(--shadow-heavy);
-    max-width: 600px;
-    width: 90%;
-    max-height: 80vh;
-    transform: scale(0.8);
-    transition: var(--transition);
-    display: flex;
-    flex-direction: column;
-}
-
-.thread-options-menu.show .comments-modal-content {
-    transform: scale(1);
-}
-
-.comments-modal-header {
     padding: 1.5rem;
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: 20px 20px 0 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid rgba(226, 232, 240, 0.6);
+    position: relative;
+    overflow: hidden;
 }
 
-    .comments-modal-header h3 {
-        margin: 0;
+    .comment-input-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent-blue), var(--primary-slate), var(--accent-green));
+        animation: gradientShift 3s ease-in-out infinite alternate;
+    }
+
+    .comment-input-section h4 {
+        margin: 0 0 1rem 0;
         color: var(--primary-slate);
-        font-size: 1.3rem;
+        font-size: 1.2rem;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-light);
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: var(--transition);
-}
-
-    .close-btn:hover {
-        background: var(--hover-bg);
-        color: var(--text-dark);
-    }
-
-.comments-modal-body {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    flex: 1;
-}
-
-.comments-list {
-    max-height: 300px;
-    overflow-y: auto;
-    padding-right: 0.5rem;
-}
-
-.comment-input-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-light);
-}
+        .comment-input-section h4::before {
+            content: '✍️';
+            font-size: 1.1rem;
+        }
 
     .comment-input-section textarea {
-        min-height: 80px;
-        padding: 1rem;
+        width: 100%;
+        min-height: 120px;
+        padding: 1.25rem;
         border: 2px solid var(--border-light);
-        border-radius: 12px;
+        border-radius: 16px;
         font-size: 1rem;
         resize: vertical;
-        transition: var(--transition);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         font-family: inherit;
+        line-height: 1.6;
+        background: var(--hover-bg);
+        color: var(--text-dark);
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        margin-bottom: 1rem;
     }
 
         .comment-input-section textarea:focus {
             outline: none;
             border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.02);
+            transform: translateY(-2px);
+        }
+
+        .comment-input-section textarea::placeholder {
+            color: var(--text-light);
+            font-style: italic;
+            font-weight: 400;
         }
 
     .comment-input-section button {
-        align-self: flex-start;
-        background: linear-gradient(135deg, var(--accent-blue), var(--primary-slate));
+        background: linear-gradient(135deg, var(--accent-blue) 0%, var(--primary-slate) 100%);
         color: white;
         border: none;
-        border-radius: 12px;
-        padding: 0.75rem 2rem;
-        font-weight: 600;
+        border-radius: 16px;
+        padding: 1rem 2.5rem;
+        font-weight: 700;
+        font-size: 1rem;
         cursor: pointer;
-        transition: var(--transition);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-left: auto;
     }
 
-        .comment-input-section button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-medium);
+        .comment-input-section button::before {
+            content: '📨';
+            font-size: 1rem;
         }
 
-/* Like Button States - ללא שינוי רקע */
-.thread-actions button[id^="like-thread-btn"].liked {
-    border-color: var(--accent-red);
-    color: var(--accent-red);
-    /* הסרתי את שינוי הרקע */
+        .comment-input-section button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .comment-input-section button:hover::after {
+            left: 100%;
+        }
+
+        .comment-input-section button:hover {
+            background: linear-gradient(135deg, var(--primary-slate) 0%, var(--accent-blue) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .comment-input-section button:active {
+            transform: translateY(-1px);
+        }
+
+/* אנימציות */
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-8px);
+    }
+
+    60% {
+        transform: translateY(-4px);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .comments-modal-content {
+        max-width: 95%;
+        max-height: 90vh;
+        border-radius: 20px;
+    }
+
+    .comments-modal-header {
+        padding: 1.5rem;
+    }
+
+        .comments-modal-header h3 {
+            font-size: 1.5rem;
+        }
+
+    .comments-modal-body {
+        padding: 1.5rem;
+    }
+
+    .comment-input-section {
+        padding: 1.25rem;
+    }
+
+        .comment-input-section textarea {
+            min-height: 100px;
+            padding: 1rem;
+        }
+
+        .comment-input-section button {
+            width: 100%;
+            justify-content: center;
+            margin-left: 0;
+        }
+}
+
+@media (max-width: 480px) {
+    .comments-modal-header h3 {
+        font-size: 1.3rem;
+    }
+
+    .comments-list {
+        max-height: 250px;
+    }
+
+    .comment-input-section h4 {
+        font-size: 1.1rem;
+    }
 }
 
 /* Hide original action buttons and comments section */
@@ -723,13 +1033,27 @@ div[id^="comments-"] {
     }
 }
 
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0px);
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes gradientShift {
+    0% {
+        background: linear-gradient(90deg, var(--accent-blue), var(--primary-slate), var(--accent-green));
     }
 
     50% {
-        transform: translateY(-20px);
+        background: linear-gradient(90deg, var(--accent-green), var(--accent-blue), var(--primary-slate));
+    }
+
+    100% {
+        background: linear-gradient(90deg, var(--primary-slate), var(--accent-green), var(--accent-blue));
     }
 }
 
@@ -1165,6 +1489,22 @@ div[id^="comments-"] {
         max-width: 95%;
         max-height: 90vh;
     }
+
+    /* Three dots menu responsive */
+    .three-dots-menu {
+        position: static;
+    }
+
+    .thread-options-menu {
+        position: absolute;
+        top: calc(100% + 0.25rem);
+        right: 0;
+        transform: translateY(-10px);
+    }
+
+        .thread-options-menu.show {
+            transform: translateY(0);
+        }
 }
 
 @media (max-width: 480px) {
@@ -1191,5 +1531,16 @@ div[id^="comments-"] {
 
     .thread-image {
         border-radius: 12px;
+    }
+
+    .thread-meta {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: stretch;
+    }
+
+    .meta-date,
+    .meta-author {
+        text-align: center;
     }
 }

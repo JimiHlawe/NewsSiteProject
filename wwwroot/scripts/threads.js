@@ -25,7 +25,7 @@ function renderThreadsArticles(articles) {
 
     for (var i = 0; i < articles.length; i++) {
         var article = articles[i];
-        var id = article.publicArticleId; // ✔️
+        var id = article.publicArticleId; 
         var card = createThreadCard(article);
         container.appendChild(card);
 
@@ -45,36 +45,34 @@ function createThreadCard(article) {
         day: 'numeric'
     });
 
-    // ✅ יצירת HTML לתגיות
+    // ✅ יצירת HTML לתגיות על התמונה
     var tagsHtml = (article.tags && article.tags.length > 0)
-        ? article.tags.map(tag => `<span class="tag badge bg-secondary me-1">${tag}</span>`).join(" ")
-        : `<span class="text-muted">No tags</span>`;
+        ? article.tags.map(tag => `<span class="tag">${tag}</span>`).join(" ")
+        : "";
 
     var html = `
-    <div class="initial-comment border-bottom pb-2 mb-3">
-        <strong>${article.senderName}</strong> wrote:
-        <p class="mb-0"><em>${article.initialComment || ""}</em></p>
+    <div class="initial-comment">
+        <div class="author-wrote">${article.senderName} wrote</div>
+        <div class="comment-text">${article.initialComment || ""}</div>
     </div>
 
     <div class="thread-content">
         <div class="thread-image mb-2" data-date="${formattedDate}" data-author="${article.author || 'Unknown'}">
             <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="img-fluid rounded">
+            ${tagsHtml ? `<div class="article-tags">${tagsHtml}</div>` : ''}
         </div>
 
         <h5>${article.title}</h5>
         <p>${article.description || ""}</p>
 
-        <!-- ✅ הצגת תגיות כאן -->
-        <div class="mb-2">${tagsHtml}</div>
-
-        <div class="thread-meta mb-2">
-            <strong>Author:</strong> ${article.author || 'Unknown'} |
-            <strong>Date:</strong> ${formattedDate}
+        <div class="thread-meta">
+            <div class="meta-author">${article.author || 'Unknown'}</div>
+            <div class="meta-date">${formattedDate}</div>
         </div>
 
-        <div class="thread-actions mb-2">
+        <div class="thread-actions">
             <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${article.publicArticleId}"></button>
-            <span id="like-thread-count-${article.publicArticleId}" class="ms-2">0 ❤️</span>
+            <span id="like-thread-count-${article.publicArticleId}" class="ms-2">0</span>
             <button class='btn btn-sm btn-success share-btn' onclick="showThreadShareModal(${article.publicArticleId}); event.stopPropagation();">
                 <img src="../pictures/send.png" alt="Share" class="share-icon">
             </button>
@@ -83,6 +81,19 @@ function createThreadCard(article) {
             </button>
             <div class="three-dots-menu" onclick="showThreadOptionsMenu(${article.publicArticleId}, '${article.senderName}', ${id}); event.stopPropagation();">
                 ⋯
+                <div class="thread-options-menu" id="options-menu-${article.publicArticleId}">
+                    <div class="thread-options-content">
+                        <button onclick="blockUser('${article.senderName}'); event.stopPropagation();">
+                            🚫 Block ${article.senderName}
+                        </button>
+                        <button onclick="reportArticle(${id}); event.stopPropagation();">
+                            🚨 Report Article
+                        </button>
+                        <button onclick="showThreadShareModal(${article.publicArticleId}); event.stopPropagation();">
+                            📤 Share
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -120,6 +131,28 @@ function createThreadCard(article) {
     return div;
 }
 
+// פונקציה לפתיחת תפריט אופציות
+function showThreadOptionsMenu(articleId, senderName, id) {
+    // סגירת כל התפריטים הפתוחים
+    document.querySelectorAll('.thread-options-menu').forEach(menu => {
+        menu.classList.remove('show');
+    });
+
+    // פתיחת התפריט הנוכחי
+    const menu = document.getElementById(`options-menu-${articleId}`);
+    if (menu) {
+        menu.classList.add('show');
+
+        // סגירה בלחיצה מחוץ לתפריט
+        document.addEventListener('click', function closeMenu(e) {
+            if (!menu.contains(e.target)) {
+                menu.classList.remove('show');
+                document.removeEventListener('click', closeMenu);
+            }
+        });
+    }
+}
+
 
 // פונקציה חדשה להצגת תגובות במודאל
 function showCommentsModal(articleId) {
@@ -127,17 +160,18 @@ function showCommentsModal(articleId) {
     if (existingModal) existingModal.remove();
 
     const modalHTML = `
-        <div class="thread-options-menu" id="commentsModal">
+        <div class="comments-modal-overlay" id="commentsModal">
             <div class="comments-modal-content">
                 <div class="comments-modal-header">
-                    <h3>💬 Comments</h3>
+                    <h3>Comments</h3>
                     <button class="close-btn" onclick="closeCommentsModal()">×</button>
                 </div>
                 <div class="comments-modal-body">
                     <div id="modal-comments-${articleId}" class="comments-list"></div>
                     <div class="comment-input-section">
-                        <textarea id="modal-commentBox-${articleId}" class="form-control" placeholder="Write a comment..."></textarea>
-                        <button class='btn btn-primary' onclick='sendCommentFromModal(${articleId});'>Send</button>
+                        <h4>Write a Comment</h4>
+                        <textarea id="modal-commentBox-${articleId}" placeholder="Share your thoughts..."></textarea>
+                        <button onclick='sendCommentFromModal(${articleId});'>Send Comment</button>
                     </div>
                 </div>
             </div>
@@ -149,6 +183,7 @@ function showCommentsModal(articleId) {
     // טען תגובות למודאל
     loadCommentsForModal(articleId);
 
+    // הצג את המודאל
     setTimeout(() => {
         document.getElementById("commentsModal").classList.add("show");
     }, 10);
@@ -158,7 +193,6 @@ function showCommentsModal(articleId) {
         document.addEventListener('click', closeCommentsModalOnOutsideClick);
     }, 100);
 }
-
 function loadCommentsForModal(articleId) {
     fetch("/api/Articles/GetPublicComments/" + articleId)
         .then(res => res.json())
@@ -249,10 +283,10 @@ function showThreadOptionsMenu(publicArticleId, senderName, articleId) {
         <div class="thread-options-menu" id="threadOptionsMenu">
             <div class="thread-options-content">
                 <button onclick="reportArticle(${articleId}); closeThreadOptionsMenu();">
-                    🚩 Report Article
+                     Report Article
                 </button>
                 <button onclick="blockUser('${senderName}'); closeThreadOptionsMenu();">
-                    🚫 Block ${senderName}
+                    Block ${senderName}
                 </button>
             </div>
         </div>
