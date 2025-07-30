@@ -997,45 +997,15 @@ body {
     margin: 20px;
 }
 
+/* וודא שהקונטיינר יהיה positioned */
 .avatar-container {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.avatar-wrapper {
-    position: relative;
     display: inline-block;
-    cursor: pointer;
 }
 
 .imageUpload {
     position: relative;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 3px solid #4a90e2;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-}
-
-    .imageUpload:hover {
-        transform: scale(1.05);
-        border-color: #357abd;
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    }
-
-#avatarIcon {
-    font-size: 40px;
-    color: #6c757d;
-    user-select: none;
+    display: inline-block;
 }
 
 #profileImage {
@@ -1043,51 +1013,163 @@ body {
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+    position: relative;
+    z-index: 1;
 }
 
+/* עיצוב תמונת המדליה - מעל הכל */
+#avatarRankImage {
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    object-fit: cover;
+    background: white;
+    pointer-events: none;
+}
+
+/* אם אתה רוצה גם את המדליה הטקסטואלית בנפרד */
 .rank-badge {
     position: absolute;
     bottom: -5px;
     right: -5px;
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    background: #ffd700;
     border: 2px solid white;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    color: white;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    font-size: 16px;
     z-index: 2;
+    /* הסתר אם יש תמונה */
+    display: none;
 }
 
+/* צבעי רקע למדליות */
+.bronze .rank-badge {
+    background: #cd7f32;
+}
+
+.silver .rank-badge {
+    background: #c0c0c0;
+}
+
+.gold .rank-badge {
+    background: #ffd700;
+}
+
+.platinum .rank-badge {
+    background: linear-gradient(135deg, #e5e4e2, #a8a8a8);
+}
+
+.diamond .rank-badge {
+    background: linear-gradient(135deg, #b9f2ff, #00bfff);
+}
+
+/* עיצוב תווית הדרגה */
 .avatar-rank-label {
     margin-top: 15px;
-    font-size: 16px;
-    font-weight: bold;
-    color: #2c3e50;
-    background: linear-gradient(135deg, #cd7f32, #8b4513);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 14px;
+    font-weight: 700;
     text-align: center;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 6px 14px;
-    border-radius: 15px;
-    background-color: rgba(205, 127, 50, 0.1);
-    border: 2px solid rgba(205, 127, 50, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
     transition: all 0.3s ease;
+    border: 2px solid;
+    position: relative;
+    overflow: hidden;
 }
 
-    .avatar-rank-label:hover {
-        background-color: rgba(205, 127, 50, 0.2);
-        border-color: rgba(205, 127, 50, 0.5);
+    /* אפקט זוהר ברקע */
+    .avatar-rank-label::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .avatar-rank-label:hover::before {
+        left: 100%;
+    }
+
+/* סגנונות דרגות */
+.bronze .avatar-rank-label {
+    color: #8b4513;
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.1), rgba(139, 69, 19, 0.05));
+    border-color: #cd7f32;
+    box-shadow: 0 4px 15px rgba(205, 127, 50, 0.2);
+}
+
+    .bronze .avatar-rank-label:hover {
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.2), rgba(139, 69, 19, 0.1));
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(205, 127, 50, 0.3);
+    }
+
+.silver .avatar-rank-label {
+    color: #5a5a5a;
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.1), rgba(128, 128, 128, 0.05));
+    border-color: #c0c0c0;
+    box-shadow: 0 4px 15px rgba(192, 192, 192, 0.2);
+}
+
+    .silver .avatar-rank-label:hover {
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.2), rgba(128, 128, 128, 0.1));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(192, 192, 192, 0.3);
+    }
+
+.gold .avatar-rank-label {
+    color: #b8860b;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(218, 165, 32, 0.05));
+    border-color: #ffd700;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+}
+
+    .gold .avatar-rank-label:hover {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(218, 165, 32, 0.1));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3);
+    }
+
+.platinum .avatar-rank-label {
+    color: #5a5a5a;
+    background: linear-gradient(135deg, rgba(229, 228, 226, 0.1), rgba(168, 168, 168, 0.05));
+    border-color: #e5e4e2;
+    box-shadow: 0 4px 15px rgba(229, 228, 226, 0.2);
+}
+
+    .platinum .avatar-rank-label:hover {
+        background: linear-gradient(135deg, rgba(229, 228, 226, 0.2), rgba(168, 168, 168, 0.1));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(229, 228, 226, 0.3);
+    }
+
+.diamond .avatar-rank-label {
+    color: #0080c7;
+    background: linear-gradient(135deg, rgba(185, 242, 255, 0.1), rgba(0, 191, 255, 0.05));
+    border-color: #00bfff;
+    box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2);
+}
+
+    .diamond .avatar-rank-label:hover {
+        background: linear-gradient(135deg, rgba(185, 242, 255, 0.2), rgba(0, 191, 255, 0.1));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 191, 255, 0.3);
     }
 
 .upload-hint {
@@ -1102,63 +1184,4 @@ body {
 .avatar-section:hover .upload-hint {
     opacity: 1;
     color: #4a90e2;
-}
-
-/* עבור דרגות שונות */
-.bronze .rank-badge {
-    background: linear-gradient(135deg, #cd7f32, #8b4513);
-}
-
-.silver .rank-badge {
-    background: linear-gradient(135deg, #c0c0c0, #808080);
-}
-
-.gold .rank-badge {
-    background: linear-gradient(135deg, #ffd700, #daa520);
-}
-
-.bronze .avatar-rank-label {
-    background: linear-gradient(135deg, #cd7f32, #8b4513);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-color: rgba(205, 127, 50, 0.1);
-    border-color: rgba(205, 127, 50, 0.3);
-}
-
-.silver .avatar-rank-label {
-    background: linear-gradient(135deg, #c0c0c0, #808080);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-color: rgba(192, 192, 192, 0.1);
-    border-color: rgba(192, 192, 192, 0.3);
-}
-
-.gold .avatar-rank-label {
-    background: linear-gradient(135deg, #ffd700, #daa520);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    background-color: rgba(255, 215, 0, 0.1);
-    border-color: rgba(255, 215, 0, 0.3);
-}
-
-/* עיצוב רספונסיבי */
-@media (max-width: 480px) {
-    .imageUpload {
-        width: 100px;
-        height: 100px;
-    }
-
-    .rank-badge {
-        width: 30px;
-        height: 30px;
-        font-size: 10px;
-    }
-
-    .avatar-rank-label {
-        font-size: 14px;
-        padding: 5px 12px;
-    }
 }
