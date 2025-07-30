@@ -17,15 +17,16 @@
     <div class="main-container">
         <!-- Profile Header with Password Section -->
         <div class="profile-avatar-section">
-            <!-- Avatar Section -->
-            <div class="avatar-section">
+            <!-- Avatar Section - הקוד המעודכן שלך -->
+            <div class="avatar-section bronze">
                 <div class="avatar-container">
-                    <div class="imageUpload" onclick="triggerImageUpload()">
-                        <span id="avatarIcon">👤</span>
-                        <img id="profileImage" alt="Profile Picture" style="display: none;" />
-                        <img id="avatarRankImage" src="../pictures/avatar_bronze.png" alt="Avatar Rank" style="width:80px; height:80px;" />
+                    <div class="avatar-wrapper">
+                        <div class="imageUpload" onclick="triggerImageUpload()">
+                            <span id="avatarIcon">👤</span>
+                            <img id="profileImage" alt="Profile Picture" style="display: none;" />
+                        </div>
+                        <div class="rank-badge">🥉</div>
                     </div>
-
                     <div id="avatarRank" class="avatar-rank-label">BRONZE</div>
                     <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                 </div>

@@ -990,3 +990,180 @@ body {
         opacity: 0;
     }
 }
+.avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+}
+
+.avatar-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.imageUpload {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid #4a90e2;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+    .imageUpload:hover {
+        transform: scale(1.05);
+        border-color: #357abd;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    }
+
+#avatarIcon {
+    font-size: 40px;
+    color: #6c757d;
+    user-select: none;
+}
+
+#profileImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.rank-badge {
+    position: absolute;
+    bottom: -5px;
+    right: -5px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+.avatar-rank-label {
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #2c3e50;
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 15px;
+    background-color: rgba(205, 127, 50, 0.1);
+    border: 2px solid rgba(205, 127, 50, 0.3);
+    transition: all 0.3s ease;
+}
+
+    .avatar-rank-label:hover {
+        background-color: rgba(205, 127, 50, 0.2);
+        border-color: rgba(205, 127, 50, 0.5);
+        transform: translateY(-2px);
+    }
+
+.upload-hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #6c757d;
+    text-align: center;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.avatar-section:hover .upload-hint {
+    opacity: 1;
+    color: #4a90e2;
+}
+
+/* עבור דרגות שונות */
+.bronze .rank-badge {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+}
+
+.silver .rank-badge {
+    background: linear-gradient(135deg, #c0c0c0, #808080);
+}
+
+.gold .rank-badge {
+    background: linear-gradient(135deg, #ffd700, #daa520);
+}
+
+.bronze .avatar-rank-label {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-color: rgba(205, 127, 50, 0.1);
+    border-color: rgba(205, 127, 50, 0.3);
+}
+
+.silver .avatar-rank-label {
+    background: linear-gradient(135deg, #c0c0c0, #808080);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-color: rgba(192, 192, 192, 0.1);
+    border-color: rgba(192, 192, 192, 0.3);
+}
+
+.gold .avatar-rank-label {
+    background: linear-gradient(135deg, #ffd700, #daa520);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-color: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.3);
+}
+
+/* הסתרת האלמנט הישן */
+#avatarRankImage {
+    display: none;
+}
+
+/* עיצוב רספונסיבי */
+@media (max-width: 480px) {
+    .imageUpload {
+        width: 100px;
+        height: 100px;
+    }
+
+    .rank-badge {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+    }
+
+    .avatar-rank-label {
+        font-size: 14px;
+        padding: 5px 12px;
+    }
+}
