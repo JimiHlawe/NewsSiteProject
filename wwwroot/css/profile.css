@@ -1144,11 +1144,6 @@ body {
     border-color: rgba(255, 215, 0, 0.3);
 }
 
-/* הסתרת האלמנט הישן */
-#avatarRankImage {
-    display: none;
-}
-
 /* עיצוב רספונסיבי */
 @media (max-width: 480px) {
     .imageUpload {
