@@ -43,7 +43,7 @@ function renderNavbarWithUser(container, user) {
         const avatarIcon = avatarIcons[user.avatarLevel || "BRONZE"];
 
         html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
-        html += "      <li><a class='nav-link' href='/html/shared.html' id='inboxNavItem'>Inbox</a></li>";
+        html += "      <li><a class='nav-link' href='/html/inbox.html' id='inboxNavItem'>Inbox</a></li>";
         html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
 
         if (user.isAdmin) {
@@ -84,7 +84,7 @@ function renderNavbarWithUser(container, user) {
         const profileImage = user.profileImagePath || "../pictures/default-avatar.png";
 
         html += "    <li><a class='nav-link' href='/html/favorites.html' onclick='closeMobileMenu()'>My Favorites</a></li>";
-        html += "    <li><a class='nav-link' href='/html/shared.html' onclick='closeMobileMenu()'>Inbox</a></li>";
+        html += "    <li><a class='nav-link' href='/html/inbox.html' onclick='closeMobileMenu()'>Inbox</a></li>";
         html += "    <li><a class='nav-link' href='/html/threads.html' onclick='closeMobileMenu()'>Threads</a></li>";
         html += "    <li><a class='nav-link' href='/html/profile.html' onclick='closeMobileMenu()'>Profile</a></li>";
 

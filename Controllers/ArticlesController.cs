@@ -53,6 +53,7 @@ public class ArticlesController : ControllerBase
 
         try
         {
+            // 👇 זה מה שצריך לשנות — שיהיה SP שמכניס גם תגיות
             _db.ShareArticleByUsernames(request.SenderUsername, request.ToUsername, request.ArticleId, request.Comment);
             return Ok("Article shared successfully");
         }
@@ -62,12 +63,14 @@ public class ArticlesController : ControllerBase
         }
     }
 
+
     [HttpGet("SharedWithMe/{userId}")]
-    public IActionResult GetSharedArticles(int userId)
+    public IActionResult GetSharedWithMe(int userId)
     {
-        var result = _db.GetArticlesSharedWithUser(userId);
-        return Ok(result);
+        var articles = _db.GetSharedArticlesForUser(userId);
+        return Ok(articles);
     }
+
 
     [HttpPost("SharePublic")]
     public IActionResult ShareArticlePublic([FromBody] PublicArticleShareRequest request)
@@ -501,7 +504,13 @@ public class ArticlesController : ControllerBase
         public int PublicArticleId { get; set; }
     }
 
-
+    public class ShareRequest
+    {
+        public int UserId { get; set; }
+        public int TargetUserId { get; set; }
+        public int ArticleId { get; set; }
+        public string Comment { get; set; }
+    }
 
     public class CommentRequest
     {

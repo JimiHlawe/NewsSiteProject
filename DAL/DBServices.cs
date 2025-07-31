@@ -1065,23 +1065,28 @@ ORDER BY Priority, publishedAt DESC
         // ============== SHARING =====================
         // ============================================
 
-        public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
+        public void ShareArticleByUsernames(string senderUsername, string receiverUsername, int articleId, string comment)
         {
+            int? senderId = GetUserIdByUsername(senderUsername);
+            int? receiverId = GetUserIdByUsername(receiverUsername);
+
+            if (senderId == null || receiverId == null)
+                throw new Exception("User not found");
+
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticleByUsernames", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@SenderUsername", senderUsername);
-                cmd.Parameters.AddWithValue("@TargetUsername", targetUsername);
+                cmd.Parameters.AddWithValue("@UserId", senderId.Value);
+                cmd.Parameters.AddWithValue("@TargetUserId", receiverId.Value);
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
+                cmd.Parameters.AddWithValue("@Comment", comment);
 
                 cmd.ExecuteNonQuery();
             }
         }
+
 
         public List<SharedArticle> GetArticlesSharedWithUser(int userId)
         {
@@ -1147,9 +1152,137 @@ ORDER BY Priority, publishedAt DESC
                 cmd.ExecuteNonQuery();
             }
         }
+        public void ShareArticle(int userId, int targetUserId, int articleId, string comment)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@TargetUserId", targetUserId);
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                cmd.Parameters.AddWithValue("@Comment", comment);
+
+                cmd.ExecuteNonQuery();
+            }
+        }
 
 
+        public List<string> GetTagsForSharedArticle(int sharedArticleId)
+        {
+            List<string> tags = new List<string>();
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT T.name
+            FROM News_SharedArticleTags SAT
+            JOIN News_Tags T ON T.id = SAT.TagId
+            WHERE SAT.SharedArticleId = @SharedId", con);
 
+                cmd.Parameters.AddWithValue("@SharedId", sharedArticleId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        tags.Add(reader["name"].ToString());
+                    }
+                }
+            }
+            return tags;
+        }
+
+        public Article GetArticleById(int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM News_Articles WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", articleId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new Article
+                        {
+                            Id = (int)reader["Id"],
+                            Title = reader["Title"].ToString(),
+                            Description = reader["Description"].ToString(),
+                            Content = reader["Content"].ToString(),
+                            Author = reader["Author"].ToString(),
+                            SourceUrl = reader["Url"].ToString(), // ← שים לב לשינוי כאן
+                            ImageUrl = reader["ImageUrl"].ToString(),
+                            PublishedAt = Convert.ToDateTime(reader["PublishedAt"]),
+                            Tags = new List<string>() // ייטענו בנפרד אם צריך
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public List<SharedArticle> GetSharedArticlesForUser(int userId)
+        {
+            List<SharedArticle> sharedArticles = new List<SharedArticle>();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(@"
+            SELECT 
+                S.id AS SharedId,
+                S.articleId,
+                S.comment,
+                S.sharedAt,
+                S.targetUserId,
+                U.name AS SenderName
+            FROM News_SharedArticles S
+            JOIN News_Users U ON S.userId = U.id
+            WHERE S.targetUserId = @UserId", con);
+
+                cmd.Parameters.AddWithValue("@UserId", userId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int sharedId = (int)reader["SharedId"];
+                        int articleId = (int)reader["articleId"];
+                        string comment = reader["comment"].ToString();
+                        DateTime sharedAt = Convert.ToDateTime(reader["sharedAt"]);
+                        string senderName = reader["SenderName"].ToString();
+
+                        // קבלת פרטי הכתבה המקורית
+                        Article baseArticle = GetArticleById(articleId);
+                        if (baseArticle == null) continue;
+
+                        SharedArticle article = new SharedArticle(
+                            baseArticle.Id,
+                            baseArticle.Title,
+                            baseArticle.Description,
+                            baseArticle.Content,
+                            baseArticle.Author,
+                            baseArticle.SourceUrl,
+                            baseArticle.ImageUrl,
+                            baseArticle.PublishedAt,
+                            new List<string>(), // נטען את התגיות בהמשך
+                            comment,
+                            sharedAt,
+                            senderName,
+                            sharedId
+                        );
+
+                        // ✅ הוספת תגיות לפי sharedId
+                        article.Tags = GetTagsForSharedArticle(sharedId);
+
+                        sharedArticles.Add(article);
+                    }
+                }
+            }
+
+            return sharedArticles;
+        }
 
 
 
