@@ -1,23 +1,55 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
+﻿let allThreads = [];
+let currentThreadsPage = 1;
+const threadsPageSize = 5;
+
+document.addEventListener("DOMContentLoaded", function () {
     loadThreadsArticles();
 });
 
 function loadThreadsArticles() {
-    var user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     fetch("/api/Articles/Public/" + user.id)
-        .then(function (res) {
+        .then(res => {
             if (!res.ok) throw new Error("Failed to fetch threads");
             return res.json();
         })
-        .then(function (data) {
+        .then(data => {
             console.log("📦 Threads from DB:", data);
-            renderThreadsArticles(data);
+            allThreads = data;
+            currentThreadsPage = 1;
+            renderVisibleThreads();
         })
-        .catch(function (err) {
+        .catch(err => {
             console.error("Failed to load threads:", err);
             showError("threadsContainer", "Failed to load threads");
         });
 }
+
+function renderVisibleThreads() {
+    const container = document.getElementById("threadsContainer");
+    container.innerHTML = "";
+
+    const visibleThreads = allThreads.slice(0, threadsPageSize * currentThreadsPage);
+
+    visibleThreads.forEach(article => {
+        const card = createThreadCard(article);
+        container.appendChild(card);
+        loadComments(article.publicArticleId);
+    });
+
+    const loadMoreBtn = document.getElementById("loadMoreThreadsBtn");
+    if (threadsPageSize * currentThreadsPage >= allThreads.length) {
+        loadMoreBtn.style.display = "none";
+    } else {
+        loadMoreBtn.style.display = "block";
+    }
+}
+
+function loadMoreThreads() {
+    currentThreadsPage++;
+    renderVisibleThreads();
+}
+
 
 function renderThreadsArticles(articles) {
     var container = document.getElementById("threadsContainer");
@@ -207,7 +239,7 @@ function loadCommentsForModal(articleId) {
                 commentDiv.className = 'border rounded p-2 mb-1';
                 commentDiv.innerHTML = `
                     <strong>${c.username}</strong>: ${c.comment}
-                    <button onclick="togglePublicCommentLike(${c.id})">👍 Like</button>
+                    <button onclick="togglePublicCommentLike(${c.id})">❤️</button>
                     <span id="public-like-count-${c.id}">0</span>
                     <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
                 `;
@@ -329,7 +361,7 @@ function loadThreadLikeCount(articleId) {
         .then(count => {
             const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
             if (likeCountSpan) {
-                likeCountSpan.textContent = `${count} ❤️`;
+                likeCountSpan.textContent = `${count}`;
             }
         })
         .catch(err => {

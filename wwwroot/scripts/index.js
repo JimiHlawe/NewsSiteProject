@@ -59,6 +59,9 @@ function loadAllArticlesAndSplit() {
 
 // ✅ Grid - with tag positioning fix only
 function renderVisibleArticles() {
+    const user = getLoggedUser();
+    console.log("👤 logged user is:", user);  // DEBUG
+
     const grid = document.getElementById("articlesGrid");
     grid.innerHTML = "";
 
@@ -76,7 +79,7 @@ function renderVisibleArticles() {
             year: 'numeric', month: 'short', day: 'numeric'
         });
 
-        div.innerHTML = `
+        let html = `
             <div class="article-image-container">
                 <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}" class="article-image">
                 <div class="article-tags">${tagsHtml}</div>
@@ -84,16 +87,19 @@ function renderVisibleArticles() {
             </div>
             <div class="article-content">
                 <h3 class="article-title">${article.title}</h3>
-                <p class="article-description">${article.description?.substring(0, 150) || ''}</p>
-                <div class="article-meta">
-                    <span>${article.author}</span>
+                <p class="article-description">${article.description?.substring(0, 200) || ''}</p>
+                <div class="article-author-date">
+                    <span class="article-author">${article.author || 'Unknown Author'}</span>
                     <span>${formattedDate}</span>
-                </div>
+                </div>`;
+
+        if (user && user.id) {
+            html += `
                 <div class="article-actions">
                     <button class="like-btn" id="like-btn-${article.id}" onclick="toggleLike(${article.id}); event.stopPropagation();">
                         <img src="../pictures/like.png" alt="Like" title="Like">
                     </button>
-                    <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
+                    <span id="like-count-${article.id}" class="like-count">0</span>
 
                     <button class="btn btn-sm btn-info" onclick="openCommentsModal(${article.id}); event.stopPropagation();">
                         <img src="../pictures/comment1.png" alt="Comment" title="Comment">
@@ -107,11 +113,14 @@ function renderVisibleArticles() {
                     <button class="btn btn-sm btn-danger" onclick="reportArticle(${article.id}); event.stopPropagation();">
                         <img src="../pictures/report.png" alt="Report" title="Report">
                     </button>
-                </div>
-            </div>
-        `;
+                </div>`;
 
-        updateLikeCount(article.id);
+            updateLikeCount(article.id);
+        }
+
+        html += `</div>`; // סגירת article-content
+
+        div.innerHTML = html;
 
         div.addEventListener('click', function () {
             if (article.sourceUrl && article.sourceUrl !== '#') {
@@ -125,13 +134,8 @@ function renderVisibleArticles() {
     });
 
     const loadMoreBtn = document.getElementById("loadMoreBtn");
-    if (pageSize * currentPageUsed >= sourceList.length) {
-        loadMoreBtn.style.display = "none";
-    } else {
-        loadMoreBtn.style.display = "block";
-    }
+    loadMoreBtn.style.display = pageSize * currentPageUsed >= sourceList.length ? "none" : "block";
 }
-
 
 function loadMoreArticles() {
     if (isSearchActive) {
@@ -161,12 +165,8 @@ function toggleComments(articleId) {
 
 // ✅ Updated function for saving article with special modal
 function saveArticle(articleId) {
+    if (!requireLogin()) return;
     const user = getLoggedUser();
-    if (!user?.id || !articleId) {
-        alert("Invalid data. Please log in again and try.");
-        return;
-    }
-
     fetch("/api/Users/SaveArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -224,6 +224,7 @@ function closeSaveModal() {
 
 // ✅ Updated function for sharing article with special modal
 function toggleShare(articleId) {
+    if (!requireLogin()) return;
     showShareModal(articleId);
 }
 
@@ -288,6 +289,7 @@ function toggleShareModalType() {
 }
 
 function toggleLike(articleId) {
+    if (!requireLogin()) return;
     const user = getLoggedUser();
     const isLiked = document.getElementById(`like-btn-${articleId}`).classList.contains("liked");
 
@@ -298,22 +300,31 @@ function toggleLike(articleId) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
     })
-        .then(res => {
-            if (res.ok) {
-                updateLikeCount(articleId);
-                document.getElementById(`like-btn-${articleId}`).classList.toggle("liked");
-            }
+.then(res => {
+    if (res.ok) {
+        updateArticleLikeCount(articleId);
+        document.getElementById(`like-btn-${articleId}`).classList.toggle("liked");
+    }
+});
+
+}
+
+function updateCommentLikeCount(commentId) {
+    fetch(`/api/Articles/CommentLikeCount/${commentId}`)
+        .then(res => res.json())
+        .then(count => {
+            document.getElementById(`like-count-${commentId}`).innerText = count;
         });
 }
 
-function updateLikeCount(articleId) {
+
+function updateArticleLikeCount(articleId) {
     fetch(`/api/Articles/LikesCount/${articleId}`)
         .then(res => res.json())
         .then(count => {
-            document.getElementById(`like-count-${articleId}`).innerText = `${count} ❤️`;
+            document.getElementById(`like-count-${articleId}`).innerText = `${count}`;
         });
 }
-
 
 // Function to submit share from modal
 function submitShare(articleId) {
@@ -499,6 +510,7 @@ function loadComments(articleId, isModal = false) {
 
 
 function showReportModal(referenceType, referenceId) {
+    if (!requireLogin()) return;
     // הסר מודל קודם אם קיים
     const existing = document.getElementById('reportModalOverlay');
     if (existing) existing.remove();
@@ -857,7 +869,7 @@ function renderVisibleArticles() {
                     <button class="like-btn" id="like-btn-${article.id}" onclick="toggleLike(${article.id}); event.stopPropagation();">
                         <img src="../pictures/like.png" alt="Like" title="Like">
                     </button>
-                    <span id="like-count-${article.id}" class="like-count">❤️ 0</span>
+                    <span id="like-count-${article.id}" class="like-count">❤ 0</span>
 
                     <button class="btn btn-sm btn-info" onclick="openCommentsModal(${article.id}); event.stopPropagation();">
                         <img src="../pictures/comment1.png" alt="Comment" title="Comment">
@@ -875,7 +887,8 @@ function renderVisibleArticles() {
             </div>
         `;
 
-        updateLikeCount(article.id);
+        updateArticleLikeCount(article.id);
+
 
         div.addEventListener('click', function () {
             if (article.sourceUrl && article.sourceUrl !== '#') {
@@ -896,7 +909,7 @@ function renderVisibleArticles() {
     }
 }
 function openCommentsModal(articleId) {
-    const user = getLoggedUser();
+    if (!requireLogin()) return;
 
     const modalHTML = `
         <div class="comments-modal-overlay" id="commentsModalOverlay-${articleId}">
@@ -960,4 +973,14 @@ function loadAdBanner() {
             console.error("Failed to load ad:", err);
             document.getElementById("adText").innerText = "Ad failed to load.";
         });
+}
+
+function requireLogin() {
+    const user = getLoggedUser();
+    if (!user) {
+        alert("You must be logged in to perform this action.");
+        window.location.href = "login.html";
+        return false;
+    }
+    return true;
 }
