@@ -337,10 +337,15 @@ function submitShare(articleId) {
         return;
     }
 
-    // Check if user is blocked from sharing
     const canShare = sessionStorage.getItem("canShare") === "true";
     if (!canShare) {
         alert("🚫 Your sharing ability is blocked!");
+        return;
+    }
+
+    // ❗ לא מאפשר שיתוף ציבורי (THREADS) בלי תגובה
+    if (shareType === "public" && comment === "") {
+        alert("🚫 You must enter a comment when sharing to Threads!");
         return;
     }
 
@@ -348,6 +353,12 @@ function submitShare(articleId) {
         const toUsername = document.getElementById('targetUser').value.trim();
         if (!toUsername) {
             alert("Please enter a username.");
+            return;
+        }
+
+        // ❌ חסימה לשיתוף עם עצמי
+        if (toUsername.toLowerCase() === user.name.toLowerCase()) {
+            alert("🚫 You cannot share an article with yourself.");
             return;
         }
 
@@ -371,6 +382,7 @@ function submitShare(articleId) {
             })
             .catch(() => alert("❌ Error."));
     } else {
+        // PUBLIC
         fetch("/api/Articles/SharePublic", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

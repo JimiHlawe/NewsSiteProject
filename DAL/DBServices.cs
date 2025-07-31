@@ -1065,28 +1065,23 @@ ORDER BY Priority, publishedAt DESC
         // ============== SHARING =====================
         // ============================================
 
-        public void ShareArticleByUsernames(string senderUsername, string receiverUsername, int articleId, string comment)
+        public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
         {
-            int? senderId = GetUserIdByUsername(senderUsername);
-            int? receiverId = GetUserIdByUsername(receiverUsername);
-
-            if (senderId == null || receiverId == null)
-                throw new Exception("User not found");
-
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticleByUsernames", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
 
-                cmd.Parameters.AddWithValue("@UserId", senderId.Value);
-                cmd.Parameters.AddWithValue("@TargetUserId", receiverId.Value);
+                cmd.Parameters.AddWithValue("@SenderUsername", senderUsername);
+                cmd.Parameters.AddWithValue("@TargetUsername", targetUsername);
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment);
+                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
 
                 cmd.ExecuteNonQuery();
             }
         }
-
 
         public List<SharedArticle> GetArticlesSharedWithUser(int userId)
         {

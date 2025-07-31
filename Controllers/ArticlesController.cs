@@ -90,26 +90,6 @@ public class ArticlesController : ControllerBase
     }
 
 
-    [HttpPost("ShareThreadToUser")]
-    public IActionResult ShareThreadToUser([FromBody] ThreadShareRequest req)
-    {
-        if (req == null || string.IsNullOrWhiteSpace(req.toUsername))
-            return BadRequest("Invalid data");
-
-        try
-        {
-            _db.ShareArticleByUsernames(req.senderUsername, req.toUsername, req.publicArticleId, req.comment);
-            return Ok("Thread shared via existing share mechanism.");
-        }
-        catch (Exception ex)
-        {
-            // שלב חשוב: הדפסת השגיאה ליומן
-            Console.WriteLine("🔥 ShareThreadToUser failed: " + ex.Message);
-            return StatusCode(500, $"❌ Error while sharing: {ex.Message}");
-        }
-    }
-
-
     [HttpGet("Public/{userId}")]
     public IActionResult GetPublicArticles(int userId)
     {
@@ -488,8 +468,6 @@ public class ArticlesController : ControllerBase
             Failed = failed
         });
     }
-
-
 
 
     public class LikeRequest

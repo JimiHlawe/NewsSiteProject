@@ -6,6 +6,11 @@ document.addEventListener("DOMContentLoaded", function () {
     loadThreadsArticles();
 });
 
+function getLoggedUser() {
+    const raw = sessionStorage.getItem("loggedUser");
+    return raw ? JSON.parse(raw) : null;
+}
+
 function loadThreadsArticles() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     fetch("/api/Articles/Public/" + user.id)
@@ -105,9 +110,6 @@ function createThreadCard(article) {
         <div class="thread-actions">
             <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${article.publicArticleId}"></button>
             <span id="like-thread-count-${article.publicArticleId}" class="ms-2">0</span>
-            <button class='btn btn-sm btn-success share-btn' onclick="showThreadShareModal(${article.publicArticleId}); event.stopPropagation();">
-                <img src="../pictures/send.png" alt="Share" class="share-icon">
-            </button>
             <button class='btn btn-sm btn-info comment-btn' onclick="showCommentsModal(${id}); event.stopPropagation();">
                 <img src="../pictures/comment1.png" alt="Comment" class="share-icon">
             </button>
@@ -121,9 +123,6 @@ function createThreadCard(article) {
                         <button onclick="reportArticle(${id}); event.stopPropagation();">
                             🚨 Report Article
                         </button>
-                        <button onclick="showThreadShareModal(${article.publicArticleId}); event.stopPropagation();">
-                            📤 Share
-                        </button>
                     </div>
                 </div>
             </div>
@@ -131,7 +130,6 @@ function createThreadCard(article) {
 
         <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}'); event.stopPropagation();" style="display: none;">Block ${article.senderName}</button>
         <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id}); event.stopPropagation();" style="display: none;">Report Article</button>
-        <button class='btn btn-sm btn-success mb-2' onclick="showThreadShareModal(${article.publicArticleId}); event.stopPropagation();" style="display: none;">Share</button>
 
         <h6>💬 Comments:</h6>
         <div id="comments-${id}" onclick="event.stopPropagation();" style="display: none;"></div>
@@ -567,106 +565,6 @@ function showError(containerId, message) {
     var container = document.getElementById(containerId);
     container.innerHTML = "<div class='alert alert-danger'>" + message + "</div>";
 }
-
-function showThreadShareModal(threadId) {
-    const modalHTML = `
-        <div class="share-modal-overlay" id="shareModalOverlay">
-            <div class="share-modal">
-                <div class="share-modal-icon"></div>
-                <h2 class="share-modal-title">Share Thread</h2>
-                <p class="share-modal-subtitle">Send this thread to a specific user</p>
-
-                <form class="share-modal-form" id="threadShareForm">
-                    <div class="form-group">
-                        <label for="targetUser">Username</label>
-                        <input type="text" id="targetUser" placeholder="Enter username" required />
-                    </div>
-
-                    <div class="form-group">
-                        <label for="shareComment">Comment (optional)</label>
-                        <textarea id="shareComment" placeholder="Add a message..."></textarea>
-                    </div>
-                </form>
-
-                <div class="share-modal-buttons">
-                    <button class="share-modal-button secondary" onclick="closeShareModal()">Cancel</button>
-                    <button class="share-modal-button primary" onclick="submitThreadShare(${threadId})">Share</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML("beforeend", modalHTML);
-    setTimeout(() => {
-        document.getElementById("shareModalOverlay").classList.add("show");
-    }, 100);
-}
-
-function submitThreadShare(articleId) {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    const toUsername = document.getElementById('targetUser').value.trim();
-    const comment = document.getElementById('shareComment').value.trim();
-
-    fetch("/api/Articles/ShareThreadToUser", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            senderUsername: user.name,
-            toUsername: toUsername,
-            publicArticleId: articleId,
-            comment: comment
-        })
-    })
-        .then(res => {
-            if (res.ok) {
-                closeShareModal();
-                showShareSuccessModal();
-            } else {
-                alert("❌ Failed to share thread.");
-            }
-        })
-}
-
-function closeShareModal() {
-    const overlay = document.getElementById("shareModalOverlay");
-    if (overlay) {
-        overlay.classList.add("hide");
-        setTimeout(() => overlay.remove(), 500);
-    }
-}
-
-function showShareSuccessModal() {
-    const modalHTML = `
-        <div class="save-modal-overlay" id="shareSuccessOverlay">
-            <div class="save-modal">
-                <div class="save-modal-icon"></div>
-                <h2 class="save-modal-title">Thread Shared!</h2>
-                <p class="save-modal-subtitle">The thread was successfully sent</p>
-                <button class="save-modal-close" onclick="closeShareSuccessModal()">Great!</button>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    setTimeout(() => {
-        document.getElementById('shareSuccessOverlay').classList.add('show');
-    }, 100);
-    setTimeout(() => {
-        closeShareSuccessModal();
-    }, 3000);
-}
-
-function closeShareSuccessModal() {
-    const overlay = document.getElementById('shareSuccessOverlay');
-    if (overlay) {
-        overlay.classList.add('hide');
-        setTimeout(() => overlay.remove(), 600);
-    }
-}
-
-document.addEventListener('click', function (e) {
-    if (e.target && e.target.classList.contains('share-modal-overlay')) {
-        closeShareModal();
-    }
-});
 
 function toggleThreadLike(article) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
