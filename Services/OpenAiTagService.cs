@@ -8,9 +8,8 @@ namespace NewsSite1.Services
 {
     public class OpenAiTagService
     {
-        private readonly string _apiKey;
-        private readonly HttpClient _httpClient;
         private readonly string _openAiApiKey;
+        private readonly HttpClient _httpClient;
 
         private static readonly List<string> AllowedTags = new List<string>
         {
@@ -50,7 +49,7 @@ Tags (comma-separated):";
 
             var requestJson = JsonSerializer.Serialize(requestBody);
             var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
-            request.Headers.Add("Authorization", $"Bearer {_apiKey}");
+            request.Headers.Add("Authorization", $"Bearer {_openAiApiKey}"); // ← תוקן כאן
             request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(request);
@@ -59,7 +58,6 @@ Tags (comma-separated):";
             {
                 var errorBody = await response.Content.ReadAsStringAsync();
 
-                // טיפול מיוחד לשגיאה זמנית
                 if ((int)response.StatusCode == 502)
                 {
                     throw new Exception("OpenAI API is temporarily unavailable (502 Bad Gateway). Please try again later.");

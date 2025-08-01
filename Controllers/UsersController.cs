@@ -70,10 +70,8 @@ namespace NewsSite1.Controllers
         [HttpGet("GetUserById/{id}")]
         public User GetUserById(int id)
         {
-            DBServices db = new DBServices();
-            db.ExecuteStoredProcedure("NewsSP_UpdateUserAvatarLevels"); // מריץ את העדכון לפי הלייקים
-
-            return db.GetUserById(id); // מחזיר את המשתמש לאחר עדכון
+            db.ExecuteStoredProcedure("NewsSP_UpdateUserAvatarLevels");
+            return db.GetUserById(id);
         }
 
 
@@ -260,9 +258,26 @@ namespace NewsSite1.Controllers
             return Ok(new { imageUrl = relativePath });
         }
 
+        [HttpPost("ToggleNotifications")]
+        public IActionResult ToggleNotifications([FromBody] ToggleRequest req)
+        {
+            bool success = db.ToggleUserNotifications(req.UserId, req.Enable);
+            if (success)
+                return Ok(new { message = "Updated" });
+
+            return BadRequest("Failed to update");
+        }
+
+
+
+
     }
 
-
+    public class ToggleRequest
+    {
+        public int UserId { get; set; }
+        public bool Enable { get; set; }
+    }
 
     public class SetStatusRequest
     {

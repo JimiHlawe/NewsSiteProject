@@ -1,16 +1,26 @@
-﻿// Controllers/TaggingController.cs
-using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
-[ApiController]
-[Route("api/[controller]")]
-public class TaggingController : ControllerBase
+namespace NewsSite1.Controllers
 {
-    [HttpPost("Run")]
-    public async Task<IActionResult> RunTagging()
+    [ApiController]
+    [Route("api/[controller]")]
+    public class TaggingController : ControllerBase
     {
-        var runner = new TaggingRunner();
-        await runner.RunAsync();
-        return Ok("Tagging completed.");
+        private readonly IConfiguration _config;
+
+        public TaggingController(IConfiguration config)
+        {
+            _config = config;
+        }
+
+        [HttpPost("RunTagging")]
+        public async Task<IActionResult> RunTagging()
+        {
+            TaggingRunner runner = new TaggingRunner(_config);
+            await runner.RunAsync();
+            return Ok("Tagging completed and notifications sent.");
+        }
+
     }
 }

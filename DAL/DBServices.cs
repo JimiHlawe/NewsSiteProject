@@ -1,6 +1,8 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using NewsSite.Services;
 using NewsSite1.Models;
+using NewsSite1.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -157,7 +159,9 @@ namespace NewsSite1.DAL
                         CanComment = Convert.ToBoolean(reader["canComment"]),
                         IsAdmin = Convert.ToBoolean(reader["isAdmin"]),
                         ProfileImagePath = reader["ProfileImagePath"] as string,
+                        ReceiveNotifications = Convert.ToBoolean(reader["ReceiveNotifications"]),
                         AvatarLevel = reader["AvatarLevel"] as string ?? "BRONZE"
+
                     };
                 }
 
@@ -511,7 +515,7 @@ namespace NewsSite1.DAL
         public int AddUserArticle(Article article)
         {
             if (ArticleExists(article.SourceUrl))
-                return -1; 
+                return -1;
 
             int newArticleId;
 
@@ -539,14 +543,44 @@ namespace NewsSite1.DAL
                 article.Tags = new List<string>();
             }
 
+            List<int> tagIds = new List<int>();
+
             foreach (string tagName in article.Tags)
             {
                 int tagId = GetOrAddTagId(tagName);
+                tagIds.Add(tagId);
                 InsertArticleTag(newArticleId, tagId);
+            }
+
+            // ✅ Send email to interested users
+            if (tagIds.Any())
+            {
+                List<User> interestedUsers = GetUsersInterestedInTags(tagIds);
+                EmailService mailer = new EmailService(); 
+
+                foreach (var user in interestedUsers)
+                {
+                    string subject = "📰 New article in your interest!";
+                    string body = $@"
+            Hello {user.Name},<br/><br/>
+            A new article has been published that matches your interest:<br/>
+            <b>{article.Title}</b><br/><br/>
+            <a href='https://your-site-url.com'>Click here to read it on our website</a>";
+
+                    try
+                    {
+                        mailer.Send(user.Email, subject, body);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"❌ Failed to send to {user.Email}: {ex.Message}");
+                    }
+                }
             }
 
             return newArticleId;
         }
+
 
         public bool ArticleExists(string url)
         {
@@ -780,7 +814,6 @@ ORDER BY Priority, publishedAt DESC
             }
             return list;
         }
-
 
 
 
@@ -1614,7 +1647,52 @@ public List<string> GetTagsForPublicArticle(int publicArticleId)
             return tags;
         }
 
+        public List<User> GetUsersInterestedInTags(List<int> tagIds)
+        {
+            List<User> interestedUsers = new List<User>();
 
+            using (SqlConnection con = connect())
+            {
+                string ids = string.Join(",", tagIds);
+
+                SqlCommand cmd = new SqlCommand($@"
+            SELECT DISTINCT U.id, U.name, U.email, U.ReceiveNotifications
+            FROM News_Users U
+            JOIN News_UserTags UT ON U.id = UT.userId
+            WHERE UT.tagId IN ({ids}) AND U.active = 1 AND U.email IS NOT NULL
+        ", con);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    User u = new User
+                    {
+                        Id = (int)reader["id"],
+                        Name = reader["name"].ToString(),
+                        Email = reader["email"].ToString(),
+                        ReceiveNotifications = Convert.ToBoolean(reader["ReceiveNotifications"])
+                    };
+                    interestedUsers.Add(u);
+                }
+            }
+
+            return interestedUsers;
+        }
+
+        // ============================================
+        // =============== NOTFICATIOND ====================
+        // ============================================
+        public bool ToggleUserNotifications(int userId, bool enable)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("UPDATE News_Users SET ReceiveNotifications = @val WHERE id = @id", con);
+                cmd.Parameters.AddWithValue("@val", enable);
+                cmd.Parameters.AddWithValue("@id", userId);
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
 
         // ============================================
         // =============== REPORTS ====================

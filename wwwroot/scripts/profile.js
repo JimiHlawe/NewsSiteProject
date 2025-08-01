@@ -30,13 +30,17 @@ function loadUserProfile(user) {
     document.getElementById("profileName").innerText = user.name;
     document.getElementById("profileEmail").innerText = user.email;
 
+    // ✨ סימון CheckBox לפי הערך מהשרת
+    const notificationToggle = document.getElementById("notificationToggle");
+    if (notificationToggle) {
+        notificationToggle.checked = user.receiveNotifications === true;
+    }
+
     loadSavedProfileImage();         // נטען תמונת פרופיל
     loadUserTags();                 // נטען תגיות
     loadAllTags();                 // נטען תגיות זמינות
     loadBlockedUsers();           // נטען משתמשים חסומים
     loadAvatarLevel(user.avatarLevel); // דרגת אווטאר
-
-    renderNavbar();               // נטען את ה־navbar עם הנתונים החדשים
 }
 
 
@@ -488,3 +492,27 @@ function loadAvatarLevel(level) {
     avatarImage.src = avatarIcons[level] || "../pictures/avatar_bronze.png";
 }
 
+
+function toggleNotifications() {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const isEnabled = document.getElementById("notificationToggle").checked;
+
+    fetch(`/api/Users/ToggleNotifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, enable: isEnabled }) 
+    })
+        .then(res => {
+            if (res.ok) {
+                user.receiveNotifications = isEnabled;
+                sessionStorage.setItem("loggedUser", JSON.stringify(user));
+                showNotification("Notification preferences updated", "success");
+            } else {
+                throw new Error("Failed to update");
+            }
+        })
+        .catch(err => {
+            console.error("Error updating notification preference:", err);
+            showNotification("Failed to update preferences", "error");
+        });
+}

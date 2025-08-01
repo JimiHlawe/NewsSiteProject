@@ -12,10 +12,10 @@
         private bool isAdmin;
         private string profileImagePath;
         private string avatarLevel;
-
+        private bool receiveNotifications; 
         public User() { }
 
-        public User(int id, string name, string email, string password, bool active, bool canShare, bool canComment, bool isAdmin, string profileImagePath = null, string avatarLevel = "BRONZE")
+        public User(int id, string name, string email, string password, bool active, bool canShare, bool canComment, bool isAdmin, string profileImagePath = null, string avatarLevel = "BRONZE", bool receiveNotifications = false)
         {
             this.id = id;
             this.name = name;
@@ -27,6 +27,7 @@
             this.isAdmin = isAdmin;
             this.profileImagePath = profileImagePath;
             this.avatarLevel = avatarLevel;
+            this.receiveNotifications = receiveNotifications;
         }
 
         public int Id { get => id; set => id = value; }
@@ -39,5 +40,7 @@
         public bool IsAdmin { get => isAdmin; set => isAdmin = value; }
         public string ProfileImagePath { get => profileImagePath; set => profileImagePath = value; }
         public string AvatarLevel { get => avatarLevel; set => avatarLevel = value; }
+
+        public bool ReceiveNotifications { get => receiveNotifications; set => receiveNotifications = value; } 
     }
 }

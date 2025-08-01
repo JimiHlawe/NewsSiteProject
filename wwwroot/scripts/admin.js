@@ -268,7 +268,7 @@ function setupTagging() {
             taggingBtn.disabled = true;
             taggingBtn.innerHTML = '⏳ Tagging...';
 
-            fetch("/api/Tagging/Run", {
+            fetch("/api/Tagging/RunTagging", {
                 method: "POST"
             })
                 .then(res => {

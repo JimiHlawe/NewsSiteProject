@@ -4,7 +4,7 @@ using NewsSite1.Services;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var config = builder.Configuration;
 // Add services to the container.
 
 builder.Services.AddControllers();
