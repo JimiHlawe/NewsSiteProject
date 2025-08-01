@@ -268,6 +268,25 @@ namespace NewsSite1.Controllers
             return BadRequest("Failed to update");
         }
 
+        [NonAction]
+        private async Task UpdateInboxCountInFirebase(int userId)
+        {
+            // 1. חשב את מספר הכתבות ששיתפו עם המשתמש שלא נקראו
+            int count = db.GetUnreadSharedArticlesCount(userId);
+
+            // 2. עדכן את Firebase
+            using (var client = new HttpClient())
+            {
+                string firebasePath = $"https://news-project-e6f1e-default-rtdb.europe-west1.firebasedatabase.app/userInboxCount/{userId}.json";
+                var response = await client.PutAsJsonAsync(firebasePath, count);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("❌ Failed to update Firebase: " + response.StatusCode);
+                }
+            }
+        }
+
 
 
 

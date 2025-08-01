@@ -1,8 +1,4 @@
-﻿import { db } from './firebase-config.js'; // נתיב יחסי נכון לפי מיקום navbar.js
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
-
-
-document.addEventListener("DOMContentLoaded", function () {
+﻿document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("navbar");
     const userJson = sessionStorage.getItem("loggedUser");
     const user = userJson ? JSON.parse(userJson) : null;
@@ -10,17 +6,18 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!container) return;
 
     if (user) {
+        // נטען את המשתמש העדכני מהשרת ונעדכן את sessionStorage
         fetch(`/api/Users/GetUserById/${user.id}`)
             .then(res => res.json())
             .then(updatedUser => {
                 sessionStorage.setItem("loggedUser", JSON.stringify(updatedUser));
                 renderNavbarWithUser(container, updatedUser);
-                listenToInboxCount(updatedUser.id);
+                updateInboxNotification(); // ✅ עדכון ההתראה של ה-Inbox
             })
             .catch(err => {
                 console.error("Failed to fetch updated user:", err);
-                renderNavbarWithUser(container, user);
-                listenToInboxCount(user.id);
+                renderNavbarWithUser(container, user); // אם נכשלה הקריאה – נטען מה-session
+                updateInboxNotification();
             });
     } else {
         renderNavbarWithUser(container, null);
@@ -62,13 +59,14 @@ function renderNavbarWithUser(container, user) {
             </li>
         `;
 
-        html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link'>Logout</a></li>";
+        html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link' onclick='logout()'>Logout</a></li>";
     } else {
         html += "      <li><a class='nav-link' href='/html/login.html'>Sign In</a></li>";
     }
 
     html += "    </ul>";
 
+    // Hamburger Menu
     html += "    <div class='hamburger' onclick='toggleMobileMenu()'>";
     html += "      <span></span><span></span><span></span>";
     html += "    </div>";
@@ -76,6 +74,7 @@ function renderNavbarWithUser(container, user) {
     html += "  </div>";
     html += "</nav>";
 
+    // Mobile Menu
     html += "<div class='mobile-menu-overlay' onclick='closeMobileMenu()'></div>";
     html += "<div class='mobile-menu'>";
     html += "  <ul class='mobile-nav'>";
@@ -99,7 +98,7 @@ function renderNavbarWithUser(container, user) {
             html += "    <li><a class='nav-link' href='/html/admin.html' onclick='closeMobileMenu()'>Admin</a></li>";
         }
 
-        html += "    <li><a id='mobileLogoutBtn' class='nav-link logout-link' href='#'>Logout</a></li>";
+        html += "    <li><a class='nav-link logout-link' href='#' onclick='logout(); closeMobileMenu()'>Logout</a></li>";
     } else {
         html += "    <li><a class='nav-link' href='/html/login.html' onclick='closeMobileMenu()'>Sign In</a></li>";
     }
@@ -108,46 +107,30 @@ function renderNavbarWithUser(container, user) {
     html += "</div>";
 
     container.innerHTML = html;
-    bindNavbarEvents();
 }
 
 function bindNavbarEvents() {
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            logout();
-        });
-    }
-
-    const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
-    if (mobileLogoutBtn) {
-        mobileLogoutBtn.addEventListener("click", () => {
-            logout();
-            closeMobileMenu(); // רק אם הפונקציה הזאת גלובלית
-        });
+        logoutBtn.addEventListener("click", logout);
     }
 }
 
-
 function logout() {
-    console.log("✅ Logout triggered");
     sessionStorage.clear();
     window.location.href = "/html/index.html";
 }
 
+function updateInboxNotification() {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user) return;
 
-// ✅ קריאה בזמן אמת מה-Firebase למספר התראות
-function listenToInboxCount(userId) {
-    console.log("🔍 Listening to inbox for userId:", userId); // Debug
-    const countRef = ref(db, `userInboxCount/${userId}`);
-    onValue(countRef, (snapshot) => {
-        console.log("📨 Snapshot exists?", snapshot.exists());
-        console.log("📥 Count value:", snapshot.val());
-        const count = snapshot.val();
-        console.log("📥 Firebase inbox count:", count); // Debug
-        const inboxItem = document.getElementById("inboxNavItem");
-        if (inboxItem) {
-            inboxItem.innerHTML = `Inbox ${count > 0 ? `<span class="inbox-badge">${count}</span>` : ''}`;
-        }
-    });
+    fetch(`/api/Articles/UnreadCount/${user.id}`)
+        .then(res => res.json())
+        .then(count => {
+            const inboxItem = document.getElementById("inboxNavItem");
+            if (inboxItem) {
+                inboxItem.innerHTML = `Inbox ${count > 0 ? `<span class="inbox-badge">${count}</span>` : ''}`;
+            }
+        });
 }

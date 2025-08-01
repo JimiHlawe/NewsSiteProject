@@ -829,7 +829,7 @@ ORDER BY Priority, publishedAt DESC
         }
 
 
-        public int GetUnreadSharedCount(int userId)
+        public int GetUnreadSharedArticlesCount(int userId)
         {
             using (SqlConnection con = connect())
             {
@@ -838,6 +838,9 @@ ORDER BY Priority, publishedAt DESC
                 return (int)cmd.ExecuteScalar();
             }
         }
+
+
+
 
         public void MarkSharedAsRead(int userId)
         {

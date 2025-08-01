@@ -40,21 +40,27 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpPost("Share")]
-    public IActionResult ShareArticle([FromBody] SharedArticleRequest request)
+    public async Task<IActionResult> ShareArticle([FromBody] SharedArticleRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.SenderUsername) || string.IsNullOrEmpty(request.ToUsername))
             return BadRequest("Invalid request");
 
         int? senderUserId = _db.GetUserIdByUsername(request.SenderUsername);
-        if (senderUserId == null) return NotFound("Sender not found");
+        int? targetUserId = _db.GetUserIdByUsername(request.ToUsername);
+
+        if (senderUserId == null || targetUserId == null)
+            return NotFound("User not found");
 
         if (!UserCanShare(senderUserId.Value))
             return Forbid("Sharing is disabled for this user");
 
         try
         {
-            // 👇 זה מה שצריך לשנות — שיהיה SP שמכניס גם תגיות
             _db.ShareArticleByUsernames(request.SenderUsername, request.ToUsername, request.ArticleId, request.Comment);
+
+            // ✅ עדכון מספר התראות בזמן אמת
+            await UpdateInboxCountInFirebase(targetUserId.Value);
+
             return Ok("Article shared successfully");
         }
         catch (Exception ex)
@@ -62,6 +68,33 @@ public class ArticlesController : ControllerBase
             return StatusCode(500, "Server error: " + ex.Message);
         }
     }
+
+    // בתוך UsersController.cs
+    [HttpPost("UpdateInboxFirebase/{userId}")]
+    public async Task<IActionResult> UpdateInbox(int userId)
+    {
+        await UpdateInboxCountInFirebase(userId);
+        return Ok();
+    }
+
+    // הפונקציה העזר עצמה
+    [NonAction]
+    private async Task UpdateInboxCountInFirebase(int userId)
+    {
+        int count = _db.GetUnreadSharedArticlesCount(userId); // ← פונקציה קיימת אצלך
+
+        using (var client = new HttpClient())
+        {
+            string firebasePath = $"https://news-project-e6f1e-default-rtdb.europe-west1.firebasedatabase.app/userInboxCount/{userId}.json";
+            var response = await client.PutAsJsonAsync(firebasePath, count);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("❌ Failed to update Firebase: " + response.StatusCode);
+            }
+        }
+    }
+
 
 
     [HttpGet("SharedWithMe/{userId}")]
@@ -387,16 +420,19 @@ public class ArticlesController : ControllerBase
         }
     }
 
-    [HttpGet("UnreadCount/{userId}")]
-    public int GetUnreadSharedCount(int userId)
-    {
-        return _db.GetUnreadSharedCount(userId);
-    }
-
     [HttpPost("MarkSharedAsRead/{userId}")]
-    public void MarkSharedAsRead(int userId)
+    public async Task<IActionResult> MarkSharedAsRead(int userId)
     {
-        _db.MarkSharedAsRead(userId);
+        try
+        {
+            _db.MarkSharedAsRead(userId); // עדכון בבסיס הנתונים
+            await UpdateInboxCountInFirebase(userId); // עדכון ב־Firebase
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, "❌ Server error: " + ex.Message);
+        }
     }
 
     [Route("api/[controller]")]
