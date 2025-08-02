@@ -1,28 +1,42 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="../pictures/logo.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../pictures/logo.png" />
     <title>Shared Articles</title>
+
+    <!-- Stylesheets -->
     <link href="../css/inbox.css" rel="stylesheet" />
     <link href="../css/navbar.css" rel="stylesheet" />
+
+    <!-- Navbar Script -->
     <script type="module" src="../scripts/navbar.js"></script>
 </head>
 <body class="bg-light p-4">
+
+    <!-- Navigation Bar -->
     <div id="navbar"></div>
+
+    <!-- Main Page Container -->
     <div class="main-container">
+
+        <!-- Page Header Section -->
+        <!-- Displays page title and description -->
         <div class="page-header">
             <h1 class="page-title">Inbox Articles</h1>
             <p class="page-subtitle">Discover articles that friends have shared with you</p>
         </div>
+
+        <!-- Shared Articles Section -->
+        <!-- Articles shared with the user will be inserted here -->
         <div class="articles-wrapper">
-            <div id="sharedContainer" class="articles-container">
-                <!-- Articles will be loaded here -->
-            </div>
+            <div id="sharedContainer" class="articles-container"></div>
         </div>
+
     </div>
-    <script src="/scripts/navbar.js"></script>
+
+    <!-- Page Scripts -->
     <script src="/scripts/inbox.js"></script>
 </body>
 </html>

@@ -1,35 +1,51 @@
 ﻿<!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="../pictures/logo.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../pictures/logo.png" />
     <title>My Profile</title>
+
+    <!-- Stylesheets -->
     <link href="../css/profile.css" rel="stylesheet" />
     <link href="../css/navbar.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <!-- Navbar Script -->
     <script type="module" src="../scripts/navbar.js"></script>
 </head>
 <body>
-    <!-- Navigation -->
+
+    <!-- Navigation Bar -->
     <div id="navbar"></div>
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Profile Header with Password Section -->
+
+        <!-- Profile Top Section: Avatar + Info + Password -->
         <div class="profile-avatar-section">
+
             <!-- Avatar Section -->
             <div class="avatar-section">
                 <div class="avatar-container">
                     <div class="imageUpload" onclick="triggerImageUpload()">
-                        <span id="avatarIcon">👤</span>
+                        <!-- Placeholder Icon Removed -->
+                        <span id="avatarIcon"></span>
+
+                        <!-- Profile Image (if uploaded) -->
                         <img id="profileImage" alt="Profile Picture" style="display: none;" />
+
+                        <!-- Avatar Rank Image (bronze/silver/gold) -->
                         <img id="avatarRankImage" src="../pictures/avatar_bronze.png" alt="Avatar Rank" style="width:60px; height:60px;" />
                     </div>
-                   
+
+                    <!-- Avatar Rank Label -->
                     <div id="avatarRank" class="avatar-rank-label">BRONZE</div>
-                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+
+                    <!-- Hidden File Input for Image Upload -->
+                    <input type="file" id="imageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)" />
                 </div>
+
                 <div class="upload-hint">Click to change photo</div>
             </div>
 
@@ -38,7 +54,7 @@
                 <h1 class="profile-name" id="profileName">Loading...</h1>
                 <p class="profile-email" id="profileEmail">Loading...</p>
 
-                <!-- ✅ Notification Toggle -->
+                <!-- Notification Toggle -->
                 <div style="margin-top: 20px;">
                     <label>
                         <input type="checkbox" id="notificationToggle" onchange="toggleNotifications()" />
@@ -47,24 +63,19 @@
                 </div>
             </div>
 
-            <!-- Password Section -->
+            <!-- Password Change Section -->
             <div class="password-section">
                 <h3>Change Password</h3>
                 <div class="password-form">
-                    <input type="password"
-                           id="newPassword"
-                           class="password-input"
-                           placeholder="Enter new password"
-                           autocomplete="new-password" />
-                    <button class="password-btn" onclick="updatePassword()">
-                        Update Password
-                    </button>
+                    <input type="password" id="newPassword" class="password-input" placeholder="Enter new password" autocomplete="new-password" />
+                    <button class="password-btn" onclick="updatePassword()">Update Password</button>
                 </div>
             </div>
         </div>
 
         <!-- Profile Cards Grid -->
         <div class="profile-cards-grid">
+
             <!-- Blocked Users Card -->
             <div class="profile-card">
                 <div class="card-header">
@@ -97,9 +108,11 @@
                     <span>Add Selected Interests</span>
                 </button>
             </div>
+
         </div>
     </div>
 
+    <!-- Page Script -->
     <script src="../scripts/profile.js"></script>
 </body>
 </html>

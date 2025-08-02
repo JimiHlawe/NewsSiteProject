@@ -1,39 +1,50 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Auth Page</title>
+
+    <!-- Stylesheets -->
     <link href="../css/login.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="../pictures/logo.png">
+    <link rel="icon" type="image/png" href="../pictures/logo.png" />
+
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Auth Page Script -->
     <script src="../scripts/login.js" defer></script>
 </head>
 <body>
-    <!-- Floating Particles -->
+
+    <!-- Background Particles -->
     <div class="particle"></div>
     <div class="particle"></div>
     <div class="particle"></div>
 
-    <!-- Main Logo Above Container -->
+    <!-- Logo Section -->
     <div class="main-logo">
         <a href="index.html">
             <h1>NEWSPAPER</h1>
         </a>
     </div>
 
+    <!-- Main Auth Container -->
     <div class="container" id="container">
+
         <!-- Sign In Form -->
         <div class="form-container sign-in">
             <form class="custom-form signin" id="signinFormSubmit">
                 <h1>Sign In</h1>
+
                 <div class="form-group">
-                    <input type="email" id="signinEmail" class="form-input" placeholder="Email Address" required>
+                    <input type="email" id="signinEmail" class="form-input" placeholder="Email Address" required />
                 </div>
                 <div class="form-group">
-                    <input type="password" id="signinPassword" class="form-input" placeholder="Password" required>
+                    <input type="password" id="signinPassword" class="form-input" placeholder="Password" required />
                 </div>
+
                 <button type="submit" class="form-button">Sign In</button>
+
                 <p class="switch-form mobile">
                     <span class="form-switch">Don't have an account?</span>
                 </p>
@@ -44,28 +55,32 @@
         <div class="form-container sign-up">
             <form class="custom-form signup" id="signupFormSubmit">
                 <h1>Sign Up</h1>
+
                 <div class="form-group">
-                    <input type="text" id="signupName" class="form-input" placeholder="Full Name" required>
+                    <input type="text" id="signupName" class="form-input" placeholder="Full Name" required />
                 </div>
                 <div class="form-group">
-                    <input type="email" id="signupEmail" class="form-input" placeholder="Email Address" required>
+                    <input type="email" id="signupEmail" class="form-input" placeholder="Email Address" required />
                 </div>
                 <div class="form-group">
-                    <input type="password" id="signupPassword" class="form-input" placeholder="Password" required>
+                    <input type="password" id="signupPassword" class="form-input" placeholder="Password" required />
                 </div>
-                <!-- בחירת תחומי עניין כחלק מההרשמה -->
+
+                <!-- Interest Tags -->
                 <div class="form-group">
                     <label>Select your interests:</label>
                     <div id="signupTagsContainer"></div>
                 </div>
+
                 <button type="submit" class="form-button">Sign Up</button>
+
                 <p class="switch-form mobile">
                     <span class="form-switch">I already have an account!</span>
                 </p>
             </form>
         </div>
 
-        <!-- Toggle Container -->
+        <!-- Toggle Panel Section -->
         <div class="toggle-container">
             <div class="toggle">
                 <div class="toggle-panel toggle-left">
@@ -80,6 +95,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 </body>
 </html>

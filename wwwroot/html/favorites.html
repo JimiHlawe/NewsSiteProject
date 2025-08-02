@@ -5,18 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="../pictures/logo.png">
     <title>My Favorites</title>
+
+    <!-- Stylesheets -->
     <link href="../css/favorites.css" rel="stylesheet" />
     <link href="../css/navbar.css" rel="stylesheet" />
+
+    <!-- Navbar Script -->
     <script type="module" src="../scripts/navbar.js"></script>
 </head>
 <body class="bg-light p-4">
+
+    <!-- Navigation Bar -->
     <div id="navbar"></div>
+
+    <!-- Main Page Container -->
     <div class="main-container">
+
+        <!-- Page Header Section -->
+        <!-- Displays the title and subtitle of the page -->
         <div class="page-header">
             <h1 class="page-title">My Favorite Articles</h1>
             <p class="page-subtitle">Discover and manage your saved articles collection</p>
         </div>
 
+        <!-- Search and Filter Section -->
+        <!-- Allows filtering favorite articles by title and date -->
         <div class="search-section">
             <h2 class="search-title">Search & Filter</h2>
             <form id="searchForm" class="search-form">
@@ -38,11 +51,13 @@
             </form>
         </div>
 
-        <div id="savedArticlesContainer" class="articles-container">
-            <!-- Articles will be loaded here -->
-        </div>
+        <!-- Saved Articles Container -->
+        <!-- Articles will be dynamically inserted here -->
+        <div id="savedArticlesContainer" class="articles-container"></div>
+
     </div>
 
+    <!-- Page Script -->
     <script src="../scripts/favorites.js"></script>
 </body>
 </html>

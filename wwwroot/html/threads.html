@@ -2,17 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="../pictures/logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../pictures/logo.png" />
     <title>Threads</title>
+
+    <!-- Stylesheets -->
     <link href="../css/threads.css" rel="stylesheet" />
     <link href="../css/navbar.css" rel="stylesheet" />
+
+    <!-- Navbar Script -->
     <script type="module" src="../scripts/navbar.js"></script>
 </head>
 <body>
+
+    <!-- Navigation Bar -->
     <div id="navbar"></div>
 
-    <!-- Enhanced Header Section -->
+    <!-- Threads Header Section -->
     <section class="threads-header">
         <div class="threads-header-content">
             <h1 class="threads-title">Threads</h1>
@@ -20,17 +26,20 @@
         </div>
     </section>
 
-    <!-- Main Content -->
+    <!-- Threads Main Content -->
     <div class="threads-main">
+        <!-- Threads will be dynamically inserted here -->
         <div id="threadsContainer"></div>
     </div>
 
+    <!-- Load More Button -->
     <div class="text-center mt-3">
         <button id="loadMoreThreadsBtn" class="btn btn-outline-primary" onclick="loadMoreThreads()">
             Load More Threads
         </button>
     </div>
 
+    <!-- Page Script -->
     <script src="../scripts/threads.js"></script>
 </body>
 </html>

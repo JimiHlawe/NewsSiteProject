@@ -5,78 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="../pictures/logo.png">
     <title>Admin Dashboard</title>
+
+    <!-- Stylesheets -->
     <link href="../css/admin.css" rel="stylesheet" />
     <link href="../css/navbar.css" rel="stylesheet" />
+
+    <!-- Navbar Script -->
     <script type="module" src="../scripts/navbar.js"></script>
 </head>
 <body>
+    <!-- Navigation Bar -->
     <div id="navbar"></div>
 
-    <!-- Enhanced Header -->
+    <!-- Page Header -->
     <div class="admin-header">
         <h1>Admin Dashboard</h1>
     </div>
 
-    <!-- Main Container -->
+    <!-- Main Container for all admin sections -->
     <div class="admin-container">
 
-        <!-- Statistics Section -->
+        <!-- Section: Site Statistics -->
+        <!-- Displays general statistics about the website -->
         <div class="admin-section fade-in">
-            <h2 data-icon="stats">Site Statistics</h2>
-            <div id="statsContainer" class="stats-grid">
-                <!-- Stats will be loaded here -->
-            </div>
+            <h2>Site Statistics</h2>
+            <div id="statsContainer" class="stats-grid"></div>
         </div>
 
-        <!-- Dashboard Grid -->
+        <!-- Dashboard Grid Container -->
         <div class="dashboard-grid">
 
-            <!-- Users Management Section -->
+            <!-- Section: Users Management -->
+            <!-- Displays all users with management options -->
             <div class="admin-section fade-in">
-                <h2 data-icon="users">Users Management</h2>
+                <h2>Users Management</h2>
                 <div style="overflow-x: auto;">
                     <table id="usersTable" class="admin-table">
                         <thead>
                             <tr>
-                                <th>👤 Name</th>
-                                <th>📧 Email</th>
-                                <th>🟢 Active</th>
-                                <th>📤 Can Share</th>
-                                <th>💬 Can Comment</th>
-                                <th>⚙️ Actions</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Active</th>
+                                <th>Can Share</th>
+                                <th>Can Comment</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Users rows will be loaded here -->
+                            <!-- User rows will be loaded dynamically -->
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Reports Section -->
+            <!-- Section: Reports Management -->
+            <!-- Displays all user-submitted reports -->
             <div class="admin-section fade-in">
-                <h2 data-icon="reports">Reports Management</h2>
-                <div id="reportsContainer">
-                    <!-- Reports will be loaded here -->
-                </div>
+                <h2>Reports Management</h2>
+                <div id="reportsContainer"></div>
             </div>
 
         </div>
 
-        <!-- Admin Tools Section -->
+        <!-- Section: Admin Tools -->
+        <!-- Buttons for importing, tagging, and fixing articles -->
         <div class="admin-section fade-in">
-            <h2 data-icon="tools">Admin Tools</h2>
+            <h2>Admin Tools</h2>
             <div class="admin-controls">
-                <button id="importBtn" class="control-btn">
-                    Import Articles
-                </button>
-                <button id="taggingBtn" class="control-btn">
-                    Tag Articles
-                </button>
-                <button id="fixImagesBtn" class="control-btn">
-                    🖼️ Fix Missing Images
-                </button>
+                <button id="importBtn" class="control-btn">Import Articles</button>
+                <button id="taggingBtn" class="control-btn">Tag Articles</button>
+                <button id="fixImagesBtn" class="control-btn">Fix Missing Images</button>
             </div>
+
+            <!-- Status messages for each admin action -->
             <div id="importStatus" class="status-message"></div>
             <div id="taggingStatus" class="status-message"></div>
             <div id="fixImagesStatus" class="status-message"></div>
@@ -84,6 +85,7 @@
 
     </div>
 
+    <!-- Admin logic -->
     <script src="../scripts/admin.js"></script>
 </body>
 </html>
