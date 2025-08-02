@@ -1,5 +1,6 @@
 ﻿const apiBase = "/api/Users";
 
+// ✅ On page load – fetch updated user and load profile
 document.addEventListener("DOMContentLoaded", () => {
     const rawUser = sessionStorage.getItem("loggedUser");
     if (!rawUser) {
@@ -10,46 +11,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const user = JSON.parse(rawUser);
 
-    // שלב ראשון: נטען את המשתמש העדכני מהשרת
     fetch(`${apiBase}/GetUserById/${user.id}`)
         .then(res => res.json())
         .then(updatedUser => {
-            // עדכון ה-sessionStorage
             sessionStorage.setItem("loggedUser", JSON.stringify(updatedUser));
-
-            // כעת נטען את כל הנתונים לפי המשתמש המעודכן
             loadUserProfile(updatedUser);
         })
-        .catch(err => {
-            console.error("Error loading updated user from server:", err);
+        .catch(() => {
+            showNotification("Failed to load user data", "error");
         });
 });
 
-// ✅ פונקציה מרכזית לטעינת פרופיל המשתמש
+// ✅ Load user profile info into page
 function loadUserProfile(user) {
     document.getElementById("profileName").innerText = user.name;
     document.getElementById("profileEmail").innerText = user.email;
 
-    // ✨ סימון CheckBox לפי הערך מהשרת
     const notificationToggle = document.getElementById("notificationToggle");
     if (notificationToggle) {
         notificationToggle.checked = user.receiveNotifications === true;
     }
 
-    loadSavedProfileImage();         // נטען תמונת פרופיל
-    loadUserTags();                 // נטען תגיות
-    loadAllTags();                 // נטען תגיות זמינות
-    loadBlockedUsers();           // נטען משתמשים חסומים
-    loadAvatarLevel(user.avatarLevel); // דרגת אווטאר
+    loadSavedProfileImage();
+    loadUserTags();
+    loadAllTags();
+    loadBlockedUsers();
+    loadAvatarLevel(user.avatarLevel);
 }
 
-
-// ✅ LOAD SAVED PROFILE IMAGE
+// ✅ Load saved profile image or fallback to default
 function loadSavedProfileImage() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const img = document.getElementById('profileImage');
     const icon = document.getElementById('avatarIcon');
-
     const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
 
     img.src = profileImage;
@@ -57,13 +51,12 @@ function loadSavedProfileImage() {
     icon.style.display = 'none';
 }
 
-
-
-// ✅ IMAGE UPLOAD FUNCTIONALITY
+// ✅ Trigger file upload input (when clicking upload button)
 function triggerImageUpload() {
     document.getElementById('imageUpload').click();
 }
 
+// ✅ Handle image upload and update UI + sessionStorage
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -87,34 +80,26 @@ function handleImageUpload(event) {
         body: formData
     })
         .then(res => {
-            if (!res.ok) throw new Error("Upload failed");
+            if (!res.ok) throw new Error();
             return res.json();
         })
         .then(data => {
             document.getElementById("profileImage").src = data.imageUrl;
             document.getElementById("avatarIcon").style.display = "none";
-
-            // שמירה ב-sessionStorage כדי לעדכן גם בצד הלקוח
             user.profileImagePath = data.imageUrl;
             sessionStorage.setItem("loggedUser", JSON.stringify(user));
             showNotification("✅ Image uploaded!", "success");
-
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000); 
-
+            setTimeout(() => window.location.reload(), 1000);
         })
-        .catch(err => {
-            console.error("Error uploading image:", err);
+        .catch(() => {
             showNotification("❌ Failed to upload image", "error");
         });
 }
 
-// ✅ LOAD USER TAGS
+// ✅ Load tags that the user has already selected
 function loadUserTags() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const container = document.getElementById("userTags");
-
     container.innerHTML = '<div class="loading-placeholder">Loading your interests...</div>';
 
     fetch(`${apiBase}/GetTags/${user.id}`)
@@ -139,16 +124,15 @@ function loadUserTags() {
                 container.appendChild(tagElement);
             });
         })
-        .catch(error => {
-            console.error('Error loading user tags:', error);
+        .catch(() => {
             container.innerHTML = '<div class="error-state">Failed to load interests</div>';
+            showNotification("Failed to load user tags", "error");
         });
 }
 
-// ✅ LOAD ALL AVAILABLE TAGS
+// ✅ Load all available tags for the user to choose from
 function loadAllTags() {
     const container = document.getElementById("allTagsContainer");
-
     container.innerHTML = '<div class="loading-placeholder">Loading available interests...</div>';
 
     fetch(`${apiBase}/AllTags`)
@@ -159,26 +143,24 @@ function loadAllTags() {
             tags.forEach(tag => {
                 const tagElement = document.createElement("div");
                 tagElement.className = "available-tag";
-
                 const uniqueId = `available-tag-${tag.id}`;
                 tagElement.innerHTML = `
                     <input type="checkbox" id="${uniqueId}" value="${tag.id}">
                     <label for="${uniqueId}">${tag.name}</label>
                 `;
-
                 container.appendChild(tagElement);
             });
         })
-        .catch(error => {
-            console.error('Error loading all tags:', error);
+        .catch(() => {
             container.innerHTML = '<div class="error-state">Failed to load available interests</div>';
+            showNotification("Failed to load tag list", "error");
         });
 }
 
-// ✅ REMOVE TAG
+
+// ✅ Remove a tag from the user's interests
 function removeTag(tagId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-
     const tagElement = event.target.closest('.user-tag');
     tagElement.style.opacity = '0.5';
 
@@ -192,23 +174,22 @@ function removeTag(tagId) {
                 loadUserTags();
                 showNotification("Interest removed successfully!", "success");
             } else {
-                throw new Error('Failed to remove tag');
+                throw new Error();
             }
         })
-        .catch(error => {
-            console.error('Error removing tag:', error);
+        .catch(() => {
             tagElement.style.opacity = '1';
-            showNotification("Failed to remove interest. Please try again.", "error");
+            showNotification("Failed to remove interest", "error");
         });
 }
 
-// ✅ ADD SELECTED TAGS
+// ✅ Add selected tags to user interests
 function addSelectedTags() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const selected = document.querySelectorAll("#allTagsContainer input:checked");
 
     if (selected.length === 0) {
-        showNotification("Please select at least one interest to add.", "warning");
+        showNotification("Please select at least one interest", "warning");
         return;
     }
 
@@ -228,22 +209,17 @@ function addSelectedTags() {
 
     Promise.all(promises)
         .then(responses => {
-            const allSuccessful = responses.every(response => response.ok);
-
+            const allSuccessful = responses.every(res => res.ok);
             if (allSuccessful) {
-                selected.forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-
+                selected.forEach(chk => chk.checked = false);
                 loadUserTags();
                 showNotification(`Successfully added ${selected.length} interest(s)!`, "success");
             } else {
-                throw new Error('Some tags failed to add');
+                throw new Error();
             }
         })
-        .catch(error => {
-            console.error('Error adding tags:', error);
-            showNotification("Failed to add some interests. Please try again.", "error");
+        .catch(() => {
+            showNotification("Failed to add some interests", "error");
         })
         .finally(() => {
             button.classList.remove('loading');
@@ -252,19 +228,19 @@ function addSelectedTags() {
         });
 }
 
-// ✅ UPDATE PASSWORD
+// ✅ Update user's password with validation
 function updatePassword() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const newPassword = document.getElementById("newPassword").value.trim();
 
     if (newPassword.length < 8) {
-        showNotification("Password must be at least 8 characters long.", "warning");
+        showNotification("Password must be at least 8 characters", "warning");
         return;
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-        showNotification("Password must contain at least 1 uppercase letter and 1 number.", "warning");
+        showNotification("Password must include uppercase and number", "warning");
         return;
     }
 
@@ -279,17 +255,16 @@ function updatePassword() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, newPassword })
     })
-        .then(response => {
-            if (response.ok) {
+        .then(res => {
+            if (res.ok) {
                 document.getElementById("newPassword").value = "";
-                showNotification("Password updated successfully!", "success");
+                showNotification("Password updated!", "success");
             } else {
-                throw new Error('Failed to update password');
+                throw new Error();
             }
         })
-        .catch(error => {
-            console.error('Error updating password:', error);
-            showNotification("Failed to update password. Please try again.", "error");
+        .catch(() => {
+            showNotification("Failed to update password", "error");
         })
         .finally(() => {
             button.classList.remove('loading');
@@ -298,7 +273,7 @@ function updatePassword() {
         });
 }
 
-// ✅ LOAD BLOCKED USERS
+// ✅ Load list of users blocked by current user
 function loadBlockedUsers() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const container = document.getElementById("blockedUsersContainer");
@@ -325,16 +300,15 @@ function loadBlockedUsers() {
                 container.appendChild(div);
             });
         })
-        .catch(err => {
-            console.error("Error loading blocked users", err);
+        .catch(() => {
             container.innerHTML = "<div class='error-state'>Failed to load blocked users</div>";
+            showNotification("Error loading blocked users", "error");
         });
 }
 
-// ✅ UNBLOCK USER
+// ✅ Unblock a previously blocked user
 function unblockUser(blockedUserId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-
     if (!confirm("Are you sure you want to unblock this user?")) return;
 
     const userItem = event.target.closest('.blocked-user-item');
@@ -347,10 +321,10 @@ function unblockUser(blockedUserId) {
     })
         .then(res => {
             if (res.ok) {
-                showNotification("User unblocked successfully", "success");
+                showNotification("User unblocked", "success");
                 loadBlockedUsers();
             } else {
-                throw new Error("Failed to unblock");
+                throw new Error();
             }
         })
         .catch(() => {
@@ -359,10 +333,53 @@ function unblockUser(blockedUserId) {
         });
 }
 
-// ✅ NOTIFICATION SYSTEM
+
+// ✅ Load avatar level and matching icon
+function loadAvatarLevel(level) {
+    const avatarLabel = document.getElementById("avatarRank");
+    const avatarImage = document.getElementById("avatarRankImage");
+
+    if (!avatarLabel || !avatarImage) return;
+
+    avatarLabel.innerText = level;
+
+    const avatarIcons = {
+        "BRONZE": "../pictures/avatar_bronze.png",
+        "SILVER": "../pictures/avatar_silver.png",
+        "GOLD": "../pictures/avatar_gold.png"
+    };
+
+    avatarImage.src = avatarIcons[level] || "../pictures/avatar_bronze.png";
+}
+
+// ✅ Toggle notifications setting and save to server
+function toggleNotifications() {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const isEnabled = document.getElementById("notificationToggle").checked;
+
+    fetch(`${apiBase}/ToggleNotifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, enable: isEnabled })
+    })
+        .then(res => {
+            if (res.ok) {
+                user.receiveNotifications = isEnabled;
+                sessionStorage.setItem("loggedUser", JSON.stringify(user));
+                showNotification("Notification preferences updated", "success");
+            } else {
+                throw new Error();
+            }
+        })
+        .catch(() => {
+            showNotification("Failed to update preferences", "error");
+        });
+}
+
+
+// ✅ Show a notification message with styling and auto-hide
 function showNotification(message, type = 'info') {
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
+    document.querySelectorAll('.notification').forEach(n => n.remove());
 
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -391,7 +408,6 @@ function showNotification(message, type = 'info') {
 
     document.body.appendChild(notification);
 
-    // Auto remove after 5 seconds
     setTimeout(() => {
         if (notification.parentElement) {
             notification.style.animation = 'slideOutRight 0.3s ease-in';
@@ -400,6 +416,7 @@ function showNotification(message, type = 'info') {
     }, 5000);
 }
 
+// ✅ Get icon emoji by type
 function getNotificationIcon(type) {
     const icons = {
         success: '✅',
@@ -410,6 +427,7 @@ function getNotificationIcon(type) {
     return icons[type] || icons.info;
 }
 
+// ✅ Get color gradient by type
 function getNotificationColor(type) {
     const colors = {
         success: 'linear-gradient(135deg, #28a745, #20c997)',
@@ -420,7 +438,7 @@ function getNotificationColor(type) {
     return colors[type] || colors.info;
 }
 
-// Add notification animations to CSS
+// ✅ Add basic notification animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -433,7 +451,6 @@ style.textContent = `
             opacity: 1;
         }
     }
-    
     @keyframes slideOutRight {
         from {
             transform: translateX(0);
@@ -444,13 +461,11 @@ style.textContent = `
             opacity: 0;
         }
     }
-    
     .notification-content {
         display: flex;
         align-items: center;
         gap: 0.8rem;
     }
-    
     .notification-close {
         background: rgba(255,255,255,0.2);
         border: none;
@@ -458,7 +473,6 @@ style.textContent = `
         font-size: 1.2rem;
         cursor: pointer;
         margin-left: auto;
-        padding: 0;
         width: 24px;
         height: 24px;
         display: flex;
@@ -467,52 +481,8 @@ style.textContent = `
         border-radius: 50%;
         transition: background 0.2s ease;
     }
-    
     .notification-close:hover {
         background: rgba(255,255,255,0.3);
     }
 `;
 document.head.appendChild(style);
-
-// ✅ LOAD AVATAR RANK + IMAGE
-function loadAvatarLevel(level) {
-    const avatarLabel = document.getElementById("avatarRank");
-    const avatarImage = document.getElementById("avatarRankImage");
-
-    if (!avatarLabel || !avatarImage) return;
-
-    avatarLabel.innerText = level;
-
-    const avatarIcons = {
-        "BRONZE": "../pictures/avatar_bronze.png",
-        "SILVER": "../pictures/avatar_silver.png",
-        "GOLD": "../pictures/avatar_gold.png"
-    };
-
-    avatarImage.src = avatarIcons[level] || "../pictures/avatar_bronze.png";
-}
-
-
-function toggleNotifications() {
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    const isEnabled = document.getElementById("notificationToggle").checked;
-
-    fetch(`/api/Users/ToggleNotifications`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, enable: isEnabled }) 
-    })
-        .then(res => {
-            if (res.ok) {
-                user.receiveNotifications = isEnabled;
-                sessionStorage.setItem("loggedUser", JSON.stringify(user));
-                showNotification("Notification preferences updated", "success");
-            } else {
-                throw new Error("Failed to update");
-            }
-        })
-        .catch(err => {
-            console.error("Error updating notification preference:", err);
-            showNotification("Failed to update preferences", "error");
-        });
-}

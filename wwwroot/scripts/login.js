@@ -1,21 +1,22 @@
-﻿var apiBase = "https://localhost:7084/api";
+﻿// ✅ Base API URL
+var apiBase = "https://localhost:7084/api";
 
-// DOM Elements
+// ✅ DOM elements
 const container = document.getElementById("container");
 const registerBtn = document.getElementById("register");
 const loginBtn = document.getElementById("login");
 
-// פאנלים במובייל
+// ✅ Mobile switch buttons
 const signupSwitches = document.querySelectorAll(".signup .form-switch");
 const signinSwitches = document.querySelectorAll(".signin .form-switch");
 
-// מעבר בין Sign In ל־Sign Up
+// ✅ Toggle between Sign Up and Sign In panels
 function toggleActiveClass(showSignup) {
     container.classList.toggle("active", showSignup);
     if (showSignup) loadTags();
 }
 
-// כפתורי דסקטופ
+// ✅ Desktop switch buttons
 if (registerBtn) {
     registerBtn.addEventListener("click", () => toggleActiveClass(true));
 }
@@ -23,11 +24,9 @@ if (loginBtn) {
     loginBtn.addEventListener("click", () => toggleActiveClass(false));
 }
 
-//  NOTIFICATION SYSTEM
-function showNotification(message, type = 'error') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.auth-notification');
-    existingNotifications.forEach(notification => notification.remove());
+// ✅ Notification system
+function showNotification(message, type = "error") {
+    document.querySelectorAll('.auth-notification').forEach(n => n.remove());
 
     const notification = document.createElement('div');
     notification.className = `auth-notification notification-${type}`;
@@ -43,7 +42,7 @@ function showNotification(message, type = 'error') {
 
     notification.style.cssText = `
         position: fixed;
-        ${isMobile ? 'top: 15px; left: 15px; right: 15px; width: auto;' : 'top: 20px; right: 20px; max-width: 400px;'}
+        ${isMobile ? 'top: 15px; left: 15px; right: 15px;' : 'top: 20px; right: 20px; max-width: 400px;'}
         background: ${bgColor};
         color: white;
         padding: 1rem 1.5rem;
@@ -57,7 +56,6 @@ function showNotification(message, type = 'error') {
 
     document.body.appendChild(notification);
 
-    // Auto remove after 5 seconds
     setTimeout(() => {
         if (notification.parentElement) {
             notification.style.animation = `${isMobile ? 'slideOutTop' : 'slideOutRight'} 0.3s ease-in`;
@@ -66,6 +64,7 @@ function showNotification(message, type = 'error') {
     }, 5000);
 }
 
+// ✅ Return gradient background color based on type
 function getNotificationColor(type) {
     const colors = {
         success: 'linear-gradient(135deg, #10b981, #059669)',
@@ -76,7 +75,7 @@ function getNotificationColor(type) {
     return colors[type] || colors.error;
 }
 
-// הטעינת תגיות
+// ✅ Load interest tags for signup
 function loadTags() {
     fetch(apiBase + "/Users/AllTags")
         .then(res => res.json())
@@ -94,10 +93,10 @@ function loadTags() {
                     <label for="tag-${tag.id}">${tag.name}</label>
                 `;
 
-                const checkbox = tagBubble.querySelector('input[type="checkbox"]');
-                const label = tagBubble.querySelector('label');
+                const checkbox = tagBubble.querySelector("input");
+                const label = tagBubble.querySelector("label");
 
-                label.addEventListener('click', function (e) {
+                label.addEventListener("click", function (e) {
                     e.preventDefault();
 
                     if (!checkbox.checked) {
@@ -118,26 +117,21 @@ function loadTags() {
                 container.appendChild(tagBubble);
             });
         })
-        .catch(error => {
-            console.error('Error loading tags:', error);
-            showNotification('Failed to load interest tags', 'error');
+        .catch(() => {
+            showNotification("Failed to load interest tags", "error");
         });
 }
 
-// כפתורים בטפסים (מובייל)
-signupSwitches.forEach(btn =>
-    btn.addEventListener("click", () => toggleActiveClass(false))
-);
+// ✅ Mobile switch buttons for forms
+signupSwitches.forEach(btn => btn.addEventListener("click", () => toggleActiveClass(false)));
+signinSwitches.forEach(btn => btn.addEventListener("click", () => toggleActiveClass(true)));
 
-signinSwitches.forEach(btn =>
-    btn.addEventListener("click", () => toggleActiveClass(true))
-);
-
-// JQuery on document ready
+// ✅ On document ready – handle login and registration
 $(document).ready(function () {
-    // התחברות
+    // ✅ Sign In form
     $("#signinFormSubmit").submit(function (e) {
         e.preventDefault();
+
         const email = $("#signinEmail").val().trim();
         const password = $("#signinPassword").val().trim();
 
@@ -146,7 +140,6 @@ $(document).ready(function () {
             return;
         }
 
-        // Show loading state
         const submitBtn = $(this).find('button[type="submit"]');
         const originalText = submitBtn.text();
         submitBtn.text('Signing In...').prop('disabled', true);
@@ -188,7 +181,7 @@ $(document).ready(function () {
             });
     });
 
-    // הרשמה
+    // ✅ Sign Up form
     $("#signupFormSubmit").submit(function (e) {
         e.preventDefault();
 
@@ -212,7 +205,6 @@ $(document).ready(function () {
             selectedTags.push(parseInt($(this).val()));
         });
 
-        // Show loading state
         const submitBtn = $(this).find('button[type="submit"]');
         const originalText = submitBtn.text();
         submitBtn.text('Creating Account...').prop('disabled', true);
@@ -220,23 +212,14 @@ $(document).ready(function () {
         fetch("/api/Users/Register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name,
-                email,
-                password,
-                tags: selectedTags
-            })
+            body: JSON.stringify({ name, email, password, tags: selectedTags })
         })
             .then(async res => {
                 if (!res.ok) {
                     const text = await res.text();
-
                     let msg = "Registration failed. Please try again.";
-                    if (text === "email")
-                        msg = "Email is already in use. Please use a different email.";
-                    else if (text === "name")
-                        msg = "Username is already taken. Please choose a different name.";
-
+                    if (text === "email") msg = "Email is already in use.";
+                    else if (text === "name") msg = "Username is already taken.";
                     showNotification(msg, "error");
                     throw new Error(msg);
                 }
@@ -250,16 +233,14 @@ $(document).ready(function () {
                     window.location.href = "../html/index.html";
                 }, 1500);
             })
-            .catch(err => {
-                console.error("Registration error:", err.message);
-            })
+            .catch(() => { })
             .finally(() => {
                 submitBtn.text(originalText).prop('disabled', false);
             });
     });
 });
 
-// שמירת תחומי עניין
+// ✅ Save selected interest tags for logged-in user
 function saveUserTags() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const checked = document.querySelectorAll("#tagsContainer input:checked");

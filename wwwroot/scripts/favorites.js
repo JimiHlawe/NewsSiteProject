@@ -1,7 +1,7 @@
-﻿// ✅ GLOBALS
+﻿// ✅ Global variable to store all saved articles
 var allSavedArticles = [];
 
-// ✅ LOAD SAVED ARTICLES ON LOAD
+// ✅ On page load – fetch saved articles and set up search form
 document.addEventListener("DOMContentLoaded", function () {
     var userJson = sessionStorage.getItem("loggedUser");
     var user = userJson ? JSON.parse(userJson) : null;
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-// ✅ FILTER BY TITLE + DATE
+// ✅ Filter saved articles by title and date range
 function filterArticles() {
     var title = document.getElementById("searchTitle").value.toLowerCase();
     var from = document.getElementById("searchFrom").value;
@@ -53,7 +53,7 @@ function filterArticles() {
     renderSavedArticles(filtered);
 }
 
-// ✅ RENDER ARTICLES עם MIN READ
+// ✅ Render saved articles as cards with tags and metadata
 function renderSavedArticles(articles) {
     var container = document.getElementById("savedArticlesContainer");
     container.innerHTML = "";
@@ -67,17 +67,14 @@ function renderSavedArticles(articles) {
         var articleElement = document.createElement('div');
         articleElement.className = 'article-card';
         articleElement.style.animationDelay = (index * 0.1) + 's';
-
-        // הוספת cursor pointer וקליק לכרטיס כולו
         articleElement.style.cursor = 'pointer';
 
-        // יצירת תגיות
-        var tagsHtml = (article.tags || []).map(tag => `<span class="tag">${tag}</span>`).join("");
+        var tagsHtml = (article.tags || []).map(function (tag) {
+            return `<span class="tag">${tag}</span>`;
+        }).join("");
 
-        // חישוב זמן קריאה
         var readingTime = Math.ceil((article.description?.length || 50) / 50) + ' min read';
 
-        // פורמט תאריך
         var formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -104,7 +101,6 @@ function renderSavedArticles(articles) {
             </div>
         `;
 
-        // הוספת event listener לכרטיס כולו
         articleElement.addEventListener('click', function () {
             if (article.sourceUrl && article.sourceUrl !== '#') {
                 window.open(article.sourceUrl, '_blank');
@@ -117,7 +113,7 @@ function renderSavedArticles(articles) {
     });
 }
 
-// ✅ REMOVE FAVORITE
+// ✅ Remove an article from saved list and re-render
 function removeFavorite(articleId) {
     var userJson = sessionStorage.getItem("loggedUser");
     var user = userJson ? JSON.parse(userJson) : null;
@@ -132,7 +128,9 @@ function removeFavorite(articleId) {
         .then(function (res) {
             if (res.ok) {
                 alert("Removed from favorites.");
-                allSavedArticles = allSavedArticles.filter(a => a.id !== articleId);
+                allSavedArticles = allSavedArticles.filter(function (a) {
+                    return a.id !== articleId;
+                });
                 renderSavedArticles(allSavedArticles);
             } else {
                 alert("Failed to remove.");

@@ -1,7 +1,8 @@
-﻿import { db } from './firebase-config.js'; // נתיב יחסי נכון לפי מיקום navbar.js
+﻿// ✅ Firebase Imports
+import { db } from './firebase-config.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-
+// ✅ On page load – build navbar and load user data
 document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("navbar");
     const userJson = sessionStorage.getItem("loggedUser");
@@ -17,8 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 renderNavbarWithUser(container, updatedUser);
                 listenToInboxCount(updatedUser.id);
             })
-            .catch(err => {
-                console.error("Failed to fetch updated user:", err);
+            .catch(() => {
                 renderNavbarWithUser(container, user);
                 listenToInboxCount(user.id);
             });
@@ -29,12 +29,16 @@ document.addEventListener("DOMContentLoaded", function () {
     bindNavbarEvents();
 });
 
+// ✅ Render navbar content based on user state (logged in or not)
 function renderNavbarWithUser(container, user) {
     let html = "";
-    html += "<nav class='navbar'>";
-    html += "  <div class='container'>";
-    html += "    <a class='navbar-brand' href='/html/index.html'>NEWSPAPER</a>";
-    html += "    <ul class='navbar-nav'>";
+
+    html += `
+    <nav class="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/html/index.html">NEWSPAPER</a>
+            <ul class="navbar-nav">
+    `;
 
     if (user) {
         const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
@@ -45,106 +49,102 @@ function renderNavbarWithUser(container, user) {
         };
         const avatarIcon = avatarIcons[user.avatarLevel || "BRONZE"];
 
-        html += "      <li><a class='nav-link' href='/html/favorites.html'>My Favorites</a></li>";
-        html += "      <li><a class='nav-link' href='/html/inbox.html' id='inboxNavItem'>Inbox</a></li>";
-        html += "      <li><a class='nav-link' href='/html/threads.html'>Threads</a></li>";
+        html += `
+            <li><a class="nav-link" href="/html/favorites.html">My Favorites</a></li>
+            <li><a class="nav-link" id="inboxNavItem" href="/html/inbox.html">Inbox</a></li>
+            <li><a class="nav-link" href="/html/threads.html">Threads</a></li>
+        `;
 
         if (user.isAdmin) {
-            html += "      <li><a class='nav-link' href='/html/admin.html'>Admin</a></li>";
+            html += `<li><a class="nav-link" href="/html/admin.html">Admin</a></li>`;
         }
 
         html += `
-            <li class='nav-profile-image'>
+            <li class="nav-profile-image">
                 <a href="/html/profile.html">
                     <img src="${profileImage}" alt="Profile" class="profile-img-nav">
                     <img src="${avatarIcon}" alt="Rank" class="avatar-rank-icon">
                 </a>
             </li>
+            <li><a id="logoutBtn" href="#" class="nav-link logout-link">Logout</a></li>
         `;
-
-        html += "      <li><a id='logoutBtn' href='#' class='nav-link logout-link'>Logout</a></li>";
     } else {
-        html += "      <li><a class='nav-link' href='/html/login.html'>Sign In</a></li>";
+        html += `<li><a class="nav-link" href="/html/login.html">Sign In</a></li>`;
     }
 
-    html += "    </ul>";
-
-    html += "    <div class='hamburger' onclick='toggleMobileMenu()'>";
-    html += "      <span></span><span></span><span></span>";
-    html += "    </div>";
-
-    html += "  </div>";
-    html += "</nav>";
-
-    html += "<div class='mobile-menu-overlay' onclick='closeMobileMenu()'></div>";
-    html += "<div class='mobile-menu'>";
-    html += "  <ul class='mobile-nav'>";
-    html += "    <li><a class='nav-link' href='/html/index.html' onclick='closeMobileMenu()'>Home</a></li>";
+    html += `
+            </ul>
+            <div class="hamburger" onclick="toggleMobileMenu()">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </nav>
+    <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+    <div class="mobile-menu">
+        <ul class="mobile-nav">
+            <li><a class="nav-link" href="/html/index.html" onclick="closeMobileMenu()">Home</a></li>
+    `;
 
     if (user) {
         const profileImage = user.profileImagePath || "../pictures/default-avatar.png";
 
-        html += "    <li><a class='nav-link' href='/html/favorites.html' onclick='closeMobileMenu()'>My Favorites</a></li>";
-        html += "    <li><a class='nav-link' href='/html/inbox.html' onclick='closeMobileMenu()'>Inbox</a></li>";
-        html += "    <li><a class='nav-link' href='/html/threads.html' onclick='closeMobileMenu()'>Threads</a></li>";
-        html += "    <li><a class='nav-link' href='/html/profile.html' onclick='closeMobileMenu()'>Profile</a></li>";
-
-        html += `    <li class='nav-profile-image'>
-                        <a href="/html/profile.html" onclick='closeMobileMenu()'>
-                            <img src="${profileImage}" alt="Profile" class="profile-img-nav">
-                        </a>
-                     </li>`;
+        html += `
+            <li><a class="nav-link" href="/html/favorites.html" onclick="closeMobileMenu()">My Favorites</a></li>
+            <li><a class="nav-link" href="/html/inbox.html" onclick="closeMobileMenu()">Inbox</a></li>
+            <li><a class="nav-link" href="/html/threads.html" onclick="closeMobileMenu()">Threads</a></li>
+            <li><a class="nav-link" href="/html/profile.html" onclick="closeMobileMenu()">Profile</a></li>
+            <li class="nav-profile-image">
+                <a href="/html/profile.html" onclick="closeMobileMenu()">
+                    <img src="${profileImage}" alt="Profile" class="profile-img-nav">
+                </a>
+            </li>
+        `;
 
         if (user.isAdmin) {
-            html += "    <li><a class='nav-link' href='/html/admin.html' onclick='closeMobileMenu()'>Admin</a></li>";
+            html += `<li><a class="nav-link" href="/html/admin.html" onclick="closeMobileMenu()">Admin</a></li>`;
         }
 
-        html += "    <li><a id='mobileLogoutBtn' class='nav-link logout-link' href='#'>Logout</a></li>";
+        html += `<li><a id="mobileLogoutBtn" class="nav-link logout-link" href="#">Logout</a></li>`;
     } else {
-        html += "    <li><a class='nav-link' href='/html/login.html' onclick='closeMobileMenu()'>Sign In</a></li>";
+        html += `<li><a class="nav-link" href="/html/login.html" onclick="closeMobileMenu()">Sign In</a></li>`;
     }
 
-    html += "  </ul>";
-    html += "</div>";
+    html += `
+        </ul>
+    </div>
+    `;
 
     container.innerHTML = html;
     bindNavbarEvents();
 }
 
+// ✅ Bind logout button events
 function bindNavbarEvents() {
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            logout();
-        });
+        logoutBtn.addEventListener("click", () => logout());
     }
 
     const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
     if (mobileLogoutBtn) {
         mobileLogoutBtn.addEventListener("click", () => {
             logout();
-            closeMobileMenu(); // רק אם הפונקציה הזאת גלובלית
+            closeMobileMenu();
         });
     }
 }
 
-
+// ✅ Clear session and redirect to home
 function logout() {
-    console.log("✅ Logout triggered");
     sessionStorage.clear();
     window.location.href = "/html/index.html";
 }
 
-
-// ✅ קריאה בזמן אמת מה-Firebase למספר התראות
+// ✅ Listen to real-time inbox count using Firebase
 function listenToInboxCount(userId) {
-    console.log("🔍 Listening to inbox for userId:", userId); // Debug
     const countRef = ref(db, `userInboxCount/${userId}`);
     onValue(countRef, (snapshot) => {
-        console.log("📨 Snapshot exists?", snapshot.exists());
-        console.log("📥 Count value:", snapshot.val());
         const count = snapshot.val();
-        console.log("📥 Firebase inbox count:", count); // Debug
         const inboxItem = document.getElementById("inboxNavItem");
         if (inboxItem) {
             inboxItem.innerHTML = `Inbox ${count > 0 ? `<span class="inbox-badge">${count}</span>` : ''}`;

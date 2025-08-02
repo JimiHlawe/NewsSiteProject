@@ -1,4 +1,5 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿// ✅ On page load – initialize admin features
+document.addEventListener("DOMContentLoaded", () => {
     loadUsers();
     loadAllStats();
     loadReports();
@@ -17,6 +18,7 @@
     }, 100);
 });
 
+// ✅ Load and display all users in admin table
 function loadUsers() {
     fetch("/api/Users/AllUsers")
         .then(res => res.json())
@@ -24,17 +26,17 @@ function loadUsers() {
             const tbody = document.querySelector("#usersTable tbody");
             tbody.innerHTML = "";
             users.forEach(u => {
-                const activeStatus = u.active ?
-                    '<span class="status-true status-active">Active</span>' :
-                    '<span class="status-false status-inactive">Inactive</span>';
+                const activeStatus = u.active
+                    ? '<span class="status-true status-active">Active</span>'
+                    : '<span class="status-false status-inactive">Inactive</span>';
 
-                const shareStatus = u.canShare ?
-                    '<span class="status-true">Yes</span>' :
-                    '<span class="status-false">No</span>';
+                const shareStatus = u.canShare
+                    ? '<span class="status-true">Yes</span>'
+                    : '<span class="status-false">No</span>';
 
-                const commentStatus = u.canComment ?
-                    '<span class="status-true">Yes</span>' :
-                    '<span class="status-false">No</span>';
+                const commentStatus = u.canComment
+                    ? '<span class="status-true">Yes</span>'
+                    : '<span class="status-false">No</span>';
 
                 tbody.innerHTML += `
                     <tr>
@@ -57,22 +59,22 @@ function loadUsers() {
                     </tr>`;
             });
         })
-        .catch(err => {
-            console.error("Error loading users:", err);
+        .catch(() => {
             const tbody = document.querySelector("#usersTable tbody");
             tbody.innerHTML = '<tr><td colspan="6" class="text-center">❌ Failed to load users</td></tr>';
         });
 }
 
+// ✅ Set user active/inactive status
 function setStatus(userId, isActive) {
     fetch("/api/Users/SetActiveStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, isActive })
-    }).then(() => loadUsers())
-        .catch(err => console.error("Error setting status:", err));
+    }).then(() => loadUsers());
 }
 
+// ✅ Load admin statistics: users, articles, likes, etc.
 function loadAllStats() {
     Promise.all([
         fetch("/api/Users/GetStatistics").then(res => res.json()),
@@ -83,80 +85,51 @@ function loadAllStats() {
             if (!container) return;
 
             container.innerHTML = `
-                <div class="stat-card">
-                    <span class="stat-value">${stats.totalUsers || 0}</span>
-                    <span class="stat-label">👥 Total Users</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${stats.totalArticles || 0}</span>
-                    <span class="stat-label">📰 Total Articles</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${stats.totalSaved || 0}</span>
-                    <span class="stat-label">💾 Saved Articles</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${stats.todayLogins || 0}</span>
-                    <span class="stat-label">🔐 Today's Logins</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${stats.todayFetches || 0}</span>
-                    <span class="stat-label">📊 Today's Fetches</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${likes.articleLikes || 0}</span>
-                    <span class="stat-label">❤️ Article Likes</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${likes.articleLikesToday || 0}</span>
-                    <span class="stat-label">💕 Today's Article Likes</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${likes.threadLikes || 0}</span>
-                    <span class="stat-label">🧵 Thread Likes</span>
-                </div>
-                <div class="stat-card">
-                    <span class="stat-value">${likes.threadLikesToday || 0}</span>
-                    <span class="stat-label">🔥 Today's Thread Likes</span>
-                </div>
-            `;
+            <div class="stat-card"><span class="stat-value">${stats.totalUsers || 0}</span><span class="stat-label">👥 Total Users</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.totalArticles || 0}</span><span class="stat-label">📰 Total Articles</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.totalSaved || 0}</span><span class="stat-label">💾 Saved Articles</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.todayLogins || 0}</span><span class="stat-label">🔐 Today's Logins</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.todayFetches || 0}</span><span class="stat-label">📊 Today's Fetches</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.articleLikes || 0}</span><span class="stat-label">❤️ Article Likes</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.articleLikesToday || 0}</span><span class="stat-label">💕 Today's Article Likes</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.threadLikes || 0}</span><span class="stat-label">🧵 Thread Likes</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.threadLikesToday || 0}</span><span class="stat-label">🔥 Today's Thread Likes</span></div>`;
         })
-        .catch(err => {
-            console.error("Error loading statistics:", err);
+        .catch(() => {
             const container = document.getElementById("statsContainer");
             if (container) {
                 container.innerHTML = `
-                    <div class="stat-card">
-                        <span class="stat-value">❌</span>
-                        <span class="stat-label">Error Loading Stats</span>
-                    </div>
-                `;
+                <div class="stat-card">
+                    <span class="stat-value">❌</span>
+                    <span class="stat-label">Error Loading Stats</span>
+                </div>`;
             }
         });
 }
 
+// ✅ Toggle user's sharing permission
 function toggleSharing(userId, canShare) {
     fetch("/api/Users/SetSharingStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, canShare })
-    }).then(() => loadUsers())
-        .catch(err => console.error("Error toggling sharing:", err));
+    }).then(() => loadUsers());
 }
 
+// ✅ Toggle user's commenting permission
 function toggleCommenting(userId, canComment) {
     fetch("/api/Users/SetCommentingStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, canComment })
-    }).then(() => loadUsers())
-        .catch(err => console.error("Error toggling commenting:", err));
+    }).then(() => loadUsers());
 }
 
+// ✅ Load all user-generated reports for admin
 function loadReports() {
     fetch("/api/Admin/AllReports")
         .then(res => {
-            if (!res.ok) throw new Error("Failed to load reports");
+            if (!res.ok) throw new Error();
             return res.json();
         })
         .then(reports => {
@@ -169,8 +142,7 @@ function loadReports() {
                         <span class="icon">🎉</span>
                         <h3>No Reports!</h3>
                         <p>All clear - no reports to review.</p>
-                    </div>
-                `;
+                    </div>`;
                 return;
             }
 
@@ -187,11 +159,10 @@ function loadReports() {
                                 <th>Date</th>
                             </tr>
                         </thead>
-                        <tbody>
-            `;
+                        <tbody>`;
 
             reports.forEach(r => {
-                const formattedDate = new Date(r.reportedAt).toLocaleDateString('en-US', {
+                const date = new Date(r.reportedAt).toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric',
                     hour: '2-digit',
@@ -205,120 +176,117 @@ function loadReports() {
                         <td><span style="background: var(--accent-red); color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">${r.reportType}</span></td>
                         <td>${r.reason}</td>
                         <td class="report-content">${r.content}</td>
-                        <td class="report-date">${formattedDate}</td>
-                    </tr>
-                `;
+                        <td class="report-date">${date}</td>
+                    </tr>`;
             });
 
             html += "</tbody></table></div>";
             container.innerHTML = html;
         })
-        .catch(err => {
-            console.error("Error loading reports:", err);
+        .catch(() => {
             const container = document.getElementById("reportsContainer");
             if (container) {
                 container.innerHTML = `
                     <div class="status-message error">
                         ⚠️ Failed to load reports
-                    </div>
-                `;
+                    </div>`;
             }
         });
 }
 
+// ✅ Setup import of external articles
 function setupImportExternal() {
     const importBtn = document.getElementById("importBtn");
 
-    if (importBtn) {
-        importBtn.addEventListener("click", function () {
-            // Show loading state
-            importBtn.disabled = true;
-            importBtn.innerHTML = '⏳ Importing...';
+    if (!importBtn) return;
 
-            fetch("/api/Articles/ImportExternal", {
-                method: "POST"
+    importBtn.addEventListener("click", () => {
+        importBtn.disabled = true;
+        importBtn.innerHTML = '⏳ Importing...';
+
+        fetch("/api/Articles/ImportExternal", { method: "POST" })
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.json();
             })
-                .then(res => {
-                    if (!res.ok) throw new Error("Import failed");
-                    return res.json();
-                })
-                .then(data => {
-                    document.getElementById("importStatus").innerHTML =
-                        `<div class='status-message success'>✅ ${data.length} new articles were imported successfully!</div>`;
-                })
-                .catch(err => {
-                    document.getElementById("importStatus").innerHTML =
-                        `<div class='status-message error'>❌ Error: ${err.message}</div>`;
-                })
-                .finally(() => {
-                    // Reset button
-                    importBtn.disabled = false;
-                    importBtn.innerHTML = '📥 Import Articles';
-                });
-        });
-    }
+            .then(data => {
+                document.getElementById("importStatus").innerHTML =
+                    `<div class='status-message success'>✅ ${data.length} new articles were imported successfully!</div>`;
+            })
+            .catch(err => {
+                document.getElementById("importStatus").innerHTML =
+                    `<div class='status-message error'>❌ Error: ${err.message}</div>`;
+            })
+            .finally(() => {
+                importBtn.disabled = false;
+                importBtn.innerHTML = '📥 Import Articles';
+            });
+    });
 }
 
+// ✅ Setup AI-based article tagging
 function setupTagging() {
     const taggingBtn = document.getElementById("taggingBtn");
 
-    if (taggingBtn) {
-        taggingBtn.addEventListener("click", function () {
-            // Show loading state
-            taggingBtn.disabled = true;
-            taggingBtn.innerHTML = '⏳ Tagging...';
+    if (!taggingBtn) return;
 
-            fetch("/api/Tagging/RunTagging", {
-                method: "POST"
+    taggingBtn.addEventListener("click", () => {
+        taggingBtn.disabled = true;
+        taggingBtn.innerHTML = '⏳ Tagging...';
+
+        fetch("/api/Tagging/RunTagging", { method: "POST" })
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.text();
             })
-                .then(res => {
-                    if (!res.ok) throw new Error("Tagging failed");
-                    return res.text();
-                })
-                .then(msg => {
-                    document.getElementById("taggingStatus").innerHTML =
-                        `<div class='status-message success'>🏷️ Tagging completed successfully!</div>`;
-                })
-                .catch(err => {
-                    document.getElementById("taggingStatus").innerHTML =
-                        `<div class='status-message error'>❌ Error: ${err.message}</div>`;
-                })
-                .finally(() => {
-                    // Reset button
-                    taggingBtn.disabled = false;
-                    taggingBtn.innerHTML = '🏷️ Tag Articles';
-                });
-        });
-    }
+            .then(() => {
+                document.getElementById("taggingStatus").innerHTML =
+                    `<div class='status-message success'>🏷️ Tagging completed successfully!</div>`;
+            })
+            .catch(err => {
+                document.getElementById("taggingStatus").innerHTML =
+                    `<div class='status-message error'>❌ Error: ${err.message}</div>`;
+            })
+            .finally(() => {
+                taggingBtn.disabled = false;
+                taggingBtn.innerHTML = '🏷️ Tag Articles';
+            });
+    });
 }
 
-// Add some utility functions for better UX
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `status-message ${type}`;
-    notification.style.position = 'fixed';
-    notification.style.top = '100px';
-    notification.style.right = '20px';
-    notification.style.zIndex = '10000';
-    notification.style.minWidth = '300px';
-    notification.innerHTML = message;
+// ✅ Setup fix for missing article images
+function setupFixMissingImages() {
+    const fixBtn = document.getElementById("fixImagesBtn");
 
-    document.body.appendChild(notification);
+    if (!fixBtn) return;
 
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => {
-            document.body.removeChild(notification);
-        }, 300);
-    }, 3000);
+    fixBtn.addEventListener("click", () => {
+        fixBtn.disabled = true;
+        fixBtn.innerHTML = '⏳ Fixing...';
+
+        fetch("/api/Articles/FixMissingImages", { method: "POST" })
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById("fixImagesStatus").innerHTML = `
+                    <div class='status-message success'>
+                        ✅ Fixed: ${data.success}, Skipped: ${data.skippedDueToContentPolicy}, Failed: ${data.failed}
+                    </div>`;
+            })
+            .catch(err => {
+                document.getElementById("fixImagesStatus").innerHTML =
+                    `<div class='status-message error'>❌ Error: ${err.message}</div>`;
+            })
+            .finally(() => {
+                fixBtn.disabled = false;
+                fixBtn.innerHTML = '🖼️ Fix Missing Images';
+            });
+    });
 }
 
-// Enhanced error handling
-window.addEventListener('error', (e) => {
-    console.error('Global error:', e.error);
-});
-
-// Add loading states to all action buttons
+// ✅ Visual feedback for all admin action buttons
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('action-btn')) {
         const btn = e.target;
@@ -333,35 +301,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-function setupFixMissingImages() {
-    const fixImagesBtn = document.getElementById("fixImagesBtn");
-
-    if (fixImagesBtn) {
-        fixImagesBtn.addEventListener("click", function () {
-            fixImagesBtn.disabled = true;
-            fixImagesBtn.innerHTML = '⏳ Fixing...';
-
-            fetch("/api/Articles/FixMissingImages", {
-                method: "POST"
-            })
-                .then(res => {
-                    if (!res.ok) throw new Error("Fixing failed");
-                    return res.json();
-                })
-                .then(data => {
-                    document.getElementById("fixImagesStatus").innerHTML = `
-                        <div class='status-message success'>
-                            ✅ Fixed: ${data.success}, Skipped: ${data.skippedDueToContentPolicy}, Failed: ${data.failed}
-                        </div>`;
-                })
-                .catch(err => {
-                    document.getElementById("fixImagesStatus").innerHTML = `
-                        <div class='status-message error'>❌ Error: ${err.message}</div>`;
-                })
-                .finally(() => {
-                    fixImagesBtn.disabled = false;
-                    fixImagesBtn.innerHTML = '🖼️ Fix Missing Images';
-                });
-        });
-    }
-}
+// ✅ Global error listener
+window.addEventListener('error', (e) => {
+    console.error('Global error:', e.error);
+});
