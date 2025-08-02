@@ -14,6 +14,7 @@ namespace NewsSite1.Controllers
             _config = config;
         }
 
+        // ✅ Triggers the article tagging process and sends notifications
         [HttpPost("RunTagging")]
         public async Task<IActionResult> RunTagging()
         {

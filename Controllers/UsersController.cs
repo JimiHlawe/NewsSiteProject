@@ -23,18 +23,24 @@ namespace NewsSite1.Controllers
         [HttpPost("Register")]
         public IActionResult Register([FromBody] UserWithTags user)
         {
-            if (user == null)
-                return BadRequest("Invalid user data");
+            try
+            {
+                if (user == null)
+                    return BadRequest("Invalid user data");
 
-            if (db.IsEmailExists(user.Email))
-                return Conflict("email");
+                if (db.IsEmailExists(user.Email))
+                    return Conflict("email");
 
-            if (db.IsNameExists(user.Name))
-                return Conflict("name");
+                if (db.IsNameExists(user.Name))
+                    return Conflict("name");
 
-            bool success = db.RegisterUser(user);
-
-            return success ? Ok(user) : StatusCode(500, "Registration failed.");
+                bool success = db.RegisterUser(user);
+                return success ? Ok(user) : StatusCode(500, "Registration failed.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Server error during registration: " + ex.Message);
+            }
         }
 
         // ✅ Returns all registered users
@@ -48,34 +54,55 @@ namespace NewsSite1.Controllers
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest loginUser)
         {
-            if (loginUser == null)
-                return BadRequest("Invalid login data");
+            try
+            {
+                if (loginUser == null)
+                    return BadRequest("Invalid login data");
 
-            User user = db.LoginUser(loginUser.Email, loginUser.Password);
-            if (user == null)
-                return Unauthorized("Invalid email or password");
+                User user = db.LoginUser(loginUser.Email, loginUser.Password);
+                if (user == null)
+                    return Unauthorized("Invalid email or password");
 
-            if (!user.Active)
-                return StatusCode(403, "Your account is blocked.");
+                if (!user.Active)
+                    return StatusCode(403, "Your account is blocked.");
 
-            db.LogUserLogin(user.Id);
-            return Ok(user);
+                db.LogUserLogin(user.Id);
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Login failed: " + ex.Message);
+            }
         }
 
         // ✅ Gets user by ID and updates avatar levels
         [HttpGet("GetUserById/{id}")]
-        public User GetUserById(int id)
+        public IActionResult GetUserById(int id)
         {
-            db.ExecuteStoredProcedure("NewsSP_UpdateUserAvatarLevels");
-            return db.GetUserById(id);
+            try
+            {
+                db.ExecuteStoredProcedure("NewsSP_UpdateUserAvatarLevels");
+                return Ok(db.GetUserById(id));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error retrieving user: " + ex.Message);
+            }
         }
 
         // ✅ Adds a tag to a user
         [HttpPost("AddTag")]
         public IActionResult AddTag([FromBody] AddTagRequest data)
         {
-            db.AddUserTag(data.UserId, data.TagId);
-            return Ok("Tag added to user");
+            try
+            {
+                db.AddUserTag(data.UserId, data.TagId);
+                return Ok("Tag added to user");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error adding tag: " + ex.Message);
+            }
         }
 
         // ✅ Gets all tags for a user
@@ -140,30 +167,51 @@ namespace NewsSite1.Controllers
         [HttpPost("RemoveTag")]
         public IActionResult RemoveTag([FromBody] AddTagRequest data)
         {
-            db.RemoveUserTag(data.UserId, data.TagId);
-            return Ok("Tag removed");
+            try
+            {
+                db.RemoveUserTag(data.UserId, data.TagId);
+                return Ok("Tag removed");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error removing tag: " + ex.Message);
+            }
         }
 
         // ✅ Updates the user's password
         [HttpPost("UpdatePassword")]
         public IActionResult UpdatePassword([FromBody] UpdatePasswordRequest data)
         {
-            db.UpdatePassword(data.UserId, data.NewPassword);
-            return Ok("Password updated");
+            try
+            {
+                db.UpdatePassword(data.UserId, data.NewPassword);
+                return Ok("Password updated");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error updating password: " + ex.Message);
+            }
         }
 
         // ✅ Blocks another user by username
         [HttpPost("BlockUser")]
         public IActionResult BlockUser([FromBody] BlockUserRequest req)
         {
-            if (string.IsNullOrEmpty(req.BlockedUsername))
-                return BadRequest("No user specified.");
+            try
+            {
+                if (string.IsNullOrEmpty(req.BlockedUsername))
+                    return BadRequest("No user specified.");
 
-            int? blockedId = db.GetUserIdByUsername(req.BlockedUsername);
-            if (blockedId == null) return NotFound("User not found.");
+                int? blockedId = db.GetUserIdByUsername(req.BlockedUsername);
+                if (blockedId == null) return NotFound("User not found.");
 
-            db.BlockUser(req.BlockerUserId, blockedId.Value);
-            return Ok("Blocked");
+                db.BlockUser(req.BlockerUserId, blockedId.Value);
+                return Ok("Blocked");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error blocking user: " + ex.Message);
+            }
         }
 
         // ✅ Gets all users blocked by a user
@@ -177,8 +225,15 @@ namespace NewsSite1.Controllers
         [HttpPost("UnblockUser")]
         public IActionResult UnblockUser([FromBody] UserBlockRequest req)
         {
-            bool success = db.UnblockUser(req.BlockerUserId, req.BlockedUserId);
-            return success ? Ok() : BadRequest();
+            try
+            {
+                bool success = db.UnblockUser(req.BlockerUserId, req.BlockedUserId);
+                return success ? Ok() : BadRequest();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error unblocking user: " + ex.Message);
+            }
         }
 
         // ✅ Sets active status of a user
@@ -241,24 +296,48 @@ namespace NewsSite1.Controllers
         [HttpPost("ToggleNotifications")]
         public IActionResult ToggleNotifications([FromBody] ToggleRequest req)
         {
-            bool success = db.ToggleUserNotifications(req.UserId, req.Enable);
-            return success ? Ok(new { message = "Updated" }) : BadRequest("Failed to update");
+            try
+            {
+                bool success = db.ToggleUserNotifications(req.UserId, req.Enable);
+                return success ? Ok(new { message = "Updated" }) : BadRequest("Failed to update");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error toggling notifications: " + ex.Message);
+            }
         }
 
         // ✅ (Internal) Updates inbox count in Firebase Realtime DB
         [NonAction]
         private async Task UpdateInboxCountInFirebase(int userId)
         {
-            int count = db.GetUnreadSharedArticlesCount(userId);
-
-            using (var client = new HttpClient())
+            try
             {
-                string firebasePath = $"https://news-project-e6f1e-default-rtdb.europe-west1.firebasedatabase.app/userInboxCount/{userId}.json";
-                await client.PutAsJsonAsync(firebasePath, count);
+                int count = db.GetUnreadSharedArticlesCount(userId);
+
+                using (var client = new HttpClient())
+                {
+                    string firebasePath = $"https://news-project-e6f1e-default-rtdb.europe-west1.firebasedatabase.app/userInboxCount/{userId}.json";
+                    await client.PutAsJsonAsync(firebasePath, count);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.AppendAllText("firebase_errors.log",
+                    $"{DateTime.Now}: Failed to update inbox count for user {userId} - {ex.Message}\n");
             }
         }
+
+        // ✅ Test endpoint to trigger an unhandled exception
+        [HttpGet("fail")]
+        public IActionResult Fail()
+        {
+            throw new Exception("Something went wrong from UsersController");
+        }
     }
-    public class ToggleRequest
+}
+
+public class ToggleRequest
     {
         public int UserId { get; set; }
         public bool Enable { get; set; }
@@ -312,7 +391,7 @@ namespace NewsSite1.Controllers
         public string Email { get; set; }
         public string Password { get; set; }
     }
-}
+
 
 
 
