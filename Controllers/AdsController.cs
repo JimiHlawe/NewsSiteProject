@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NewsSite.Services;
+using System;
+using System.Threading.Tasks;
 
 namespace NewsSite.Controllers
 {
@@ -14,14 +16,23 @@ namespace NewsSite.Controllers
             _adsService = adsService;
         }
 
+        // ✅ Generates an ad with an image for a given category
         [HttpGet("Generate")]
         public async Task<IActionResult> GenerateAd([FromQuery] string category)
         {
-            var adResult = await _adsService.GenerateAdWithImageAsync(category);
-            if (adResult == null)
-                return StatusCode(500, "Failed to generate ad");
+            try
+            {
+                var adResult = await _adsService.GenerateAdWithImageAsync(category);
 
-            return Ok(adResult);
+                if (adResult == null)
+                    return StatusCode(500, "Failed to generate ad");
+
+                return Ok(adResult);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "An error occurred while generating the ad");
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using NewsSite1.DAL;
 using NewsSite1.Models;
+using System.Net.Http.Json;
 
 namespace NewsSite1.Controllers
 {
@@ -18,6 +19,7 @@ namespace NewsSite1.Controllers
             this.env = env;
         }
 
+        // ✅ Registers a new user
         [HttpPost("Register")]
         public IActionResult Register([FromBody] UserWithTags user)
         {
@@ -32,23 +34,17 @@ namespace NewsSite1.Controllers
 
             bool success = db.RegisterUser(user);
 
-            if (success)
-                return Ok(user);
-            else
-                return StatusCode(500, "Registration failed.");
+            return success ? Ok(user) : StatusCode(500, "Registration failed.");
         }
 
-
-
-
-
+        // ✅ Returns all registered users
         [HttpGet("AllUsers")]
         public IActionResult GetAllUsers()
         {
-            var users = db.GetAllUsers();
-            return Ok(users);
+            return Ok(db.GetAllUsers());
         }
 
+        // ✅ Logs in a user
         [HttpPost("Login")]
         public IActionResult Login([FromBody] LoginRequest loginUser)
         {
@@ -63,10 +59,10 @@ namespace NewsSite1.Controllers
                 return StatusCode(403, "Your account is blocked.");
 
             db.LogUserLogin(user.Id);
-
             return Ok(user);
         }
 
+        // ✅ Gets user by ID and updates avatar levels
         [HttpGet("GetUserById/{id}")]
         public User GetUserById(int id)
         {
@@ -74,8 +70,7 @@ namespace NewsSite1.Controllers
             return db.GetUserById(id);
         }
 
-
-
+        // ✅ Adds a tag to a user
         [HttpPost("AddTag")]
         public IActionResult AddTag([FromBody] AddTagRequest data)
         {
@@ -83,13 +78,14 @@ namespace NewsSite1.Controllers
             return Ok("Tag added to user");
         }
 
+        // ✅ Gets all tags for a user
         [HttpGet("GetTags/{userId}")]
         public IActionResult GetTags(int userId)
         {
-            var tags = db.GetUserTags(userId);
-            return Ok(tags);
+            return Ok(db.GetUserTags(userId));
         }
 
+        // ✅ Saves an article for a user
         [HttpPost("SaveArticle")]
         public IActionResult SaveArticle([FromBody] SaveArticleRequest request)
         {
@@ -98,12 +94,13 @@ namespace NewsSite1.Controllers
                 db.SaveArticle(request.UserId, request.ArticleId);
                 return Ok("Article saved");
             }
-            catch (Exception ex)
+            catch
             {
-                return StatusCode(500, "שגיאה בשרת: " + ex.Message);
+                return StatusCode(500, "Server error while saving article");
             }
         }
 
+        // ✅ Removes a saved article for a user
         [HttpPost("RemoveSavedArticle")]
         public IActionResult RemoveSavedArticle([FromBody] SaveArticleRequest request)
         {
@@ -112,33 +109,34 @@ namespace NewsSite1.Controllers
                 db.RemoveSavedArticle(request.UserId, request.ArticleId);
                 return Ok("Removed successfully");
             }
-            catch (Exception ex)
+            catch
             {
-                return StatusCode(500, "Error: " + ex.Message);
+                return StatusCode(500, "Error removing article");
             }
         }
 
+        // ✅ Gets all available tags
         [HttpGet("AllTags")]
         public IActionResult GetAllTags()
         {
-            var tags = db.GetAllTags();
-            return Ok(tags);
+            return Ok(db.GetAllTags());
         }
 
+        // ✅ Gets filtered articles for user
         [HttpGet("All")]
         public IActionResult GetAll(int userId)
         {
-            var articles = db.GetArticlesFilteredByTags(userId);
-            return Ok(articles);
+            return Ok(db.GetArticlesFilteredByTags(userId));
         }
 
+        // ✅ Gets all saved articles for user
         [HttpGet("GetSavedArticles/{userId}")]
         public IActionResult GetSavedArticles(int userId)
         {
-            var articles = db.GetSavedArticles(userId);
-            return Ok(articles);
+            return Ok(db.GetSavedArticles(userId));
         }
 
+        // ✅ Removes a tag from a user
         [HttpPost("RemoveTag")]
         public IActionResult RemoveTag([FromBody] AddTagRequest data)
         {
@@ -146,6 +144,7 @@ namespace NewsSite1.Controllers
             return Ok("Tag removed");
         }
 
+        // ✅ Updates the user's password
         [HttpPost("UpdatePassword")]
         public IActionResult UpdatePassword([FromBody] UpdatePasswordRequest data)
         {
@@ -153,6 +152,7 @@ namespace NewsSite1.Controllers
             return Ok("Password updated");
         }
 
+        // ✅ Blocks another user by username
         [HttpPost("BlockUser")]
         public IActionResult BlockUser([FromBody] BlockUserRequest req)
         {
@@ -166,23 +166,22 @@ namespace NewsSite1.Controllers
             return Ok("Blocked");
         }
 
+        // ✅ Gets all users blocked by a user
         [HttpGet("BlockedByUser/{userId}")]
         public IActionResult GetBlockedUsers(int userId)
         {
-            var blockedUsers = db.GetBlockedUsers(userId);
-            return Ok(blockedUsers);
+            return Ok(db.GetBlockedUsers(userId));
         }
 
+        // ✅ Unblocks a previously blocked user
         [HttpPost("UnblockUser")]
         public IActionResult UnblockUser([FromBody] UserBlockRequest req)
         {
             bool success = db.UnblockUser(req.BlockerUserId, req.BlockedUserId);
-            if (success)
-                return Ok();
-            else
-                return BadRequest();
+            return success ? Ok() : BadRequest();
         }
 
+        // ✅ Sets active status of a user
         [HttpPost("SetActiveStatus")]
         public IActionResult SetActiveStatus([FromBody] SetStatusRequest req)
         {
@@ -190,6 +189,7 @@ namespace NewsSite1.Controllers
             return Ok("User status updated");
         }
 
+        // ✅ Sets whether user can share articles
         [HttpPost("SetSharingStatus")]
         public IActionResult SetSharingStatus([FromBody] SharingStatusRequest req)
         {
@@ -197,6 +197,7 @@ namespace NewsSite1.Controllers
             return Ok("Sharing status updated");
         }
 
+        // ✅ Sets whether user can comment on articles
         [HttpPost("SetCommentingStatus")]
         public IActionResult SetCommentingStatus([FromBody] SharingStatusRequest req)
         {
@@ -204,36 +205,14 @@ namespace NewsSite1.Controllers
             return Ok("Commenting status updated");
         }
 
-
-
+        // ✅ Gets overall site statistics
         [HttpGet("GetStatistics")]
         public IActionResult GetStatistics()
         {
-            var stats = db.GetSiteStatistics();
-            return Ok(stats);
+            return Ok(db.GetSiteStatistics());
         }
 
-        // 🟢 אופציונלי: בדיקת יכולת שיתוף/תגובה בצד UsersController אם צריך
-        private bool UserCanShare(int userId)
-        {
-            using (SqlConnection con = db.connect())
-            {
-                SqlCommand cmd = new SqlCommand("SELECT CanShare FROM News_Users WHERE Id = @Id", con);
-                cmd.Parameters.AddWithValue("@Id", userId);
-                return (bool)cmd.ExecuteScalar();
-            }
-        }
-
-        private bool UserCanComment(int userId)
-        {
-            using (SqlConnection con = db.connect())
-            {
-                SqlCommand cmd = new SqlCommand("SELECT CanComment FROM News_Users WHERE Id = @Id", con);
-                cmd.Parameters.AddWithValue("@Id", userId);
-                return (bool)cmd.ExecuteScalar();
-            }
-        }
-
+        // ✅ Uploads user profile image and updates path in DB
         [HttpPost("UploadProfileImage")]
         public async Task<IActionResult> UploadProfileImage(IFormFile file, [FromQuery] int userId)
         {
@@ -258,40 +237,27 @@ namespace NewsSite1.Controllers
             return Ok(new { imageUrl = relativePath });
         }
 
+        // ✅ Toggles email notifications for a user
         [HttpPost("ToggleNotifications")]
         public IActionResult ToggleNotifications([FromBody] ToggleRequest req)
         {
             bool success = db.ToggleUserNotifications(req.UserId, req.Enable);
-            if (success)
-                return Ok(new { message = "Updated" });
-
-            return BadRequest("Failed to update");
+            return success ? Ok(new { message = "Updated" }) : BadRequest("Failed to update");
         }
 
+        // ✅ (Internal) Updates inbox count in Firebase Realtime DB
         [NonAction]
         private async Task UpdateInboxCountInFirebase(int userId)
         {
-            // 1. חשב את מספר הכתבות ששיתפו עם המשתמש שלא נקראו
             int count = db.GetUnreadSharedArticlesCount(userId);
 
-            // 2. עדכן את Firebase
             using (var client = new HttpClient())
             {
                 string firebasePath = $"https://news-project-e6f1e-default-rtdb.europe-west1.firebasedatabase.app/userInboxCount/{userId}.json";
-                var response = await client.PutAsJsonAsync(firebasePath, count);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine("❌ Failed to update Firebase: " + response.StatusCode);
-                }
+                await client.PutAsJsonAsync(firebasePath, count);
             }
         }
-
-
-
-
     }
-
     public class ToggleRequest
     {
         public int UserId { get; set; }
@@ -347,3 +313,7 @@ namespace NewsSite1.Controllers
         public string Password { get; set; }
     }
 }
+
+
+
+
