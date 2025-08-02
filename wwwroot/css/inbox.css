@@ -145,25 +145,6 @@
         border-color: var(--primary-slate);
     }
 
-/* Image Container */
-.shared-image-container {
-    position: relative;
-    height: 220px;
-    overflow: hidden;
-    border-radius: 20px 20px 0 0;
-}
-
-.shared-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-
-.shared-article-card:hover .shared-image {
-    transform: scale(1.05);
-}
-
 /* Content Container */
 .shared-content {
     padding: 1.5rem;
@@ -507,17 +488,76 @@
 }
 
 
-.shared-tags {
-    margin-top: 5px;
+/* Image Container */
+.shared-image-container {
+    position: relative;
+    height: 220px;
+    overflow: hidden;
+    border-radius: 20px 20px 0 0;
 }
 
+.shared-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.shared-article-card:hover .shared-image {
+    transform: scale(1.05);
+}
+
+/* Tags positioned on image */
+.shared-tags {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    z-index: 10;
+    max-width: calc(100% - 2rem);
+}
+
+/* Individual tag styling with cute animation */
 .tag-badge {
-    display: inline-block;
-    background-color: #007bff;
+    background: rgba(51, 65, 85, 0.9);
     color: white;
+    padding: 0.3rem 0.8rem;
     border-radius: 12px;
-    padding: 2px 8px;
-    font-size: 12px;
-    margin-right: 4px;
-    margin-bottom: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(10px);
+    margin-bottom: 0.3rem;
+    transition: all 0.2s ease;
+    cursor: default;
+    animation: tagBounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    animation-fill-mode: both;
+}
+
+
+/* אנימציית כניסה חמודה */
+@keyframes tagBounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(-10px);
+    }
+
+    70% {
+        opacity: 1;
+        transform: scale(1.05) translateY(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.tag-badge:hover {
+    transform: translateY(-2px) scale(1.02);
+    background: rgba(59, 130, 246, 0.9);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

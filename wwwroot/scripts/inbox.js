@@ -57,6 +57,11 @@ function renderSharedArticles(articles) {
         articleCard.innerHTML = `
     <div class='shared-image-container'>
         <img src='${imageUrl}' class='shared-image' alt='${article.title}'>
+                ${article.tags && article.tags.length > 0 ? `
+            <div class='shared-tags'>
+                ${article.tags.map(tag => `<span class='tag-badge'>${tag}</span>`).join(' ')}
+            </div>
+        ` : ''}
     </div>
 
     <div class='shared-content'>
@@ -84,12 +89,6 @@ function renderSharedArticles(articles) {
             <span class='shared-author'> ${article.author || 'Unknown'}</span>
             ${formattedDate ? `<span class='shared-date'>${formattedDate}</span>` : ''}
         </div>
-
-        ${article.tags && article.tags.length > 0 ? `
-            <div class='shared-tags'>
-                ${article.tags.map(tag => `<span class='tag-badge'>${tag}</span>`).join(' ')}
-            </div>
-        ` : ''}
 
         <button class='btn btn-danger btn-sm remove-btn'> Remove</button>
     </div>
