@@ -87,10 +87,11 @@ body {
     margin: 0 auto;
     padding: 0 2rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
     position: relative;
     z-index: 10;
+    justify-content: flex-start; /* במקום space-between */
+    gap: 3rem;
 }
 
 /* === LOGO STAYS LEFT === */
@@ -135,7 +136,6 @@ body {
     list-style: none;
     gap: 2rem;
     align-items: center;
-    margin-left: auto;
     padding-left:0.5rem;
 }
 
@@ -184,6 +184,7 @@ body {
     background: rgba(220, 38, 38, 0.2);
     border: 1px solid rgba(220, 38, 38, 0.4);
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 4px rgba(0, 0, 0, 0.8);
+    margin-left: 7rem;
 }
 
     .logout-link:hover {
@@ -404,10 +405,13 @@ body {
     object-fit: cover;
     border-radius: 50%;
     position: relative;
+    margin-left: 2rem;
 }
 
 
 /* התמונה בנווט בר */
+
+
 .profile-img-nav {
     width: 70px;
     height: 70px;
@@ -415,8 +419,17 @@ body {
     object-fit: cover;
     border: 2px solid white;
     box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    margin-left: 2rem;
     display: block;
+    transition: all 0.3s ease; /* אנימציה חלקה */
+    cursor: pointer; /* יד קטנה */
 }
+
+    .profile-img-nav:hover {
+        transform: scale(1.1); /* הגדלה ב-10% */
+        box-shadow: 0 0 15px rgba(0,0,0,0.4); /* צל חזק יותר */
+        border-color: rgba(255, 255, 255, 0.9); /* גבול יותר בולט */
+    }
 
 /* מדליית הדרגה */
 .avatar-rank-icon {
