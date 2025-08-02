@@ -1101,23 +1101,29 @@ ORDER BY Priority, publishedAt DESC
         // ============== SHARING =====================
         // ============================================
 
-        public void ShareArticleByUsernames(string senderUsername, string targetUsername, int articleId, string comment)
+        public void ShareArticleByUsernames(string senderUsername, string receiverUsername, int articleId, string comment)
         {
+            int? senderId = GetUserIdByUsername(senderUsername);
+            int? receiverId = GetUserIdByUsername(receiverUsername);
+
+            if (senderId == null || receiverId == null)
+                throw new Exception("User not found");
+
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticleByUsernames", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@SenderUsername", senderUsername);
-                cmd.Parameters.AddWithValue("@TargetUsername", targetUsername);
+                cmd.Parameters.AddWithValue("@UserId", senderId.Value);
+                cmd.Parameters.AddWithValue("@TargetUserId", receiverId.Value);
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
+                cmd.Parameters.AddWithValue("@Comment", comment);
 
                 cmd.ExecuteNonQuery();
             }
         }
+
+
 
         public List<SharedArticle> GetArticlesSharedWithUser(int userId)
         {
@@ -1200,6 +1206,7 @@ ORDER BY Priority, publishedAt DESC
         }
 
 
+
         public List<string> GetTagsForSharedArticle(int sharedArticleId)
         {
             List<string> tags = new List<string>();
@@ -1224,6 +1231,7 @@ ORDER BY Priority, publishedAt DESC
             return tags;
         }
 
+
         public Article GetArticleById(int articleId)
         {
             using (SqlConnection con = connect())
@@ -1242,8 +1250,8 @@ ORDER BY Priority, publishedAt DESC
                             Description = reader["Description"].ToString(),
                             Content = reader["Content"].ToString(),
                             Author = reader["Author"].ToString(),
-                            SourceUrl = reader["Url"].ToString(), // ← שים לב לשינוי כאן
-                            ImageUrl = reader["ImageUrl"].ToString(),
+                            SourceUrl = reader["url"].ToString(), // ← שים לב לשינוי כאן
+                            ImageUrl = reader["imageUrl"].ToString(),
                             PublishedAt = Convert.ToDateTime(reader["PublishedAt"]),
                             Tags = new List<string>() // ייטענו בנפרד אם צריך
                         };
@@ -1253,6 +1261,7 @@ ORDER BY Priority, publishedAt DESC
 
             return null;
         }
+
 
         public List<SharedArticle> GetSharedArticlesForUser(int userId)
         {
