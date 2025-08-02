@@ -1,22 +1,22 @@
-﻿// ✅ Global Variables
+﻿// ✅ Global variables
 let allThreads = [];
 let currentThreadsPage = 1;
 const threadsPageSize = 5;
 
-// ✅ Run on page load
+// ✅ Load threads when the page is ready
 document.addEventListener("DOMContentLoaded", function () {
     loadThreadsArticles();
 });
 
-// ✅ Get currently logged user from session
+// ✅ Get the logged-in user from sessionStorage
 function getLoggedUser() {
     const raw = sessionStorage.getItem("loggedUser");
     return raw ? JSON.parse(raw) : null;
 }
 
-// ✅ Load all public THREADS from server
+// ✅ Load all public thread articles from server
 function loadThreadsArticles() {
-    const user = getLoggedUser();
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     fetch("/api/Articles/Public/" + user.id)
         .then(res => {
             if (!res.ok) throw new Error("Failed to fetch threads");
@@ -32,7 +32,7 @@ function loadThreadsArticles() {
         });
 }
 
-// ✅ Render current visible threads based on page number
+// ✅ Render visible thread articles based on current page
 function renderVisibleThreads() {
     const container = document.getElementById("threadsContainer");
     container.innerHTML = "";
@@ -45,6 +45,17 @@ function renderVisibleThreads() {
         loadComments(article.publicArticleId);
     });
 
+    toggleLoadMoreThreadsButton();
+}
+
+// ✅ Load more threads (increment current page)
+function loadMoreThreads() {
+    currentThreadsPage++;
+    renderVisibleThreads();
+}
+
+// ✅ Show or hide the Load More button
+function toggleLoadMoreThreadsButton() {
     const loadMoreBtn = document.getElementById("loadMoreThreadsBtn");
     if (threadsPageSize * currentThreadsPage >= allThreads.length) {
         loadMoreBtn.style.display = "none";
@@ -53,19 +64,26 @@ function renderVisibleThreads() {
     }
 }
 
-// ✅ Load next page of threads
-function loadMoreThreads() {
-    currentThreadsPage++;
-    renderVisibleThreads();
+// ✅ Render given thread articles list
+function renderThreadsArticles(articles) {
+    const container = document.getElementById("threadsContainer");
+    container.innerHTML = "";
+
+    for (let i = 0; i < articles.length; i++) {
+        const article = articles[i];
+        const card = createThreadCard(article);
+        container.appendChild(card);
+        loadComments(article.publicArticleId);
+    }
 }
 
 
-// ✅ Create thread card element from article data
+// ✅ Create and return a thread card DOM element
 function createThreadCard(article) {
     const id = article.publicArticleId;
     const div = document.createElement("div");
     div.className = "thread-card p-3 mb-4 border rounded bg-light";
-    div.style.cursor = "pointer";
+    div.style.cursor = 'pointer';
 
     const formattedDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -73,12 +91,10 @@ function createThreadCard(article) {
         day: 'numeric'
     });
 
-    // ✅ Build tags section above image (if exists)
-    const tagsHtml = article.tags?.length
+    const tagsHtml = (article.tags && article.tags.length > 0)
         ? article.tags.map(tag => `<span class="tag">${tag}</span>`).join(" ")
         : "";
 
-    // ✅ Build full HTML of thread
     const html = `
         <div class="initial-comment">
             <div class="author-wrote">${article.senderName} wrote</div>
@@ -102,11 +118,9 @@ function createThreadCard(article) {
             <div class="thread-actions">
                 <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${id}"></button>
                 <span id="like-thread-count-${id}" class="ms-2">0</span>
-
                 <button class='btn btn-sm btn-info comment-btn' onclick="showCommentsModal(${id}); event.stopPropagation();">
                     <img src="../pictures/comment1.png" alt="Comment" class="share-icon">
                 </button>
-
                 <div class="three-dots-menu" onclick="showThreadOptionsMenu(${id}, '${article.senderName}', ${id}); event.stopPropagation();">
                     ⋯
                     <div class="thread-options-menu" id="options-menu-${id}">
@@ -118,6 +132,9 @@ function createThreadCard(article) {
                 </div>
             </div>
 
+            <button class='btn btn-sm btn-danger mb-2' onclick="blockUser('${article.senderName}'); event.stopPropagation();" style="display: none;">Block ${article.senderName}</button>
+            <button class='btn btn-sm btn-warning mb-2' onclick="reportArticle(${id}); event.stopPropagation();" style="display: none;">Report Article</button>
+
             <h6>💬 Comments:</h6>
             <div id="comments-${id}" onclick="event.stopPropagation();" style="display: none;"></div>
             <textarea id="commentBox-${id}" class="form-control mb-2" placeholder="Write a comment..." onclick="event.stopPropagation();" style="display: none;"></textarea>
@@ -127,8 +144,8 @@ function createThreadCard(article) {
 
     div.innerHTML = html;
 
-    // ✅ Load like count and setup like toggle
     loadThreadLikeCount(id);
+
     const likeBtn = div.querySelector(`#like-thread-btn-${id}`);
     if (likeBtn) {
         likeBtn.onclick = function (event) {
@@ -137,7 +154,6 @@ function createThreadCard(article) {
         };
     }
 
-    // ✅ Open article in new tab when clicking the card
     div.addEventListener('click', function () {
         if (article.sourceUrl && article.sourceUrl !== '#') {
             window.open(article.sourceUrl, '_blank');
@@ -149,167 +165,218 @@ function createThreadCard(article) {
     return div;
 }
 
+// ✅ Show the options menu (⋯) for a thread
+function showThreadOptionsMenu(articleId, senderName, id) {
+    document.querySelectorAll('.thread-options-menu').forEach(menu => {
+        menu.classList.remove('show');
+    });
 
-// ✅ Show comments modal for a given thread (publicArticleId)
-function showCommentsModal(publicArticleId) {
-    const user = getLoggedUser();
-    if (!user) {
-        alert("Please log in to comment.");
-        return;
+    const menu = document.getElementById(`options-menu-${articleId}`);
+    if (menu) {
+        menu.classList.add('show');
+
+        document.addEventListener('click', function closeMenu(e) {
+            if (!menu.contains(e.target)) {
+                menu.classList.remove('show');
+                document.removeEventListener('click', closeMenu);
+            }
+        });
     }
+}
 
-    const modal = document.getElementById("commentsModal");
-    const commentList = document.getElementById("modalCommentList");
-    const sendBtn = document.getElementById("sendCommentBtn");
-    const inputBox = document.getElementById("modalCommentInput");
 
-    commentList.innerHTML = "<div class='loading-placeholder'>Loading comments...</div>";
-    modal.style.display = "block";
-    sendBtn.onclick = function () {
-        sendCommentFromModal(publicArticleId);
-    };
+// ✅ Show the comments modal for a given article
+function showCommentsModal(articleId) {
+    const existingModal = document.getElementById('commentsModal');
+    if (existingModal) existingModal.remove();
 
-    fetch(`/api/Articles/GetComments/${publicArticleId}`)
+    const modalHTML = `
+        <div class="comments-modal-overlay" id="commentsModal">
+            <div class="comments-modal-content">
+                <div class="comments-modal-header">
+                    <h3>Comments</h3>
+                    <button class="close-btn" onclick="closeCommentsModal()">×</button>
+                </div>
+                <div class="comments-modal-body">
+                    <div id="modal-comments-${articleId}" class="comments-list"></div>
+                    <div class="comment-input-section">
+                        <h4>Write a Comment</h4>
+                        <textarea id="modal-commentBox-${articleId}" placeholder="Share your thoughts..."></textarea>
+                        <button onclick='sendCommentFromModal(${articleId});'>Send Comment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+    loadCommentsForModal(articleId);
+
+    setTimeout(() => {
+        document.getElementById("commentsModal").classList.add("show");
+    }, 10);
+
+    setTimeout(() => {
+        document.addEventListener('click', closeCommentsModalOnOutsideClick);
+    }, 100);
+}
+
+// ✅ Load comments for modal view
+function loadCommentsForModal(articleId) {
+    fetch("/api/Articles/GetPublicComments/" + articleId)
         .then(res => res.json())
         .then(comments => {
-            commentList.innerHTML = "";
+            const container = document.getElementById("modal-comments-" + articleId);
+            container.innerHTML = "";
 
-            if (comments.length === 0) {
-                commentList.innerHTML = "<div class='empty-state'>No comments yet</div>";
-                return;
-            }
-
-            comments.forEach(comment => {
-                const div = document.createElement("div");
-                div.className = "thread-comment";
-
-                const content = `
-                    <strong>${comment.senderName}:</strong>
-                    <span>${comment.content}</span>
-                    <button class="btn btn-sm btn-danger ms-2" onclick="reportComment(${comment.id}); event.stopPropagation();">🚩</button>
+            comments.forEach(c => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'border rounded p-2 mb-1';
+                commentDiv.innerHTML = `
+                    <strong>${c.username}</strong>: ${c.comment}
+                    <button onclick="togglePublicCommentLike(${c.id})">❤️</button>
+                    <span id="public-like-count-${c.id}">0</span>
+                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
                 `;
-
-                div.innerHTML = content;
-                commentList.appendChild(div);
+                container.appendChild(commentDiv);
+                updatePublicLikeCount(c.id);
             });
-        })
-        .catch(() => {
-            commentList.innerHTML = "<div class='error-state'>Failed to load comments</div>";
         });
 }
 
+// ✅ Send a comment from modal
+function sendCommentFromModal(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const commentInput = document.getElementById("modal-commentBox-" + articleId);
+    const commentText = commentInput.value.trim();
 
-// ✅ Send comment from modal input
-function sendCommentFromModal(publicArticleId) {
-    const user = getLoggedUser();
-    const content = document.getElementById("modalCommentInput").value.trim();
-    if (!content) {
-        alert("Please write something before sending");
-        return;
-    }
-
-    fetch("/api/Articles/AddComment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ publicArticleId, senderId: user.id, content })
-    })
-        .then(res => {
-            if (!res.ok) throw new Error();
-            return res.json();
-        })
-        .then(() => {
-            document.getElementById("modalCommentInput").value = "";
-            showCommentsModal(publicArticleId); // Reload comments
-        })
-        .catch(() => {
-            alert("❌ Failed to send comment");
-        });
-}
-
-
-// ✅ Toggle like on a thread (public article)
-function toggleThreadLike(article) {
-    const user = getLoggedUser();
-    if (!user) {
-        alert("Please login first.");
+    if (!commentText) {
+        alert("Please enter a comment.");
         return;
     }
 
     const payload = {
+        publicArticleId: articleId,
         userId: user.id,
-        publicArticleId: article.publicArticleId
+        comment: commentText
     };
 
-    fetch("/api/Articles/ToggleThreadLike", {
+    fetch("/api/Articles/AddPublicComment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     })
         .then(res => {
-            if (!res.ok) throw new Error("Failed to toggle like");
-            loadThreadLikeCount(article.publicArticleId); // עדכון הספירה
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            commentInput.value = "";
+            loadCommentsForModal(articleId);
+            loadComments(articleId);
         })
-        .catch(err => {
-            console.error("❌ Failed to toggle like:", err);
+        .catch(() => {
+            alert("Error posting comment");
         });
 }
 
-// ✅ Load current like count for a thread
-function loadThreadLikeCount(articleId) {
-    const countEl = document.getElementById(`like-thread-count-${articleId}`);
-    const likeBtn = document.getElementById(`like-thread-btn-${articleId}`);
-    const user = getLoggedUser();
+// ✅ Close the comments modal
+function closeCommentsModal() {
+    const modal = document.getElementById('commentsModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+    }
+    document.removeEventListener('click', closeCommentsModalOnOutsideClick);
+}
 
-    fetch(`/api/Articles/GetThreadLikeCount/${articleId}`)
-        .then(res => res.json())
-        .then(count => {
-            if (countEl) countEl.innerText = count;
-        });
-
-    if (user) {
-        fetch(`/api/Articles/CheckUserLike/${articleId}/${user.id}`)
-            .then(res => res.json())
-            .then(hasLiked => {
-                if (likeBtn) {
-                    likeBtn.classList.toggle("liked", hasLiked);
-                }
-            });
+// ✅ Close modal when clicking outside of it
+function closeCommentsModalOnOutsideClick(event) {
+    const modal = document.getElementById('commentsModal');
+    const modalContent = modal?.querySelector('.comments-modal-content');
+    if (modal && !modalContent?.contains(event.target)) {
+        closeCommentsModal();
     }
 }
 
-
-// ✅ Toggle like on a public comment
-function togglePublicCommentLike(publicCommentId) {
-    const user = getLoggedUser();
-    if (!user) {
-        alert("Login required");
-        return;
-    }
-
-    fetch('/api/Articles/TogglePublicCommentLike', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, publicCommentId })
-    })
-        .then(() => updatePublicLikeCount(publicCommentId));
-}
-
-// ✅ Refresh public comment like count
+// ✅ Update like count for public comment
 function updatePublicLikeCount(publicCommentId) {
     fetch(`/api/Articles/PublicCommentLikeCount/${publicCommentId}`)
         .then(res => res.json())
         .then(count => {
-            const el = document.getElementById(`public-like-count-${publicCommentId}`);
-            if (el) el.innerText = count;
+            const countSpan = document.getElementById(`public-like-count-${publicCommentId}`);
+            if (countSpan) countSpan.innerText = count;
         });
 }
 
+// ✅ Toggle like for a public comment
+function togglePublicCommentLike(publicCommentId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    fetch('/api/Articles/TogglePublicCommentLike', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, publicCommentId })
+    }).then(() => updatePublicLikeCount(publicCommentId));
+}
 
-// ✅ Block another user (prevents seeing their threads)
+
+// ✅ Send a comment directly from article card
+function sendComment(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const commentInput = document.getElementById("commentBox-" + articleId);
+    const commentText = commentInput.value.trim();
+
+    if (!commentText) {
+        alert("Please enter a comment.");
+        return;
+    }
+
+    const payload = {
+        publicArticleId: articleId,
+        userId: user.id,
+        comment: commentText
+    };
+
+    fetch("/api/Articles/AddPublicComment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    })
+        .then(res => {
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            commentInput.value = "";
+            loadComments(articleId);
+        })
+        .catch(() => {
+            alert("Error posting comment");
+        });
+}
+
+// ✅ Load comments into the article card
+function loadComments(articleId) {
+    fetch("/api/Articles/GetPublicComments/" + articleId)
+        .then(res => res.json())
+        .then(comments => {
+            const container = document.getElementById("comments-" + articleId);
+            container.innerHTML = "";
+
+            comments.forEach(c => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'border rounded p-2 mb-1';
+                commentDiv.innerHTML = `
+                    <strong>${c.username}</strong>: ${c.comment}
+                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
+                `;
+                commentDiv.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                });
+                container.appendChild(commentDiv);
+            });
+        });
+}
+
+// ✅ Block a user by their name
 function blockUser(senderName) {
-    const user = getLoggedUser();
-    if (!user) {
-        alert("Login required");
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
         return;
     }
 
@@ -328,289 +395,166 @@ function blockUser(senderName) {
         .catch(() => alert("Error"));
 }
 
+// ✅ Load and update the like count and button status
+function loadThreadLikeCount(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-// ✅ Show report modal with type (article/comment) and IDs
-function showReportModal(type, id, extraInfo = "") {
-    const modal = document.getElementById("reportModal");
-    const form = document.getElementById("reportForm");
-
-    form.dataset.type = type;
-    form.dataset.id = id;
-    form.dataset.extra = extraInfo;
-
-    document.getElementById("reportReason").value = "";
-    modal.style.display = "block";
-}
-
-
-// ✅ Submit report (called from modal)
-function submitReport() {
-    const form = document.getElementById("reportForm");
-    const reason = document.getElementById("reportReason").value.trim();
-    const type = form.dataset.type;
-    const id = form.dataset.id;
-    const extra = form.dataset.extra;
-
-    const user = getLoggedUser();
-    if (!user) {
-        alert("Login required");
-        return;
-    }
-
-    if (!reason) {
-        alert("Please provide a reason for the report");
-        return;
-    }
-
-    const payload = {
-        reporterId: user.id,
-        reportType: type,
-        contentId: parseInt(id),
-        reason,
-        extraInfo: extra
-    };
-
-    fetch("/api/Reports/SubmitReport", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-        .then(res => {
-            if (!res.ok) throw new Error();
-            alert("✅ Report submitted successfully");
-            closeReportModal();
-        })
-        .catch(() => {
-            alert("❌ Failed to submit report");
-        });
-}
-
-
-// ✅ Close report modal
-function closeReportModal() {
-    const modal = document.getElementById("reportModal");
-    modal.style.display = "none";
-}
-
-
-// ✅ Load all public threads for the logged-in user
-function loadThreadsArticles() {
-    const user = getLoggedUser();
-    if (!user) return;
-
-    fetch(`/api/Articles/Public/${user.id}`)
-        .then(res => res.json())
-        .then(data => {
-            allThreads = data;
-            currentThreadsPage = 1;
-            renderVisibleThreads();
-        })
-        .catch(err => {
-            console.error("❌ Failed to load threads:", err);
-            showError("threadsContainer", "Failed to load threads");
-        });
-}
-
-
-// ✅ Render threads for the current page
-function renderVisibleThreads() {
-    const container = document.getElementById("threadsContainer");
-    container.innerHTML = "";
-
-    const visibleThreads = allThreads.slice(0, threadsPageSize * currentThreadsPage);
-
-    visibleThreads.forEach(article => {
-        const card = createThreadCard(article);
-        container.appendChild(card);
-        loadComments(article.publicArticleId);
-    });
-
-    const loadMoreBtn = document.getElementById("loadMoreThreadsBtn");
-    loadMoreBtn.style.display = (threadsPageSize * currentThreadsPage < allThreads.length) ? "block" : "none";
-}
-
-// ✅ Load more threads on button click
-function loadMoreThreads() {
-    currentThreadsPage++;
-    renderVisibleThreads();
-}
-
-
-// ✅ Build thread card UI
-function createThreadCard(article) {
-    const id = article.publicArticleId;
-    const div = document.createElement("div");
-    div.className = "thread-card";
-
-    const date = new Date(article.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-    const tagsHtml = (article.tags && article.tags.length > 0)
-        ? article.tags.map(tag => `<span class="tag">${tag}</span>`).join(" ")
-        : "";
-
-    div.innerHTML = `
-        <div class="initial-comment">
-            <strong>${article.senderName}:</strong> ${article.initialComment || ""}
-        </div>
-        <div class="thread-image">
-            <img src="${article.imageUrl || 'https://via.placeholder.com/800x400'}">
-            ${tagsHtml ? `<div class="article-tags">${tagsHtml}</div>` : ""}
-        </div>
-        <h5>${article.title}</h5>
-        <p>${article.description || ""}</p>
-        <div class="thread-meta">
-            <small>By ${article.author || "Unknown"} | ${date}</small>
-        </div>
-        <div class="thread-actions">
-            <button id="like-thread-btn-${id}" class="btn btn-outline-primary btn-sm">Like</button>
-            <span id="like-thread-count-${id}">0</span>
-            <button class="btn btn-info btn-sm" onclick="showCommentsModal(${id})">💬</button>
-            <div class="three-dots-menu" onclick="showThreadOptionsMenu(${id}, '${article.senderName}', ${id})">⋯</div>
-        </div>
-        <div id="comments-${id}" style="display:none;"></div>
-        <textarea id="commentBox-${id}" style="display:none;" class="form-control mt-1" placeholder="Write a comment..."></textarea>
-        <button class="btn btn-primary btn-sm" style="display:none;" onclick="sendComment(${id})">Send</button>
-    `;
-
-    const likeBtn = div.querySelector(`#like-thread-btn-${id}`);
-    likeBtn.onclick = (e) => {
-        e.stopPropagation();
-        toggleThreadLike(article);
-    };
-
-    div.addEventListener('click', () => {
-        if (article.sourceUrl) window.open(article.sourceUrl, "_blank");
-    });
-
-    loadThreadLikeCount(id);
-
-    return div;
-}
-
-
-// ✅ Load like count for a thread
-function loadThreadLikeCount(threadId) {
-    fetch(`/api/Articles/PublicLikeCount/${threadId}`)
+    fetch(`/api/Articles/GetThreadLikeCount/${articleId}`)
         .then(res => res.json())
         .then(count => {
-            const span = document.getElementById(`like-thread-count-${threadId}`);
-            if (span) span.innerText = count;
-        })
-        .catch(() => console.warn("❌ Failed to load like count"));
+            const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
+            if (likeCountSpan) {
+                likeCountSpan.textContent = `${count}`;
+            }
+        });
+
+    if (user?.id) {
+        fetch(`/api/Articles/CheckUserLike/${articleId}/${user.id}`)
+            .then(res => res.json())
+            .then(hasLiked => {
+                const likeBtn = document.getElementById(`like-thread-btn-${articleId}`);
+                if (likeBtn) {
+                    likeBtn.classList.toggle('liked', hasLiked);
+                }
+            });
+    }
 }
 
-// ✅ Like/unlike a thread
+// ✅ Toggle like/unlike for a thread
 function toggleThreadLike(article) {
-    const user = getLoggedUser();
-    if (!user) return;
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    const likeBtn = document.getElementById(`like-thread-btn-${article.publicArticleId}`);
 
     const payload = {
         userId: user.id,
         publicArticleId: article.publicArticleId
     };
 
-    fetch("/api/Articles/LikePublicArticle", {
+    fetch("/api/Articles/ToggleThreadLike", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
     })
         .then(res => {
-            if (!res.ok) throw new Error();
+            if (!res.ok) throw new Error("Failed to toggle like");
+            if (likeBtn) {
+                likeBtn.classList.toggle('liked');
+            }
             loadThreadLikeCount(article.publicArticleId);
         })
-        .catch(() => alert("Failed to like article"));
-}
-
-
-// ✅ Send a public comment
-function sendComment(publicArticleId) {
-    const user = getLoggedUser();
-    const text = document.getElementById(`commentBox-${publicArticleId}`).value.trim();
-    if (!text) return;
-
-    const payload = {
-        userId: user.id,
-        publicArticleId,
-        text
-    };
-
-    fetch("/api/Articles/CommentOnPublicArticle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-    })
-        .then(res => {
-            if (!res.ok) throw new Error();
-            document.getElementById(`commentBox-${publicArticleId}`).value = "";
-            loadComments(publicArticleId);
-        })
-        .catch(() => alert("Failed to send comment"));
-}
-
-
-// ✅ Load comments for a given thread
-function loadComments(publicArticleId) {
-    const container = document.getElementById(`comments-${publicArticleId}`);
-    if (!container) return;
-
-    fetch(`/api/Articles/GetCommentsForPublicArticle/${publicArticleId}`)
-        .then(res => res.json())
-        .then(comments => {
-            container.innerHTML = "";
-
-            if (comments.length === 0) {
-                container.innerHTML = "<div class='empty-state'>No comments yet</div>";
-                return;
-            }
-
-            comments.forEach(comment => {
-                const div = document.createElement("div");
-                div.className = "comment";
-                div.innerHTML = `
-                    <strong>${comment.userName}</strong>: ${comment.text}
-                    <div class="comment-actions">
-                        <button class="btn btn-like" onclick="likeComment(${comment.id})">❤️</button>
-                        <span id="comment-like-count-${comment.id}">0</span>
-                        <button class="btn btn-warning" onclick="showReportModal('comment', ${comment.id})">⚠️</button>
-                    </div>
-                `;
-                container.appendChild(div);
-                loadCommentLikeCount(comment.id);
-            });
-        })
         .catch(() => {
-            container.innerHTML = "<div class='error-state'>Failed to load comments</div>";
+            alert("Failed to toggle like");
         });
 }
 
 
-// ✅ Like a public comment
-function likeComment(commentId) {
-    const user = getLoggedUser();
-    if (!user) return;
+// ✅ Show the report modal for a comment or article
+function showReportModal(referenceType, referenceId) {
+    const existing = document.getElementById('reportModalOverlay');
+    if (existing) existing.remove();
 
-    const payload = {
-        userId: user.id,
-        commentId
-    };
+    const modalHTML = `
+        <div class="save-modal-overlay" id="reportModalOverlay">
+            <div class="save-modal">
+                <h2 class="save-modal-title">🚩 Report Content</h2>
+                <p class="save-modal-subtitle">Please choose the reason for your report:</p>
 
-    fetch("/api/Articles/LikePublicComment", {
+                <select id="reportReasonSelect" onchange="toggleOtherReason()" class="form-control mb-2">
+                    <option value="harassment">Harassment</option>
+                    <option value="hate">Hate Speech</option>
+                    <option value="false_info">False Information</option>
+                    <option value="explicit">Explicit Content</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <textarea id="reportOtherReason" class="form-control mb-2" placeholder="Enter reason..." style="display:none;"></textarea>
+
+                <div class="share-modal-buttons">
+                    <button class="share-modal-button secondary" onclick="closeReportModal()">Cancel</button>
+                    <button class="share-modal-button primary" onclick="submitReport('${referenceType}', ${referenceId})">Submit Report</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML("beforeend", modalHTML);
+
+    setTimeout(() => {
+        document.getElementById("reportModalOverlay").classList.add("show");
+    }, 100);
+}
+
+// ✅ Show/hide the "Other" textarea if "Other" selected
+function toggleOtherReason() {
+    const select = document.getElementById("reportReasonSelect");
+    const otherInput = document.getElementById("reportOtherReason");
+    otherInput.style.display = select.value === "other" ? "block" : "none";
+}
+
+// ✅ Submit report to server
+function submitReport(referenceType, referenceId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
+
+    const reasonSelect = document.getElementById("reportReasonSelect").value;
+    const otherText = document.getElementById("reportOtherReason").value.trim();
+    const reason = reasonSelect === "other" ? otherText : reasonSelect;
+
+    if (!reason) {
+        alert("Please provide a reason.");
+        return;
+    }
+
+    fetch("/api/Articles/Report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+            userId: user.id,
+            referenceType,
+            referenceId,
+            reason
+        })
     })
         .then(res => {
-            if (!res.ok) throw new Error();
-            loadCommentLikeCount(commentId);
+            if (res.ok) {
+                alert("✅ Reported!");
+            } else {
+                alert("❌ Error reporting.");
+            }
         })
-        .catch(() => alert("Failed to like comment"));
+        .catch(() => alert("❌ Network error"))
+        .finally(() => closeReportModal());
 }
 
-// ✅ Load like count for a comment
-function loadCommentLikeCount(commentId) {
-    fetch(`/api/Articles/PublicCommentLikeCount/${commentId}`)
-        .then(res => res.json())
-        .then(count => {
-            const span = document.getElementById(`comment-like-count-${commentId}`);
-            if (span) span.innerText = count;
-        });
+// ✅ Close the report modal
+function closeReportModal() {
+    const overlay = document.getElementById("reportModalOverlay");
+    if (overlay) {
+        overlay.classList.add("hide");
+        setTimeout(() => overlay.remove(), 500);
+    }
+}
+
+// ✅ Report an article
+function reportArticle(articleId) {
+    showReportModal("Article", articleId);
+}
+
+// ✅ Report a comment
+function reportComment(commentId) {
+    showReportModal("Comment", commentId);
+}
+
+// ✅ Show error message inside container
+function showError(containerId, message) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = `<div class='alert alert-danger'>${message}</div>`;
 }
