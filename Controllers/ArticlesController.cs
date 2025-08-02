@@ -40,16 +40,13 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpPost("Share")]
-    public async Task<IActionResult> ShareArticle([FromBody] SharedArticleRequest request)
+    public IActionResult ShareArticle([FromBody] SharedArticleRequest request)
     {
         if (request == null || string.IsNullOrEmpty(request.SenderUsername) || string.IsNullOrEmpty(request.ToUsername))
             return BadRequest("Invalid request");
 
         int? senderUserId = _db.GetUserIdByUsername(request.SenderUsername);
-        int? targetUserId = _db.GetUserIdByUsername(request.ToUsername);
-
-        if (senderUserId == null || targetUserId == null)
-            return NotFound("User not found");
+        if (senderUserId == null) return NotFound("Sender not found");
 
         if (!UserCanShare(senderUserId.Value))
             return Forbid("Sharing is disabled for this user");
@@ -57,10 +54,6 @@ public class ArticlesController : ControllerBase
         try
         {
             _db.ShareArticleByUsernames(request.SenderUsername, request.ToUsername, request.ArticleId, request.Comment);
-
-            // ✅ עדכון מספר התראות בזמן אמת
-            await UpdateInboxCountInFirebase(targetUserId.Value);
-
             return Ok("Article shared successfully");
         }
         catch (Exception ex)
@@ -68,6 +61,7 @@ public class ArticlesController : ControllerBase
             return StatusCode(500, "Server error: " + ex.Message);
         }
     }
+
 
     // בתוך UsersController.cs
     [HttpPost("UpdateInboxFirebase/{userId}")]
@@ -505,6 +499,15 @@ public class ArticlesController : ControllerBase
         });
     }
 
+    public class SharedArticleRequest
+    {
+        public string SenderUsername { get; set; }
+        public string ToUsername { get; set; }
+        public int ArticleId { get; set; }
+        public string Comment { get; set; }
+        public List<string> Tags { get; set; } = new();
+
+    }
 
     public class LikeRequest
     {
