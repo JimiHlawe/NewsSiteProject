@@ -880,7 +880,7 @@ body {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    overflow: visible; 
+    overflow: visible !important; /* חשוב! */
     cursor: pointer;
     border: 3px solid #ddd;
     transition: border-color 0.3s ease;
@@ -911,18 +911,18 @@ body {
 }
 
 #avatarRankImage {
-    position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 23px !important;
-    height: 23px !important;
-    border-radius: 50%;
-    border: 1.5px solid white;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-    z-index: 999;
-    object-fit: cover;
-    background: white;
-    pointer-events: none;
+    position: absolute !important;
+    bottom: -8px !important; 
+    right: -8px !important; 
+    width: 40px !important; 
+    height: 40px !important; 
+    border-radius: 50% !important;
+    border: 3px solid white !important;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4) !important;
+    z-index: 1000 !important;
+    object-fit: cover !important;
+    background: white !important;
+    pointer-events: none !important;
 }
 
 .rank-badge {
@@ -959,7 +959,7 @@ body {
     color: #333;
 }
 
-.avatar-rank-label {
+#avatarRank {
     margin-top: 15px;
     font-size: 13px;
     font-weight: 700;
@@ -972,70 +972,117 @@ body {
     border: 2px solid;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05);
     cursor: default;
     user-select: none;
-}
-
-    .avatar-rank-label::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient( 90deg, transparent, rgba(255, 255, 255, 0.6), transparent );
-        transition: left 0.6s ease-in-out;
-        z-index: 1;
-    }
-
-    .avatar-rank-label::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        background: radial-gradient( circle, rgba(255, 255, 255, 0.4) 0%, transparent 70% );
-        border-radius: 50%;
-        transform: translate(-50%, -50%);
-        transition: all 0.4s ease;
-        z-index: 0;
-    }
-
-    .avatar-rank-label:hover::before {
-        left: 100%;
-    }
-
-    .avatar-rank-label:hover::after {
-        width: 100px;
-        height: 100px;
-    }
-
-    .avatar-rank-label:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08);
-    }
-
-    .avatar-rank-label span,
-    .avatar-rank-label {
-        position: relative;
-        z-index: 2;
-    }
-
-.avatar-rank-label {
     color: #4a5568;
     background: linear-gradient(135deg, rgba(74, 85, 104, 0.1), rgba(113, 128, 150, 0.05));
     border-color: #718096;
     box-shadow: 0 2px 8px rgba(74, 85, 104, 0.15);
 }
 
-    .avatar-rank-label:hover {
+    #avatarRank::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+        transition: left 0.6s ease-in-out;
+        z-index: 1;
+    }
+
+    #avatarRank::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.4s ease;
+        z-index: 0;
+    }
+
+    #avatarRank:hover::before {
+        left: 100%;
+    }
+
+    #avatarRank:hover::after {
+        width: 100px;
+        height: 100px;
+    }
+
+    #avatarRank:hover {
         background: linear-gradient(135deg, rgba(74, 85, 104, 0.2), rgba(113, 128, 150, 0.1));
         box-shadow: 0 8px 25px rgba(74, 85, 104, 0.25);
+        transform: translateY(-2px) scale(1.02);
     }
+
+    #avatarRank[data-rank="BRONZE"],
+    #avatarRank:has-text("BRONZE") {
+        color: #8b4513 !important;
+        background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(139, 69, 19, 0.1), rgba(160, 82, 45, 0.12) ) !important;
+        border-color: #cd7f32 !important;
+        box-shadow: 0 4px 15px rgba(205, 127, 50, 0.25), 0 2px 8px rgba(139, 69, 19, 0.15) !important;
+        text-shadow: 0 1px 2px rgba(139, 69, 19, 0.3);
+    }
+
+        #avatarRank[data-rank="BRONZE"]:hover,
+        #avatarRank:has-text("BRONZE"):hover {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.25), rgba(139, 69, 19, 0.2), rgba(160, 82, 45, 0.22) ) !important;
+            box-shadow: 0 8px 25px rgba(205, 127, 50, 0.35), 0 4px 15px rgba(139, 69, 19, 0.25) !important;
+            transform: translateY(-3px) scale(1.05) !important;
+            border-color: #b8860b !important;
+        }
+
+    #avatarRank[data-rank="SILVER"],
+    #avatarRank:has-text("SILVER") {
+        color: #4a5568 !important;
+        background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(169, 169, 169, 0.1), rgba(211, 211, 211, 0.12) ) !important;
+        border-color: #c0c0c0 !important;
+        box-shadow: 0 4px 15px rgba(192, 192, 192, 0.25), 0 2px 8px rgba(169, 169, 169, 0.15) !important;
+        text-shadow: 0 1px 2px rgba(105, 105, 105, 0.3);
+    }
+
+        #avatarRank[data-rank="SILVER"]:hover,
+        #avatarRank:has-text("SILVER"):hover {
+            background: linear-gradient(135deg, rgba(192, 192, 192, 0.25), rgba(169, 169, 169, 0.2), rgba(211, 211, 211, 0.22) ) !important;
+            box-shadow: 0 8px 25px rgba(192, 192, 192, 0.35), 0 4px 15px rgba(169, 169, 169, 0.25) !important;
+            transform: translateY(-3px) scale(1.05) !important;
+            border-color: #a9a9a9 !important;
+        }
+
+    #avatarRank[data-rank="GOLD"],
+    #avatarRank:has-text("GOLD") {
+        color: #b8860b !important;
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(218, 165, 32, 0.1), rgba(255, 223, 0, 0.12) ) !important;
+        border-color: #ffd700 !important;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3), 0 2px 8px rgba(218, 165, 32, 0.2) !important;
+        text-shadow: 0 1px 2px rgba(184, 134, 11, 0.4);
+        animation: goldGlow 3s ease-in-out infinite;
+    }
+
+        #avatarRank[data-rank="GOLD"]:hover,
+        #avatarRank:has-text("GOLD"):hover {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(218, 165, 32, 0.2), rgba(255, 223, 0, 0.22) ) !important;
+            box-shadow: 0 8px 30px rgba(255, 215, 0, 0.4), 0 4px 20px rgba(218, 165, 32, 0.3) !important;
+            transform: translateY(-3px) scale(1.05) !important;
+            border-color: #daa520 !important;
+        }
+
+@keyframes goldGlow {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3), 0 2px 8px rgba(218, 165, 32, 0.2) !important;
+    }
+
+    50% {
+        box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4), 0 3px 12px rgba(218, 165, 32, 0.3) !important;
+    }
+}
 
 .upload-hint {
     margin-top: 10px;
@@ -1051,22 +1098,45 @@ body {
     color: #4a90e2;
 }
 
-.notification-toggle {
+#notification-toggle {
     margin-top: 20px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    cursor: pointer;
-    user-select: none;
-    padding: 8px 0;
-    transition: all 0.2s ease;
+    justify-content: center;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(248, 250, 252, 0.8), rgba(241, 245, 249, 0.6));
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-    .notification-toggle:hover {
-        opacity: 0.8;
+    #notification-toggle:hover {
+        background: linear-gradient(135deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.8));
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
     }
 
-    .notification-toggle input[type="checkbox"] {
+    #notification-toggle label {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 15px;
+        font-weight: 600;
+        color: #374151;
+        transition: all 0.2s ease;
+        margin: 0;
+        padding: 0;
+    }
+
+        #notification-toggle label:hover {
+            color: #4a90e2;
+        }
+
+    #notification-toggle input[type="checkbox"] {
         position: absolute;
         opacity: 0;
         cursor: pointer;
@@ -1074,47 +1144,61 @@ body {
         height: 0;
     }
 
-    .notification-toggle .checkmark {
+    #notification-toggle .checkmark {
         position: relative;
         display: inline-block;
-        width: 20px;
-        height: 20px;
-        background: #f8fafc;
-        border: 2px solid #e2e8f0;
-        border-radius: 6px;
+        width: 24px;
+        height: 24px;
+        background: #ffffff;
+        border: 2.5px solid #cbd5e1;
+        border-radius: 8px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .notification-toggle input:focus + .checkmark {
-        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    #notification-toggle input:focus + .checkmark {
+        box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
         border-color: #4a90e2;
     }
 
-    .notification-toggle input:checked + .checkmark {
+    #notification-toggle input:checked + .checkmark {
         background: linear-gradient(135deg, #4a90e2, #357abd);
         border-color: #4a90e2;
         transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
-    .notification-toggle .checkmark::after {
-        content: '';
-        position: absolute;
-        display: none;
-        left: 6px;
-        top: 2px;
-        width: 6px;
-        height: 10px;
-        border: solid white;
-        border-width: 0 2px 2px 0;
-        transform: rotate(45deg);
-        transition: all 0.2s ease;
+        #notification-toggle input:checked + .checkmark::after {
+            content: '';
+            position: absolute;
+            display: block;
+            left: 7px;
+            top: 3px;
+            width: 7px;
+            height: 12px;
+            border: solid white;
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+            animation: checkmark-pop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+@keyframes checkmark-pop {
+    0% {
+        transform: rotate(45deg) scale(0);
+        opacity: 0;
     }
 
-    .notification-toggle input:checked + .checkmark::after {
-        display: block;
-        animation: checkmark-pop 0.3s ease;
+    50% {
+        transform: rotate(45deg) scale(1.2);
+        opacity: 1;
     }
+
+    100% {
+        transform: rotate(45deg) scale(1);
+        opacity: 1;
+    }
+}
 
 @keyframes checkmark-pop {
     0% {
