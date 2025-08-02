@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Diagnostics;
 using NewsSite.Services;
 using NewsSite1.DAL;
 using NewsSite1.Services;
@@ -25,7 +26,26 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 
 
+
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+
+        var errorFeature = context.Features.Get<IExceptionHandlerFeature>();
+        if (errorFeature != null)
+        {
+            var ex = errorFeature.Error;
+
+            var response = new { error = "Server error", details = ex.Message };
+            await context.Response.WriteAsJsonAsync(response);
+        }
+    });
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

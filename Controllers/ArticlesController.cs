@@ -12,6 +12,7 @@ public class ArticlesController : ControllerBase
     private readonly DBServices _db;
     private readonly NewsApiService _newsApiService;
     private readonly ImageGenerationService _openAiService;
+
     public ArticlesController(DBServices db, NewsApiService newsApiService, ImageGenerationService openAiService)
     {
         _db = db;
@@ -19,19 +20,16 @@ public class ArticlesController : ControllerBase
         _openAiService = openAiService;
     }
 
-
+    // ✅ Get articles filtered by tags and log the fetch
     [HttpGet("AllFiltered")]
     public IActionResult GetAllFiltered(int userId)
     {
         var filtered = _db.GetArticlesFilteredByTags(userId);
-
-        // רשום Log של Fetch
         _db.LogArticleFetch(userId);
-
         return Ok(filtered);
     }
 
-
+    // ✅ Filter articles by optional parameters
     [HttpGet("Filter")]
     public IActionResult Filter(string? sourceName, string? title, DateTime? from, DateTime? to)
     {
@@ -39,6 +37,7 @@ public class ArticlesController : ControllerBase
         return Ok(result);
     }
 
+    // ✅ Share article privately and update real-time inbox
     [HttpPost("Share")]
     public async Task<IActionResult> ShareArticle([FromBody] SharedArticleRequest request)
     {
@@ -57,10 +56,7 @@ public class ArticlesController : ControllerBase
         try
         {
             _db.ShareArticleByUsernames(request.SenderUsername, request.ToUsername, request.ArticleId, request.Comment);
-
-            // ✅ עדכון מספר התראות בזמן אמת
             await UpdateInboxCountInFirebase(targetUserId.Value);
-
             return Ok("Article shared successfully");
         }
         catch (Exception ex)
@@ -69,7 +65,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
-    // בתוך UsersController.cs
+    // ✅ Update Firebase inbox count for a specific user
     [HttpPost("UpdateInboxFirebase/{userId}")]
     public async Task<IActionResult> UpdateInbox(int userId)
     {
@@ -77,26 +73,19 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
-    // הפונקציה העזר עצמה
+    // ✅ Helper function: updates Firebase with current unread count
     [NonAction]
     private async Task UpdateInboxCountInFirebase(int userId)
     {
-        int count = _db.GetUnreadSharedArticlesCount(userId); // ← פונקציה קיימת אצלך
-
+        int count = _db.GetUnreadSharedArticlesCount(userId);
         using (var client = new HttpClient())
         {
             string firebasePath = $"https://news-project-e6f1e-default-rtdb.europe-west1.firebasedatabase.app/userInboxCount/{userId}.json";
-            var response = await client.PutAsJsonAsync(firebasePath, count);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine("❌ Failed to update Firebase: " + response.StatusCode);
-            }
+            await client.PutAsJsonAsync(firebasePath, count);
         }
     }
 
-
-
+    // ✅ Get list of articles shared with the current user
     [HttpGet("SharedWithMe/{userId}")]
     public IActionResult GetSharedWithMe(int userId)
     {
@@ -107,12 +96,11 @@ public class ArticlesController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, $"❌ Server error: {ex.Message}");
+            return StatusCode(500, "Server error: " + ex.Message);
         }
     }
 
-
-
+    // ✅ Share article publicly with optional comment
     [HttpPost("SharePublic")]
     public IActionResult ShareArticlePublic([FromBody] PublicArticleShareRequest request)
     {
@@ -130,7 +118,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
-
+    // ✅ Get all public articles, optionally filtered by userId
     [HttpGet("Public/{userId}")]
     public IActionResult GetPublicArticles(int userId)
     {
@@ -141,13 +129,11 @@ public class ArticlesController : ControllerBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine("❌ שגיאה בהבאת כתבות ציבוריות: " + ex.Message);
-            return StatusCode(500, "Server error: " + ex.Message); // תוכל לראות ב־Network > Response
+            return StatusCode(500, "Server error: " + ex.Message);
         }
     }
 
-
-
+    // ✅ Add comment to a public article
     [HttpPost("AddPublicComment")]
     public IActionResult AddPublicComment([FromBody] PublicCommentRequest comment)
     {
@@ -165,6 +151,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    // ✅ Get comments on a public article
     [HttpGet("GetPublicComments/{articleId}")]
     public IActionResult GetPublicComments(int articleId)
     {
@@ -179,32 +166,41 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    // ✅ Import articles from external news API, skipping duplicates
     [HttpPost("ImportExternal")]
     public async Task<IActionResult> ImportExternalArticles()
     {
-        List<Article> externalArticles = await _newsApiService.GetTopHeadlinesAsync();
-        List<Article> addedArticles = new List<Article>();
-
-        foreach (var article in externalArticles)
+        try
         {
-            if (_db.ArticleExists(article.SourceUrl))
-                continue;
+            List<Article> externalArticles = await _newsApiService.GetTopHeadlinesAsync();
+            List<Article> addedArticles = new List<Article>();
 
+            foreach (var article in externalArticles)
+            {
+                if (_db.ArticleExists(article.SourceUrl))
+                    continue;
 
-            int id = _db.AddUserArticle(article);
-            article.Id = id;
-            addedArticles.Add(article);
+                int id = _db.AddUserArticle(article);
+                article.Id = id;
+                addedArticles.Add(article);
+            }
+
+            return Ok(addedArticles);
         }
-
-        return Ok(addedArticles);
+        catch (Exception ex)
+        {
+            return StatusCode(500, "Error importing articles: " + ex.Message);
+        }
     }
 
+
+    // ✅ Remove a shared article by sharedId
     [HttpDelete("RemoveShared/{sharedId}")]
     public IActionResult RemoveSharedArticle(int sharedId)
     {
         try
         {
-            _db.RemoveSharedArticle(sharedId); // זו אמורה לקרוא ל-SP
+            _db.RemoveSharedArticle(sharedId);
             return Ok();
         }
         catch (Exception ex)
@@ -213,9 +209,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
-
-
-
+    // ✅ Get paginated articles with associated tags
     [HttpGet("WithTags")]
     public IActionResult GetArticlesWithTags(int page = 1, int pageSize = 20)
     {
@@ -223,6 +217,7 @@ public class ArticlesController : ControllerBase
         return Ok(articles);
     }
 
+    // ✅ Get tags for specific article
     [HttpGet("GetTagsForArticle/{articleId}")]
     public IActionResult GetTagsForArticle(int articleId)
     {
@@ -230,6 +225,7 @@ public class ArticlesController : ControllerBase
         return Ok(tags);
     }
 
+    // ✅ Get paginated articles (basic)
     [HttpGet("Paginated")]
     public IActionResult GetPaginated(int page = 1, int pageSize = 6)
     {
@@ -237,6 +233,7 @@ public class ArticlesController : ControllerBase
         return Ok(paged);
     }
 
+    // ✅ Add a new article submitted by the user
     [HttpPost("AddUserArticle")]
     public IActionResult AddUserArticle([FromBody] Article article)
     {
@@ -269,6 +266,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    // ✅ Report inappropriate content
     [HttpPost("Report")]
     public IActionResult ReportContent([FromBody] ReportRequest req)
     {
@@ -286,6 +284,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    // ✅ Like an article
     [HttpPost("Like")]
     public IActionResult Like([FromBody] LikeRequest req)
     {
@@ -293,6 +292,7 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
+    // ✅ Unlike an article
     [HttpPost("Unlike")]
     public IActionResult Unlike([FromBody] LikeRequest req)
     {
@@ -300,6 +300,7 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
+    // ✅ Get total likes for an article
     [HttpGet("LikesCount/{articleId}")]
     public IActionResult GetLikesCount(int articleId)
     {
@@ -307,6 +308,7 @@ public class ArticlesController : ControllerBase
         return Ok(count);
     }
 
+    // ✅ Add like to a thread (public article)
     [HttpPost("AddThreadLike")]
     public IActionResult AddThreadLike([FromBody] LikeThreadRequest req)
     {
@@ -314,6 +316,7 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
+    // ✅ Remove like from a thread
     [HttpPost("RemoveThreadLike")]
     public IActionResult RemoveThreadLike([FromBody] LikeThreadRequest req)
     {
@@ -321,7 +324,7 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
-
+    // ✅ Get total thread likes
     [HttpGet("GetThreadLikeCount/{articleId}")]
     public IActionResult GetThreadLikeCount(int articleId)
     {
@@ -329,6 +332,7 @@ public class ArticlesController : ControllerBase
         return Ok(count);
     }
 
+    // ✅ Toggle thread like (add or remove)
     [HttpPost("ToggleThreadLike")]
     public IActionResult ToggleThreadLike([FromBody] LikeThreadRequest req)
     {
@@ -336,6 +340,7 @@ public class ArticlesController : ControllerBase
         return Ok(new { liked });
     }
 
+    // ✅ Check if user liked a thread
     [HttpGet("CheckUserLike/{userId}/{articleId}")]
     public IActionResult CheckUserLike(int userId, int articleId)
     {
@@ -343,6 +348,7 @@ public class ArticlesController : ControllerBase
         return Ok(liked);
     }
 
+    // ✅ Toggle like for a comment
     [HttpPost("ToggleCommentLike")]
     public IActionResult ToggleCommentLike([FromBody] CommentLikeRequest req)
     {
@@ -350,6 +356,7 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
+    // ✅ Get total likes for a comment
     [HttpGet("CommentLikeCount/{commentId}")]
     public IActionResult GetCommentLikeCount(int commentId)
     {
@@ -357,6 +364,7 @@ public class ArticlesController : ControllerBase
         return Ok(count);
     }
 
+    // ✅ Toggle like for a public comment
     [HttpPost("TogglePublicCommentLike")]
     public IActionResult TogglePublicCommentLike([FromBody] PublicCommentLikeRequest req)
     {
@@ -364,6 +372,7 @@ public class ArticlesController : ControllerBase
         return Ok();
     }
 
+    // ✅ Get total likes for a public comment
     [HttpGet("PublicCommentLikeCount/{publicCommentId}")]
     public IActionResult GetPublicCommentLikeCount(int publicCommentId)
     {
@@ -371,7 +380,7 @@ public class ArticlesController : ControllerBase
         return Ok(count);
     }
 
-
+    // ✅ Add a comment to a regular article
     [HttpPost("AddComment")]
     public IActionResult AddComment([FromBody] CommentRequest comment)
     {
@@ -392,6 +401,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    // ✅ Get comments for an article
     [HttpGet("GetComments/{articleId}")]
     public IActionResult GetComments(int articleId)
     {
@@ -406,7 +416,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
-    // 🟢 עזר: בדיקת הרשאות שיתוף
+    // ✅ Check if the user has permission to share articles
     private bool UserCanShare(int userId)
     {
         using (SqlConnection con = _db.connect())
@@ -417,7 +427,7 @@ public class ArticlesController : ControllerBase
         }
     }
 
-    // 🟢 עזר: בדיקת הרשאות תגובה
+    // ✅ Check if the user has permission to comment
     private bool UserCanComment(int userId)
     {
         using (SqlConnection con = _db.connect())
@@ -428,21 +438,23 @@ public class ArticlesController : ControllerBase
         }
     }
 
+    // ✅ Mark shared articles as read and update inbox count in Firebase
     [HttpPost("MarkSharedAsRead/{userId}")]
     public async Task<IActionResult> MarkSharedAsRead(int userId)
     {
         try
         {
-            _db.MarkSharedAsRead(userId); // עדכון בבסיס הנתונים
-            await UpdateInboxCountInFirebase(userId); // עדכון ב־Firebase
+            _db.MarkSharedAsRead(userId);
+            await UpdateInboxCountInFirebase(userId);
             return Ok();
         }
         catch (Exception ex)
         {
-            return StatusCode(500, "❌ Server error: " + ex.Message);
+            return StatusCode(500, "Server error: " + ex.Message);
         }
     }
 
+    // ✅ Generate an ad based on category using OpenAI
     [Route("api/[controller]")]
     [ApiController]
     public class AdsController : ControllerBase
@@ -466,11 +478,9 @@ public class ArticlesController : ControllerBase
 
             return Ok(ad);
         }
-
     }
 
-
-
+    // ✅ Fix missing images for articles using OpenAI image generation
     [HttpPost("FixMissingImages")]
     public async Task<IActionResult> FixMissingImages()
     {
@@ -481,7 +491,6 @@ public class ArticlesController : ControllerBase
         {
             try
             {
-                // שינה את הקריאה ל־title + description
                 string imageUrl = await _openAiService.GenerateImageUrlFromPrompt(article.Title, article.Description);
 
                 if (!string.IsNullOrEmpty(imageUrl))
@@ -491,15 +500,13 @@ public class ArticlesController : ControllerBase
                 }
                 else
                 {
-                    skipped++; // נחסם או בעיה אחרת
+                    skipped++;
                 }
 
-                // 🕒 המתן כדי לא לחרוג מהמכסה
-                await Task.Delay(12000); // 12 שניות בין בקשות = מקסימום 5 לדקה
+                await Task.Delay(12000); // Wait between requests to respect rate limits
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"❌ Error generating image for article {article.Id}: {ex.Message}");
                 failed++;
             }
         }
@@ -513,8 +520,19 @@ public class ArticlesController : ControllerBase
         });
     }
 
+    // ✅ Global error handler for unhandled exceptions
+    [HttpGet("fail")]
+    public IActionResult Fail()
+    {
+        throw new Exception("Something went wrong");
+    }
 
-    public class LikeRequest
+
+}
+
+
+
+public class LikeRequest
     {
         public int UserId { get; set; }
         public int ArticleId { get; set; }
@@ -569,6 +587,5 @@ public class ArticlesController : ControllerBase
         public int PublicCommentId { get; set; }
     }
 
-}
 
 
