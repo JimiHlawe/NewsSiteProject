@@ -27,7 +27,7 @@ body {
     line-height: 1.6;
 }
 
-/* Enhanced Admin Header Section */
+/* Admin Header Section */
 .admin-header {
     background-image: url('../pictures/title.png');
     color: var(--text-muted);
@@ -104,7 +104,7 @@ body {
         height: auto;
     }
 
-    /* Tools Section - Apply to any section containing admin-controls */
+    /* Tools Section */
     .admin-section:has(.admin-controls),
     .admin-section.tools-section {
         height: auto !important;
@@ -137,22 +137,6 @@ body {
         align-items: center;
         gap: 0.5rem;
     }
-
-        .admin-section h2[data-icon="stats"]::before {
-            content: "📊";
-        }
-
-        .admin-section h2[data-icon="users"]::before {
-            content: "👥";
-        }
-
-        .admin-section h2[data-icon="reports"]::before {
-            content: "📋";
-        }
-
-        .admin-section h2[data-icon="tools"]::before {
-            content: "🔧";
-        }
 
 /* Statistics Grid */
 .stats-grid {
@@ -339,7 +323,7 @@ body {
         transform: none;
     }
 
-/* Tools Section Specific Styling - Apply to any section with admin-controls */
+/* Tools Section Specific Styling  */
 .admin-section:has(.admin-controls) .admin-controls,
 .tools-section .admin-controls {
     max-width: 100% !important;
@@ -422,6 +406,63 @@ body {
         color: var(--text-dark);
     }
 
+/* Animations */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Additional Classes */
+.text-center {
+    text-align: center;
+}
+
+/* Sticky Table Headers */
+.admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
+}
+
+/* Custom Scrollbar for Tables */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: var(--primary-light);
+    border-radius: 4px;
+}
+
+    .table-container::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-slate);
+    }
+
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .admin-container {
@@ -503,79 +544,3 @@ body {
         font-size: 0.9rem;
     }
 }
-
-/* Animations */
-@keyframes fadeIn {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0px);
-    }
-
-    50% {
-        transform: translateY(-20px);
-    }
-}
-
-/* Loading Animation */
-.loading {
-    text-align: center;
-    padding: 3rem;
-    color: var(--text-light);
-    font-size: 1.1rem;
-}
-
-    .loading::after {
-        content: '';
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border: 3px solid var(--primary-light);
-        border-radius: 50%;
-        border-top-color: var(--primary-slate);
-        animation: spin 1s ease-in-out infinite;
-        margin-left: 10px;
-    }
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Additional Classes for your original HTML */
-.text-center {
-    text-align: center;
-}
-
-/* Sticky Table Headers */
-.admin-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: linear-gradient(135deg, var(--primary-slate), var(--primary-gray));
-}
-
-/* Custom Scrollbar for Tables */
-.table-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.table-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.table-container::-webkit-scrollbar-thumb {
-    background: var(--primary-light);
-    border-radius: 4px;
-}
-
-    .table-container::-webkit-scrollbar-thumb:hover {
-        background: var(--primary-slate);
-    }

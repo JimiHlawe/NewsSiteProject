@@ -597,7 +597,26 @@ body {
     line-height: 1.4;
 }
 
-/* --- MOBILE FORM SWITCH --- */
+/* --- CUSTOM SCROLLBAR --- */
+#signupTagsContainer::-webkit-scrollbar {
+    width: 4px;
+}
+
+#signupTagsContainer::-webkit-scrollbar-track {
+    background: rgba(74, 144, 226, 0.1);
+    border-radius: 10px;
+}
+
+#signupTagsContainer::-webkit-scrollbar-thumb {
+    background: #4a90e2;
+    border-radius: 10px;
+}
+
+    #signupTagsContainer::-webkit-scrollbar-thumb:hover {
+        background: #64b5f6;
+    }
+
+/* --- MOBILE FORM SWITCH!!!! --- */
 .mobile {
     display: none;
 }
@@ -818,22 +837,3 @@ body {
         font-size: 10px;
     }
 }
-
-/* --- CUSTOM SCROLLBAR --- */
-#signupTagsContainer::-webkit-scrollbar {
-    width: 4px;
-}
-
-#signupTagsContainer::-webkit-scrollbar-track {
-    background: rgba(74, 144, 226, 0.1);
-    border-radius: 10px;
-}
-
-#signupTagsContainer::-webkit-scrollbar-thumb {
-    background: #4a90e2;
-    border-radius: 10px;
-}
-
-    #signupTagsContainer::-webkit-scrollbar-thumb:hover {
-        background: #64b5f6;
-    }

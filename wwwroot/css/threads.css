@@ -17,7 +17,7 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Enhanced Header Section - רוחב מופחת ועיצוב מותאם */
+/*Header Section */
 .threads-header {
     background-image: url('../pictures/title.png');
     background-size: cover;
@@ -29,7 +29,7 @@
     border-radius: 0 0 40px 40px;
     box-shadow: var(--shadow-heavy);
     overflow: hidden;
-    max-width: 1000px; /* רוחב מופחת מ-1400px */
+    max-width: 1000px; 
     margin: 0 auto;
     margin-top: 80px;
     margin-bottom: 3rem;
@@ -48,7 +48,7 @@
     }
 
 .threads-header-content {
-    max-width: 900px; /* רוחב מופחת מ-1200px */
+    max-width: 900px;
     margin: 0 auto;
     padding: 0 2rem;
     text-align: center;
@@ -78,9 +78,9 @@
     text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7);
 }
 
-/* Main Container - מותאם לרוחב חדש */
+/* Main Container */
 .threads-main {
-    max-width: 1200px; /* רוחב מופחת מ-1400px */
+    max-width: 1200px;
     margin: 3rem auto 4rem;
     padding: 0 2rem;
 }
@@ -96,35 +96,6 @@
     }
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .threads-main {
-        max-width: 100%;
-        padding: 0 1rem;
-        margin: 2rem auto 3rem;
-    }
-
-    .threads-header {
-        max-width: 95%;
-        padding: 3rem 0 2rem;
-        margin-bottom: 2rem;
-        margin-top: 70px;
-    }
-
-    .threads-header-content {
-        max-width: 100%;
-        padding: 0 1.5rem;
-    }
-
-    .threads-title {
-        font-size: 2rem;
-    }
-
-    .threads-subtitle {
-        font-size: 1rem;
-    }
-}
-
 /* Grid Layout for Thread Cards */
 #threadsContainer {
     display: grid;
@@ -133,7 +104,7 @@
     margin-top: 2rem;
 }
 
-/* Enhanced Thread Cards */
+/* Thread Cards */
 .thread-card {
     background: var(--bg-card);
     border-radius: 20px;
@@ -155,7 +126,7 @@
         border-color: var(--primary-slate);
     }
 
-/* Initial Comment Section - עיצוב יפה יותר */
+/* Initial Comment Section */
 .initial-comment {
     background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     padding: 1.5rem;
@@ -176,7 +147,6 @@
         border-radius: 0 2px 2px 0;
     }
 
-    /* השם עם WROTE מעוצב יפה */
     .initial-comment .author-wrote {
         display: inline-flex;
         align-items: center;
@@ -275,7 +245,6 @@
     transform: scale(1.05);
 }
 
-/* Article tags  */
 .article-tags {
     position: absolute;
     top: 1rem;
@@ -350,7 +319,7 @@
     flex: 1;
 }
 
-/* Meta Information - תאריך וכותב נפרדים ללא רקע */
+/* Meta Information */
 .thread-meta {
     display: flex;
     justify-content: space-between;
@@ -407,23 +376,20 @@
             transform: scale(1.05);
         }
 
-        /* Like Button Icon - לוגיקה נכונה */
         .thread-actions button[id^="like-thread-btn"]::before {
-            content: '🤍'; /* לב לבן כברירת מחדל (לא אהוב) */
+            content: '🤍'; 
             font-size: 1.2rem;
             transition: var(--transition);
         }
 
         .thread-actions button[id^="like-thread-btn"].liked::before {
-            content: '❤️'; /* לב אדום כשאהוב */
+            content: '❤️'; 
             animation: heartBeat 0.6s ease;
         }
 
-        /* Like Button States - ללא שינוי רקע */
         .thread-actions button[id^="like-thread-btn"].liked {
             border-color: var(--accent-red);
             color: var(--accent-red);
-            /* הסרתי את שינוי הרקע */
         }
 
             .thread-actions button[id^="like-thread-btn"].liked::before {
@@ -482,7 +448,7 @@ span[id^="like-thread-count"] {
         transform: scale(1.05);
     }
 
-/* Three Dots Menu Styles - מתקן מיקום */
+/* Three Dots Menu Styles */
 .three-dots-menu {
     cursor: pointer;
     font-size: 1.5rem;
@@ -501,7 +467,7 @@ span[id^="like-thread-count"] {
         transform: scale(1.1);
     }
 
-/* Thread Options Menu - dropdown קרוב לכפתור */
+/* Thread Options Menu */
 .thread-options-menu {
     position: absolute;
     top: calc(100% + 0.25rem);
@@ -571,7 +537,7 @@ span[id^="like-thread-count"] {
             border-radius: 0 0 12px 12px;
         }
 
-/* Comments Modal Styles - עיצוב מדויק כמו בתמונה */
+/* Comments Modal Styles */
 .comments-modal-overlay {
     position: fixed;
     top: 0;
@@ -614,7 +580,6 @@ span[id^="like-thread-count"] {
     transform: scale(1) translateY(0);
 }
 
-/* Header עם קו תחתון */
 .comments-modal-header {
     display: flex;
     justify-content: space-between;
@@ -660,7 +625,6 @@ span[id^="like-thread-count"] {
         color: #374151;
     }
 
-/* Body של המודאל */
 .comments-modal-body {
     display: flex;
     flex-direction: column;
@@ -668,7 +632,6 @@ span[id^="like-thread-count"] {
     flex: 1;
 }
 
-/* רשימת תגובות */
 .comments-list {
     max-height: 200px;
     overflow-y: auto;
@@ -691,7 +654,6 @@ span[id^="like-thread-count"] {
         border-radius: 10px;
     }
 
-/* תגובה בודדת - מדויק כמו בתמונה */
 .comment-item,
 .border.rounded.p-2.mb-1 {
     padding: 1rem !important;
@@ -704,7 +666,6 @@ span[id^="like-thread-count"] {
     display: block !important;
 }
 
-    /* שם המשתמש והתוכן */
     .comment-item strong,
     .border.rounded.p-2.mb-1 strong {
         font-weight: 600 !important;
@@ -714,13 +675,11 @@ span[id^="like-thread-count"] {
         margin-right: 0.5rem !important;
     }
 
-        /* הסרת האיקון */
         .comment-item strong::before,
         .border.rounded.p-2.mb-1 strong::before {
             display: none !important;
         }
 
-    /* כפתורי התגובה - בשורה אחת */
     .comment-item button,
     .border.rounded.p-2.mb-1 button {
         background: none !important;
@@ -739,7 +698,6 @@ span[id^="like-thread-count"] {
         font-weight: 500 !important;
     }
 
-        /* כפתור לייק עם לב אדום */
         .comment-item button:first-of-type,
         .border.rounded.p-2.mb-1 button:first-of-type {
             color: #dc2626 !important;
@@ -751,7 +709,6 @@ span[id^="like-thread-count"] {
                 color: #dc2626 !important;
             }
 
-        /* כפתור דיווח כתום */
         .comment-item button.btn-warning,
         .border.rounded.p-2.mb-1 button.btn-warning {
             background: #fed7aa !important;
@@ -767,7 +724,6 @@ span[id^="like-thread-count"] {
                 color: white !important;
             }
 
-    /* ספן של מספר הלייקים */
     .comment-item span,
     .border.rounded.p-2.mb-1 span {
         color: #dc2626 !important;
@@ -777,7 +733,6 @@ span[id^="like-thread-count"] {
         margin-right: 0.5rem !important;
     }
 
-/* אזור כתיבת תגובה */
 .comment-input-section {
     display: flex;
     flex-direction: column;
@@ -856,47 +811,6 @@ span[id^="like-thread-count"] {
     .comment-input-section .send-btn:hover {
         background: #334155 !important;
     }
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .comments-modal-content {
-        max-width: 95%;
-        max-height: 90vh;
-        padding: 1.5rem;
-    }
-
-    .comments-modal-header h3 {
-        font-size: 1.2rem;
-    }
-
-    .comments-list {
-        max-height: 150px;
-    }
-
-    .comment-input-section textarea {
-        min-height: 70px;
-        padding: 0.6rem;
-    }
-
-    .comment-input-section button {
-        padding: 0.6rem 1.5rem !important;
-        min-width: 80px !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .comments-modal-content {
-        padding: 1rem;
-    }
-
-    .comments-modal-header h3 {
-        font-size: 1.1rem;
-    }
-
-    .comments-list {
-        max-height: 120px;
-    }
-}
 
 /* Hide original action buttons and comments section */
 .thread-content > .btn-danger,
@@ -1012,7 +926,7 @@ div[id^="comments-"] {
     }
 }
 
-/* Share Modal Styles - עיצוב מרשים ומזמין */
+/* Share Modal Styles */
 .share-modal-overlay {
     position: fixed;
     top: 0;
@@ -1497,5 +1411,76 @@ div[id^="comments-"] {
     .meta-date,
     .meta-author {
         text-align: center;
+    }
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .threads-main {
+        max-width: 100%;
+        padding: 0 1rem;
+        margin: 2rem auto 3rem;
+    }
+
+    .threads-header {
+        max-width: 95%;
+        padding: 3rem 0 2rem;
+        margin-bottom: 2rem;
+        margin-top: 70px;
+    }
+
+    .threads-header-content {
+        max-width: 100%;
+        padding: 0 1.5rem;
+    }
+
+    .threads-title {
+        font-size: 2rem;
+    }
+
+    .threads-subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .comments-modal-content {
+        max-width: 95%;
+        max-height: 90vh;
+        padding: 1.5rem;
+    }
+
+    .comments-modal-header h3 {
+        font-size: 1.2rem;
+    }
+
+    .comments-list {
+        max-height: 150px;
+    }
+
+    .comment-input-section textarea {
+        min-height: 70px;
+        padding: 0.6rem;
+    }
+
+    .comment-input-section button {
+        padding: 0.6rem 1.5rem !important;
+        min-width: 80px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .comments-modal-content {
+        padding: 1rem;
+    }
+
+    .comments-modal-header h3 {
+        font-size: 1.1rem;
+    }
+
+    .comments-list {
+        max-height: 120px;
     }
 }
