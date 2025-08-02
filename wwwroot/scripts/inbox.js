@@ -54,46 +54,46 @@ function renderSharedArticles(articles) {
         articleCard.style.animationDelay = (i * 0.1) + 's';
         articleCard.style.cursor = 'pointer';
 
-                articleCard.innerHTML = `
-            <div class='shared-image-container'>
-                <img src='${imageUrl}' class='shared-image' alt='${article.title}'>
+        articleCard.innerHTML = `
+    <div class='shared-image-container'>
+        <img src='${imageUrl}' class='shared-image' alt='${article.title}'>
+    </div>
+
+    <div class='shared-content'>
+        <div class='shared-info' onclick='event.stopPropagation();'>
+            <div class='shared-by'>
+                <span class='shared-label'>Shared by:</span>
+                <span class='shared-name'>${article.senderName}</span>
             </div>
 
-            <div class='shared-content'>
-                <div class='shared-info' onclick='event.stopPropagation();'>
-                    <div class='shared-by'>
-                        <span class='shared-label'>Shared by:</span>
-                        <span class='shared-name'>${article.senderName}</span>
-                    </div>
-
-                    ${article.comment && article.comment !== 'No comment' ? `
-                        <div class='shared-comment'>
-                            <span class='comment-label'>💬 Comment:</span>
-                            <div class='comment-text'>${article.comment}</div>
-                        </div>
-                    ` : ''}
+            ${article.comment && article.comment !== 'No comment' ? `
+                <div class='shared-comment'>
+                    <span class='comment-label'>💬 Comment:</span>
+                    <div class='comment-text'>${article.comment}</div>
                 </div>
+            ` : ''}
+        </div>
 
-                <h3 class='shared-title'>${article.title}</h3>
+        <h3 class='shared-title'>${article.title}</h3>
 
-                ${article.description ? `
-                    <p class='shared-description'>${article.description.substring(0, 150)}${article.description.length > 150 ? '...' : ''}</p>
-                ` : ''}
+        ${article.description ? `
+            <p class='shared-description'>${article.description.substring(0, 150)}${article.description.length > 150 ? '...' : ''}</p>
+        ` : ''}
 
-                <div class='shared-meta mb-2'>
-                    <span class='shared-author'> ${article.author || 'Unknown'}</span>
-                    ${formattedDate ? `<span class='shared-date'>${formattedDate}</span>` : ''}
-                </div>
+        <div class='shared-meta mb-2'>
+            <span class='shared-author'> ${article.author || 'Unknown'}</span>
+            ${formattedDate ? `<span class='shared-date'>${formattedDate}</span>` : ''}
+        </div>
 
-                ${article.tags && article.tags.length > 0 ? `
-                    <div class='shared-tags'>
-                        ${article.tags.map(tag => `<span class='tag-badge'>${tag}</span>`).join(' ')}
-                    </div>
-                ` : ''}
-
-                <button class='btn btn-danger btn-sm remove-btn'> Remove</button>
+        ${article.tags && article.tags.length > 0 ? `
+            <div class='shared-tags'>
+                ${article.tags.map(tag => `<span class='tag-badge'>${tag}</span>`).join(' ')}
             </div>
-        `;
+        ` : ''}
+
+        <button class='btn btn-danger btn-sm remove-btn'> Remove</button>
+    </div>
+`;
 
         articleCard.querySelector(".remove-btn").addEventListener("click", function (event) {
             event.stopPropagation();

@@ -100,9 +100,17 @@ public class ArticlesController : ControllerBase
     [HttpGet("SharedWithMe/{userId}")]
     public IActionResult GetSharedWithMe(int userId)
     {
-        var articles = _db.GetSharedArticlesForUser(userId);
-        return Ok(articles);
+        try
+        {
+            var shared = _db.GetSharedArticlesForUser(userId);
+            return Ok(shared);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"❌ Server error: {ex.Message}");
+        }
     }
+
 
 
     [HttpPost("SharePublic")]
