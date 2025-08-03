@@ -223,7 +223,7 @@ function showCommentsModal(articleId) {
 
 // ✅ Load comments for modal view
 function loadCommentsForModal(articleId) {
-    fetch("/api/Articles/GetPublicComments/" + articleId)
+    fetch("/api/Comments/Public/" + articleId)
         .then(res => res.json())
         .then(comments => {
             const container = document.getElementById("modal-comments-" + articleId);
@@ -261,7 +261,7 @@ function sendCommentFromModal(articleId) {
         comment: commentText
     };
 
-    fetch("/api/Articles/AddPublicComment", {
+    fetch("/api/Comments/AddPublic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -298,7 +298,7 @@ function closeCommentsModalOnOutsideClick(event) {
 
 // ✅ Update like count for public comment
 function updatePublicLikeCount(publicCommentId) {
-    fetch(`/api/Articles/PublicCommentLikeCount/${publicCommentId}`)
+    fetch(`/api/Likes/PublicCommentLikeCount/${publicCommentId}`)
         .then(res => res.json())
         .then(count => {
             const countSpan = document.getElementById(`public-like-count-${publicCommentId}`);
@@ -309,7 +309,7 @@ function updatePublicLikeCount(publicCommentId) {
 // ✅ Toggle like for a public comment
 function togglePublicCommentLike(publicCommentId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    fetch('/api/Articles/TogglePublicCommentLike', {
+    fetch('/api/Likes/TogglePublicCommentLike', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, publicCommentId })
@@ -334,7 +334,7 @@ function sendComment(articleId) {
         comment: commentText
     };
 
-    fetch("/api/Articles/AddPublicComment", {
+    fetch("/api/Comments/AddPublic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -351,7 +351,7 @@ function sendComment(articleId) {
 
 // ✅ Load comments into the article card
 function loadComments(articleId) {
-    fetch("/api/Articles/GetPublicComments/" + articleId)
+    fetch("/api/Comments/Public/" + articleId)
         .then(res => res.json())
         .then(comments => {
             const container = document.getElementById("comments-" + articleId);
@@ -399,7 +399,7 @@ function blockUser(senderName) {
 function loadThreadLikeCount(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    fetch(`/api/Articles/GetThreadLikeCount/${articleId}`)
+    fetch(`/api/Likes/ThreadLikeCount/${articleId}`)
         .then(res => res.json())
         .then(count => {
             const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
@@ -409,7 +409,7 @@ function loadThreadLikeCount(articleId) {
         });
 
     if (user?.id) {
-        fetch(`/api/Articles/CheckUserLike/${articleId}/${user.id}`)
+        fetch(`/api/Likes/Check/${articleId}/${user.id}`)
             .then(res => res.json())
             .then(hasLiked => {
                 const likeBtn = document.getElementById(`like-thread-btn-${articleId}`);
@@ -435,7 +435,7 @@ function toggleThreadLike(article) {
         publicArticleId: article.publicArticleId
     };
 
-    fetch("/api/Articles/ToggleThreadLike", {
+    fetch("/api/Likes/ToggleThreadLike", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -513,7 +513,7 @@ function submitReport(referenceType, referenceId) {
         return;
     }
 
-    fetch("/api/Articles/Report", {
+    fetch("/api/Reports/Report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

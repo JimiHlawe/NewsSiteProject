@@ -112,6 +112,37 @@ namespace NewsSite1.Controllers
             return Ok(db.GetUserTags(userId));
         }
 
+        [HttpPost("MarkSharedAsRead/{userId}")]
+        public async Task<IActionResult> MarkSharedAsRead(int userId)
+        {
+            try
+            {
+                db.MarkSharedAsRead(userId);
+                await UpdateInboxCountInFirebase(userId);
+                return Ok();
+            }
+            catch
+            {
+                return StatusCode(500, "Error marking shared articles as read");
+            }
+        }
+
+        // ✅ Checks if the user is allowed to share articles
+        [HttpGet("CanShare/{userId}")]
+        public IActionResult CanUserShare(int userId)
+        {
+            try
+            {
+                bool canShare = db.GetUserCanShare(userId);
+                return Ok(new { canShare });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error checking sharing permission: " + ex.Message);
+            }
+        }
+
+
         // ✅ Saves an article for a user
         [HttpPost("SaveArticle")]
         public IActionResult SaveArticle([FromBody] SaveArticleRequest request)
@@ -126,6 +157,7 @@ namespace NewsSite1.Controllers
                 return StatusCode(500, "Server error while saving article");
             }
         }
+
 
         // ✅ Removes a saved article for a user
         [HttpPost("RemoveSavedArticle")]
@@ -307,6 +339,22 @@ namespace NewsSite1.Controllers
             }
         }
 
+        // ✅ Removes a shared article by sharedId
+        [HttpDelete("RemoveShared/{sharedId}")]
+        public IActionResult RemoveSharedArticle(int sharedId)
+        {
+            try
+            {
+                db.RemoveSharedArticle(sharedId);
+                return Ok("Shared article removed");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error removing shared article: " + ex.Message);
+            }
+        }
+
+
         // ✅ (Internal) Updates inbox count in Firebase Realtime DB
         [NonAction]
         private async Task UpdateInboxCountInFirebase(int userId)
@@ -327,6 +375,8 @@ namespace NewsSite1.Controllers
                     $"{DateTime.Now}: Failed to update inbox count for user {userId} - {ex.Message}\n");
             }
         }
+
+
 
         // ✅ Test endpoint to trigger an unhandled exception
         [HttpGet("fail")]
