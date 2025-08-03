@@ -81,9 +81,12 @@ body {
 
 /* Profile Header */
 .profile-avatar-section {
-    background-image: url('../pictures/title.png');
+    background-image: url('../pictures/profile.png');
     background-color: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     border: 1px solid rgba(74, 144, 226, 0.2);
     border-radius: 30px;
     padding: var(--spacing-2xl);

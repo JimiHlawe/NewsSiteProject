@@ -116,7 +116,9 @@ function createThreadCard(article) {
             </div>
 
             <div class="thread-actions">
-                <button class='btn btn-sm btn-outline-primary' id="like-thread-btn-${id}"></button>
+                <button class='btn btn-sm btn-info comment-btn' id="like-thread-btn-${id}">
+                <img src="../pictures/like.png" alt="Like" class="share-icon">
+                </button>
                 <span id="like-thread-count-${id}" class="ms-2">0</span>
                 <button class='btn btn-sm btn-info comment-btn' onclick="showCommentsModal(${id}); event.stopPropagation();">
                     <img src="../pictures/comment1.png" alt="Comment" class="share-icon">
