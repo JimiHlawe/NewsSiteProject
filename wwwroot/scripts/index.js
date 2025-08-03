@@ -357,7 +357,7 @@ function sendComment(articleId, isModal = false) {
         return;
     }
 
-    fetch("/api/Articles/AddComment", {
+    fetch("/api/Comments/Add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -383,7 +383,7 @@ function loadComments(articleId, isModal = false) {
     const container = document.getElementById(targetId);
     if (!container) return;
 
-    fetch(`/api/Articles/GetComments/${articleId}`)
+    fetch(`/api/Comments/Get/${articleId}`)
         .then(res => res.json())
         .then(comments => {
             container.innerHTML = "";
@@ -439,7 +439,7 @@ function closeCommentsModal(articleId) {
 // Toggle like for a comment
 function toggleCommentLike(commentId) {
     const user = getLoggedUser();
-    fetch('/api/Articles/ToggleCommentLike', {
+    fetch('/api/Comments/ToggleLike', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, commentId })
@@ -448,7 +448,7 @@ function toggleCommentLike(commentId) {
 
 // Update like count display for a comment
 function updateLikeCount(commentId) {
-    fetch(`/api/Articles/CommentLikeCount/${commentId}`)
+    fetch(`/api/Comments/LikeCount/${commentId}`)
         .then(res => res.json())
         .then(count => {
             document.getElementById(`like-count-${commentId}`).innerText = count;
@@ -517,7 +517,7 @@ function submitReport(referenceType, referenceId) {
         return;
     }
 
-    fetch("/api/Articles/Report", {
+    fetch("/api/Reports/Report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -558,7 +558,7 @@ function toggleLike(articleId) {
     const isLiked = document.getElementById(`like-btn-${articleId}`).classList.contains("liked");
     const endpoint = isLiked ? "Unlike" : "Like";
 
-    fetch(`/api/Articles/${endpoint}`, {
+    fetch(`/api/Likes/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
@@ -573,7 +573,7 @@ function toggleLike(articleId) {
 
 // Update the like count display for an article
 function updateArticleLikeCount(articleId) {
-    fetch(`/api/Articles/LikesCount/${articleId}`)
+    fetch(`/api/Likes/Count/${articleId}`)
         .then(res => res.json())
         .then(count => {
             document.getElementById(`like-count-${articleId}`).innerText = `${count}`;

@@ -81,11 +81,9 @@ Style: high-resolution professional marketing photo or rendered product shot for
             var imageResponse = await _httpClient.SendAsync(imageHttpReq);
             var imageContent = await imageResponse.Content.ReadAsStringAsync();
 
-            Console.WriteLine("🖼 Image Response: " + imageContent);
 
             if (!imageResponse.IsSuccessStatusCode)
             {
-                Console.WriteLine("❌ Failed to generate ad image.");
                 return new AdResult { Text = adText?.Trim(), ImageUrl = "/images/news-placeholder.png" };
             }
 

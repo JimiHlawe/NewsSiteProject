@@ -872,6 +872,29 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
+        // ✅ Returns whether the user is allowed to comment
+        public bool GetUserCanComment(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT CanComment FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", userId);
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
+
+        // ✅ Returns whether the user is allowed to share
+        public bool GetUserCanShare(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT CanShare FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", userId);
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
+
+
         // 🟢 שליפת תגובות
         public List<Comment> GetCommentsForArticle(int articleId)
         {

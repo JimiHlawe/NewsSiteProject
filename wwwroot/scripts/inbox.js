@@ -124,7 +124,7 @@ function renderSharedArticles(articles) {
 function removeSharedArticle(sharedId, cardElement) {
     if (!confirm("Are you sure you want to remove this shared article?")) return;
 
-    fetch("/api/Articles/RemoveShared/" + sharedId, {
+    fetch("/api/Users/RemoveShared/" + sharedId, {
         method: "DELETE"
     })
         .then(function (res) {
@@ -138,7 +138,7 @@ function removeSharedArticle(sharedId, cardElement) {
 
 // ✅ Mark all shared articles as read for this user
 function markAllSharedAsRead(userId) {
-    fetch(`/api/Articles/MarkSharedAsRead/${userId}`, {
+    fetch(`/api/Users/MarkSharedAsRead/${userId}`, {
         method: "POST"
     });
 }
