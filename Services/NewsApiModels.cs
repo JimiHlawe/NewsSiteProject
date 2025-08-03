@@ -1,4 +1,4 @@
-﻿namespace NewsSite1.Models
+﻿namespace NewsSite.Services
 {
     public class NewsApiModels
     {

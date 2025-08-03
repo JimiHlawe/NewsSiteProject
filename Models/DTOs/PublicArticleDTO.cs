@@ -1,4 +1,4 @@
-﻿namespace NewsSite1.Models
+﻿namespace NewsSite1.Models.DTOs
 {
     public class PublicArticleDTO
     {
@@ -14,4 +14,5 @@
         public string InitialComment { get; set; }
         public List<string> Tags { get; set; } = new List<string>();
     }
+
 }

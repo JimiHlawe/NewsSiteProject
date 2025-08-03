@@ -188,60 +188,20 @@ namespace NewsSite1.Controllers
 
 
 
-public class LikeRequest
-    {
-        public int UserId { get; set; }
-        public int ArticleId { get; set; }
-    }
 
-    public class LikeThreadRequest
-    {
-        public int UserId { get; set; }
-        public int PublicArticleId { get; set; }
-    }
 
-    public class ShareRequest
-    {
-        public int UserId { get; set; }
-        public int TargetUserId { get; set; }
-        public int ArticleId { get; set; }
-        public string Comment { get; set; }
-    }
 
-    public class CommentRequest
-    {
-        public int ArticleId { get; set; }
-        public int UserId { get; set; }
-        public string Comment { get; set; } = "";
-    }
 
-    public class ReportRequest
-    {
-        public int UserId { get; set; }
-        public string ReferenceType { get; set; } = "";
-        public int ReferenceId { get; set; }
-        public string Reason { get; set; } = "";
-    }
 
-    public class ThreadShareRequest
-    {
-        public int publicArticleId { get; set; }
-        public string senderUsername { get; set; }
-        public string toUsername { get; set; }
-        public string comment { get; set; }
-    }
 
-    public class CommentLikeRequest
-    {
-        public int UserId { get; set; }
-        public int CommentId { get; set; }
-    }
 
-    public class PublicCommentLikeRequest
-    {
-        public int UserId { get; set; }
-        public int PublicCommentId { get; set; }
-    }
+
+
+
+
+
+
+
 
 
 

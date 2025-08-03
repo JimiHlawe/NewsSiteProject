@@ -1,6 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NewsSite1.DAL;
 using NewsSite1.Models;
+using NewsSite1.Models.DTOs;
+using NewsSite1.Models.DTOs.Requests;
+
+
+
 
 namespace NewsSite1.Controllers
 {

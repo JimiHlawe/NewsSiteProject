@@ -3,6 +3,8 @@ using NewsSite1.DAL;
 using NewsSite1.Models;
 using System;
 using System.Collections.Generic;
+using NewsSite1.Models.DTOs;
+
 
 namespace NewsSite1.Controllers
 {

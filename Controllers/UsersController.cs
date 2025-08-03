@@ -3,6 +3,10 @@ using Microsoft.Data.SqlClient;
 using NewsSite1.DAL;
 using NewsSite1.Models;
 using System.Net.Http.Json;
+using NewsSite1.Models.DTOs;
+using NewsSite1.Models.DTOs.Requests;
+
+
 
 namespace NewsSite1.Controllers
 {
@@ -387,60 +391,6 @@ namespace NewsSite1.Controllers
     }
 }
 
-public class ToggleRequest
-    {
-        public int UserId { get; set; }
-        public bool Enable { get; set; }
-    }
-
-    public class SetStatusRequest
-    {
-        public int UserId { get; set; }
-        public bool IsActive { get; set; }
-    }
-
-    public class SharingStatusRequest
-    {
-        public int UserId { get; set; }
-        public bool CanShare { get; set; }
-        public bool CanComment { get; set; }
-    }
-
-    public class BlockUserRequest
-    {
-        public int BlockerUserId { get; set; }
-        public string BlockedUsername { get; set; }
-    }
-    public class UserBlockRequest
-    {
-        public int BlockerUserId { get; set; }
-        public int BlockedUserId { get; set; }
-    }
-
-
-    public class UpdatePasswordRequest
-    {
-        public int UserId { get; set; }
-        public string NewPassword { get; set; }
-    }
-
-    public class SaveArticleRequest
-    {
-        public int UserId { get; set; }
-        public int ArticleId { get; set; }
-    }
-
-    public class AddTagRequest
-    {
-        public int UserId { get; set; }
-        public int TagId { get; set; }
-    }
-
-    public class LoginRequest
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
-    }
 
 
 

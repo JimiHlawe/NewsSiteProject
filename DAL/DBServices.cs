@@ -6,6 +6,9 @@ using NewsSite1.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using NewsSite1.Models.DTOs;
+using NewsSite1.Models.DTOs.Requests;
+
 
 namespace NewsSite1.DAL
 {
@@ -178,7 +181,6 @@ namespace NewsSite1.DAL
             }
         }
 
-
         public List<User> GetAllUsers()
         {
             List<User> users = new List<User>();
@@ -317,6 +319,17 @@ namespace NewsSite1.DAL
             }
         }
 
+        public void LogUserLogin(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand(
+                    "INSERT INTO News_Logins (UserId) VALUES (@UserId)", con);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         public void SetUserActiveStatus(int userId, bool isActive)
         {
             using (SqlConnection con = connect())
@@ -324,17 +337,6 @@ namespace NewsSite1.DAL
                 SqlCommand cmd = new SqlCommand(
                     "UPDATE News_Users SET Active = @Active WHERE Id = @UserId", con);
                 cmd.Parameters.AddWithValue("@Active", isActive);
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void LogUserLogin(int userId)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand(
-                    "INSERT INTO News_Logins (UserId) VALUES (@UserId)", con);
                 cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.ExecuteNonQuery();
             }
@@ -377,9 +379,38 @@ namespace NewsSite1.DAL
         }
 
 
+        // ✅ Returns whether the user is allowed to comment
+        public bool GetUserCanComment(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT CanComment FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", userId);
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
 
+        // ✅ Returns whether the user is allowed to share
+        public bool GetUserCanShare(int userId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT CanShare FROM News_Users WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", userId);
+                return (bool)cmd.ExecuteScalar();
+            }
+        }
 
-
+        public bool ToggleUserNotifications(int userId, bool enable)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("UPDATE News_Users SET ReceiveNotifications = @val WHERE id = @id", con);
+                cmd.Parameters.AddWithValue("@val", enable);
+                cmd.Parameters.AddWithValue("@id", userId);
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
 
         // ============================================
         // ============= ARTICLES =====================
@@ -592,7 +623,6 @@ namespace NewsSite1.DAL
                 return count > 0;
             }
         }
-
 
         public void RemoveSavedArticle(int userId, int articleId)
         {
@@ -815,8 +845,6 @@ ORDER BY Priority, publishedAt DESC
             return list;
         }
 
-
-
         public void UpdateArticleImageUrl(int articleId, string imageUrl)
         {
             using (SqlConnection conn = connect()) // connect() כבר פותח את החיבור
@@ -828,7 +856,6 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
-
         public int GetUnreadSharedArticlesCount(int userId)
         {
             using (SqlConnection con = connect())
@@ -838,9 +865,6 @@ ORDER BY Priority, publishedAt DESC
                 return (int)cmd.ExecuteScalar();
             }
         }
-
-
-
 
         public void MarkSharedAsRead(int userId)
         {
@@ -852,13 +876,41 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
+        public Article GetArticleById(int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("SELECT * FROM News_Articles WHERE Id = @Id", con);
+                cmd.Parameters.AddWithValue("@Id", articleId);
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new Article
+                        {
+                            Id = (int)reader["Id"],
+                            Title = reader["Title"].ToString(),
+                            Description = reader["Description"].ToString(),
+                            Content = reader["Content"].ToString(),
+                            Author = reader["Author"].ToString(),
+                            SourceUrl = reader["url"].ToString(), // ← שים לב לשינוי כאן
+                            ImageUrl = reader["imageUrl"].ToString(),
+                            PublishedAt = Convert.ToDateTime(reader["PublishedAt"]),
+                            Tags = new List<string>() // ייטענו בנפרד אם צריך
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
 
 
         // ============================================
         // ============ COMMENTS ======================
         // ============================================
 
-        // 🟢 הוספת תגובה
         public void AddCommentToArticle(int articleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
@@ -872,30 +924,56 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
-        // ✅ Returns whether the user is allowed to comment
-        public bool GetUserCanComment(int userId)
+        public void AddPublicComment(int publicArticleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("SELECT CanComment FROM News_Users WHERE Id = @Id", con);
-                cmd.Parameters.AddWithValue("@Id", userId);
-                return (bool)cmd.ExecuteScalar();
+                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+                cmd.Parameters.AddWithValue("@UserId", userId);
+                cmd.Parameters.AddWithValue("@Comment", comment);
+                cmd.ExecuteNonQuery();
             }
         }
 
-        // ✅ Returns whether the user is allowed to share
-        public bool GetUserCanShare(int userId)
+        public List<PublicComment> GetCommentsForPublicArticle(int articleId)
         {
+            List<PublicComment> comments = new List<PublicComment>();
+
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("SELECT CanShare FROM News_Users WHERE Id = @Id", con);
-                cmd.Parameters.AddWithValue("@Id", userId);
-                return (bool)cmd.ExecuteScalar();
+                SqlCommand cmd = new SqlCommand(@"
+    SELECT c.*, u.name AS username
+    FROM News_PublicComments c
+    JOIN News_Users u ON c.userId = u.id
+    WHERE c.publicArticleId = @ArticleId
+    ORDER BY c.createdAt ASC", con);
+
+
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+
+                SqlDataReader reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    PublicComment c = new PublicComment
+                    {
+                        Id = (int)reader["id"],
+                        PublicArticleId = (int)reader["publicArticleId"],
+                        UserId = (int)reader["userId"],
+                        Comment = reader["comment"].ToString(),
+                        CreatedAt = (DateTime)reader["createdAt"],
+                        Username = reader["username"].ToString()
+                    };
+                    comments.Add(c);
+                }
             }
+
+            return comments;
         }
 
-
-        // 🟢 שליפת תגובות
         public List<Comment> GetCommentsForArticle(int articleId)
         {
             List<Comment> list = new List<Comment>();
@@ -980,9 +1058,6 @@ ORDER BY Priority, publishedAt DESC
             cmd.ExecuteNonQuery();
         }
 
-
-
-
         public void RemoveThreadLike(int userId, int publicArticleId)
         {
             using var con = connect();
@@ -1061,9 +1136,6 @@ ORDER BY Priority, publishedAt DESC
                 return count > 0;
             }
         }
-
-
-
 
         public void ToggleCommentLike(int userId, int commentId)
         {
@@ -1146,8 +1218,6 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
-
-
         public List<SharedArticle> GetArticlesSharedWithUser(int userId)
         {
             List<SharedArticle> sharedArticles = new List<SharedArticle>();
@@ -1185,7 +1255,6 @@ ORDER BY Priority, publishedAt DESC
 
             return sharedArticles;
         }
-
 
         public void ShareArticlePublic(int userId, int articleId, string comment)
         {
@@ -1228,8 +1297,6 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
-
-
         public List<string> GetTagsForSharedArticle(int sharedArticleId)
         {
             List<string> tags = new List<string>();
@@ -1253,38 +1320,6 @@ ORDER BY Priority, publishedAt DESC
             }
             return tags;
         }
-
-
-        public Article GetArticleById(int articleId)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("SELECT * FROM News_Articles WHERE Id = @Id", con);
-                cmd.Parameters.AddWithValue("@Id", articleId);
-
-                using (SqlDataReader reader = cmd.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        return new Article
-                        {
-                            Id = (int)reader["Id"],
-                            Title = reader["Title"].ToString(),
-                            Description = reader["Description"].ToString(),
-                            Content = reader["Content"].ToString(),
-                            Author = reader["Author"].ToString(),
-                            SourceUrl = reader["url"].ToString(), // ← שים לב לשינוי כאן
-                            ImageUrl = reader["imageUrl"].ToString(),
-                            PublishedAt = Convert.ToDateTime(reader["PublishedAt"]),
-                            Tags = new List<string>() // ייטענו בנפרד אם צריך
-                        };
-                    }
-                }
-            }
-
-            return null;
-        }
-
 
         public List<SharedArticle> GetSharedArticlesForUser(int userId)
         {
@@ -1415,56 +1450,6 @@ ORDER BY Priority, publishedAt DESC
             return list;
         }
 
-
-        public void AddPublicComment(int publicArticleId, int userId, string comment)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@Comment", comment);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public List<PublicComment> GetCommentsForPublicArticle(int articleId)
-        {
-            List<PublicComment> comments = new List<PublicComment>();
-
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand(@"
-    SELECT c.*, u.name AS username
-    FROM News_PublicComments c
-    JOIN News_Users u ON c.userId = u.id
-    WHERE c.publicArticleId = @ArticleId
-    ORDER BY c.createdAt ASC", con);
-
-
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    PublicComment c = new PublicComment
-                    {
-                        Id = (int)reader["id"],
-                        PublicArticleId = (int)reader["publicArticleId"],
-                        UserId = (int)reader["userId"],
-                        Comment = reader["comment"].ToString(),
-                        CreatedAt = (DateTime)reader["createdAt"],
-                        Username = reader["username"].ToString()
-                    };
-                    comments.Add(c);
-                }
-            }
-
-            return comments;
-        }
 
 
         // ============================================
@@ -1620,27 +1605,27 @@ ORDER BY Priority, publishedAt DESC
         }
 
 
-public List<string> GetTagsForPublicArticle(int publicArticleId)
-{
-    List<string> tags = new List<string>();
-
-    using (SqlConnection con = connect())
-    {
-        SqlCommand cmd = new SqlCommand("NewsSP_GetTagsForPublicArticle", con);
-        cmd.CommandType = CommandType.StoredProcedure;
-        cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
-
-        using (SqlDataReader rdr = cmd.ExecuteReader())
+        public List<string> GetTagsForPublicArticle(int publicArticleId)
         {
-            while (rdr.Read())
-            {
-                tags.Add(rdr["Name"].ToString());
-            }
-        }
-    }
+            List<string> tags = new List<string>();
 
-    return tags;
-}
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetTagsForPublicArticle", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
+
+                using (SqlDataReader rdr = cmd.ExecuteReader())
+                {
+                    while (rdr.Read())
+                    {
+                        tags.Add(rdr["Name"].ToString());
+                    }
+                }
+            }
+
+            return tags;
+        }
 
 
         private void EnsurePublicArticleTagsExist(int publicArticleId)
@@ -1653,10 +1638,6 @@ public List<string> GetTagsForPublicArticle(int publicArticleId)
                 cmd.ExecuteNonQuery();
             }
         }
-
-
-
-
 
         public List<string> GetTagsForArticle(int articleId)
         {
@@ -1715,19 +1696,6 @@ public List<string> GetTagsForPublicArticle(int publicArticleId)
             return interestedUsers;
         }
 
-        // ============================================
-        // =============== NOTFICATIOND ====================
-        // ============================================
-        public bool ToggleUserNotifications(int userId, bool enable)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("UPDATE News_Users SET ReceiveNotifications = @val WHERE id = @id", con);
-                cmd.Parameters.AddWithValue("@val", enable);
-                cmd.Parameters.AddWithValue("@id", userId);
-                return cmd.ExecuteNonQuery() > 0;
-            }
-        }
 
         // ============================================
         // =============== REPORTS ====================
@@ -1748,70 +1716,6 @@ public List<string> GetTagsForPublicArticle(int publicArticleId)
                 cmd.ExecuteNonQuery();
             }
         }
-
-
-        // ============================================
-        // ============== STATISTICS ==================
-        // ============================================
-        public SiteStatistics GetSiteStatistics()
-        {
-            var stats = new SiteStatistics();
-
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd;
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Users", con);
-                stats.TotalUsers = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Articles", con);
-                stats.TotalArticles = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM News_SavedArticles", con);
-                stats.TotalSaved = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Logins WHERE CAST(LoginTime AS DATE) = CAST(GETDATE() AS DATE)", con);
-                stats.TodayLogins = (int)cmd.ExecuteScalar();
-
-                cmd = new SqlCommand("SELECT COUNT(*) FROM News_ArticleFetchLog WHERE CAST(FetchTime AS DATE) = CAST(GETDATE() AS DATE)", con);
-                stats.TodayFetches = (int)cmd.ExecuteScalar();
-            }
-
-            return stats;
-        }
-
-        public object GetLikesStats()
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetLikesStats", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                SqlDataReader reader = cmd.ExecuteReader();
-
-                int articleLikes = 0;
-                int articleLikesToday = 0;
-                int threadLikes = 0;
-                int threadLikesToday = 0;
-
-                if (reader.Read())
-                {
-                    articleLikes = Convert.ToInt32(reader["ArticleLikes"]);
-                    articleLikesToday = Convert.ToInt32(reader["ArticleLikesToday"]);
-                    threadLikes = Convert.ToInt32(reader["ThreadLikes"]);
-                    threadLikesToday = Convert.ToInt32(reader["ThreadLikesToday"]);
-                }
-
-                return new
-                {
-                    articleLikes,
-                    articleLikesToday,
-                    threadLikes,
-                    threadLikesToday
-                };
-            }
-        }
-
 
         public List<ReportedArticleDTO> GetReportedArticles()
         {
@@ -1889,29 +1793,66 @@ public List<string> GetTagsForPublicArticle(int publicArticleId)
         }
 
 
-
-
-        public class ReportedArticleDTO
+        // ============================================
+        // ============== STATISTICS ==================
+        // ============================================
+        public SiteStatistics GetSiteStatistics()
         {
-            public string ReporterName { get; set; }
-            public string TargetName { get; set; }
-            public string ArticleTitle { get; set; }
-            public string Reason { get; set; }
-            public DateTime ReportedAt { get; set; }
+            var stats = new SiteStatistics();
+
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd;
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Users", con);
+                stats.TotalUsers = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Articles", con);
+                stats.TotalArticles = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_SavedArticles", con);
+                stats.TotalSaved = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_Logins WHERE CAST(LoginTime AS DATE) = CAST(GETDATE() AS DATE)", con);
+                stats.TodayLogins = (int)cmd.ExecuteScalar();
+
+                cmd = new SqlCommand("SELECT COUNT(*) FROM News_ArticleFetchLog WHERE CAST(FetchTime AS DATE) = CAST(GETDATE() AS DATE)", con);
+                stats.TodayFetches = (int)cmd.ExecuteScalar();
+            }
+
+            return stats;
         }
 
-        public class ReportedCommentDTO
+        public object GetLikesStats()
         {
-            public string ReporterName { get; set; }
-            public string TargetName { get; set; }
-            public string CommentText { get; set; }
-            public string Reason { get; set; }
-            public DateTime ReportedAt { get; set; }
-        }
-        public class UserBlockRequest
-        {
-            public int BlockerUserId { get; set; }
-            public int BlockedUserId { get; set; }
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetLikesStats", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                int articleLikes = 0;
+                int articleLikesToday = 0;
+                int threadLikes = 0;
+                int threadLikesToday = 0;
+
+                if (reader.Read())
+                {
+                    articleLikes = Convert.ToInt32(reader["ArticleLikes"]);
+                    articleLikesToday = Convert.ToInt32(reader["ArticleLikesToday"]);
+                    threadLikes = Convert.ToInt32(reader["ThreadLikes"]);
+                    threadLikesToday = Convert.ToInt32(reader["ThreadLikesToday"]);
+                }
+
+                return new
+                {
+                    articleLikes,
+                    articleLikesToday,
+                    threadLikes,
+                    threadLikesToday
+                };
+            }
         }
 
     }
