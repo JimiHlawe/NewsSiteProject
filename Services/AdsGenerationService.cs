@@ -25,11 +25,9 @@ namespace NewsSite.Services
             _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
-        public async Task<AdResult> GenerateAdWithImageAsync(string category)
+        // ✅ Sends a request to OpenAI's chat API and returns the response content as string
+        private async Task<string?> SendChatRequestAsync(string prompt)
         {
-            string prompt = $"Write a short and engaging ad about: {category}";
-
-            // 🧠 שליחת בקשה טקסטואלית ל־GPT
             var chatRequest = new
             {
                 model = "gpt-4",
@@ -45,28 +43,17 @@ namespace NewsSite.Services
             var chatResponse = await _httpClient.SendAsync(chatHttpReq);
             var chatContent = await chatResponse.Content.ReadAsStringAsync();
 
-            Console.WriteLine("📥 GPT Response: " + chatContent);
-
             if (!chatResponse.IsSuccessStatusCode)
             {
-                Console.WriteLine("❌ Failed to generate ad text.");
                 return null;
             }
 
-            var chatJson = JsonDocument.Parse(chatContent);
-            string adText = chatJson.RootElement
-                                    .GetProperty("choices")[0]
-                                    .GetProperty("message")
-                                    .GetProperty("content")
-                                    .GetString();
+            return chatContent;
+        }
 
-            // 🖼 יצירת תמונה תואמת לפרסומת
-            string imagePrompt = $@"
-Create a realistic, modern advertisement image for the following product or service: {category}.
-Avoid text in the image. Focus on photography-style composition, clean commercial lighting, product-focused visual, minimalistic background.
-Style: high-resolution professional marketing photo or rendered product shot for a real advertisement campaign.";
-
-
+        // ✅ Sends a request to OpenAI's image API and returns the image URL
+        private async Task<string> SendImageRequestAsync(string imagePrompt)
+        {
             var imageRequest = new
             {
                 prompt = imagePrompt,
@@ -81,21 +68,54 @@ Style: high-resolution professional marketing photo or rendered product shot for
             var imageResponse = await _httpClient.SendAsync(imageHttpReq);
             var imageContent = await imageResponse.Content.ReadAsStringAsync();
 
-
             if (!imageResponse.IsSuccessStatusCode)
             {
-                return new AdResult { Text = adText?.Trim(), ImageUrl = "/images/news-placeholder.png" };
+                return "/images/news-placeholder.png";
             }
 
             var imageJson = JsonDocument.Parse(imageContent);
-            string imageUrl = imageJson.RootElement
-                                       .GetProperty("data")[0]
-                                       .GetProperty("url")
-                                       .GetString();
+            if (imageJson.RootElement.TryGetProperty("data", out JsonElement dataArray) &&
+                dataArray.GetArrayLength() > 0 &&
+                dataArray[0].TryGetProperty("url", out JsonElement urlElement))
+            {
+                return urlElement.GetString() ?? "/images/news-placeholder.png";
+            }
+
+            return "/images/news-placeholder.png";
+        }
+
+        // ✅ Generates a short ad text and a matching image for a given category
+        public async Task<AdResult?> GenerateAdWithImageAsync(string category)
+        {
+            string prompt = $"Write a short and engaging ad about: {category}";
+
+            string? chatContent = await SendChatRequestAsync(prompt);
+            if (string.IsNullOrWhiteSpace(chatContent))
+            {
+                return null;
+            }
+
+            var chatJson = JsonDocument.Parse(chatContent);
+
+            string adText = "";
+            if (chatJson.RootElement.TryGetProperty("choices", out JsonElement choicesArray) &&
+                choicesArray.GetArrayLength() > 0 &&
+                choicesArray[0].TryGetProperty("message", out JsonElement messageElement) &&
+                messageElement.TryGetProperty("content", out JsonElement contentElement))
+            {
+                adText = contentElement.GetString()?.Trim() ?? "";
+            }
+
+            string imagePrompt = $@"
+                Create a realistic, modern advertisement image for the following product or service: {category}.
+                Avoid text in the image. Focus on photography-style composition, clean commercial lighting, product-focused visual, minimalistic background.
+                Style: high-resolution professional marketing photo or rendered product shot for a real advertisement campaign.";
+
+            string imageUrl = await SendImageRequestAsync(imagePrompt);
 
             return new AdResult
             {
-                Text = adText?.Trim(),
+                Text = adText,
                 ImageUrl = imageUrl
             };
         }

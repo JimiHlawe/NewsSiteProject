@@ -2,12 +2,9 @@
 {
     public class SharedArticle : Article
     {
-        // שדות קיימים
         private string comment = "";
         private DateTime sharedAt;
         private string senderName = "";
-
-        // ✅ שדה תגיות
         public List<string> Tags { get; set; } = new List<string>();
 
         public SharedArticle() { }
@@ -24,7 +21,7 @@
             this.senderName = senderName;
             this.SharedId = sharedId;
 
-            this.Tags = tags; // ← להשלמה גם כאן
+            this.Tags = tags; 
         }
 
         public string Comment { get => comment; set => comment = value; }

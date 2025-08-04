@@ -69,7 +69,7 @@ namespace NewsSite1.Controllers
             try
             {
                 var reports = db.GetAllReports();
-                return Ok(reports ?? new List<ReportEntry>());
+                return Ok(reports ?? new List<ReportEntryDTO>());
             }
             catch (Exception ex)
             {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using NewsSite1.Models;
 using System;
 using System.Linq;
-using NewsSite.Services;
+using NewsSite.Models;
 
 namespace NewsSite1.Services
 {
@@ -19,6 +19,7 @@ namespace NewsSite1.Services
             _httpClient = new HttpClient();
         }
 
+        // ✅ Fetches top US news headlines and maps them to internal Article model
         public async Task<List<Article>> GetTopHeadlinesAsync()
         {
             try
@@ -31,7 +32,7 @@ namespace NewsSite1.Services
                 var response = await _httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
 
-                var news = await response.Content.ReadFromJsonAsync<NewsApiModels>();
+                var news = await response.Content.ReadFromJsonAsync<NewsApi>();
 
                 return news?.Articles.Select(a => new Article
                 {
@@ -46,10 +47,8 @@ namespace NewsSite1.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine("News API ERROR: " + ex.Message);
                 throw new Exception("NewsAPI call failed: " + ex.Message);
             }
         }
-
     }
 }

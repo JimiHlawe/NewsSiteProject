@@ -112,7 +112,7 @@ function renderVisibleArticles() {
                     </button>
                 </div>`;
 
-            updateLikeCount(article.id);
+            updateArticleLikeCount(article.id);
         }
 
         html += `</div>`; // Close article-content
@@ -219,79 +219,68 @@ function closeSaveModal() {
 }
 
 
-// Submit the share request based on selected type
+// ✅ Submits the share request to the server
+// ✅ Sends private/public article share using usernames (only public doesn't need username)
 function submitShare(articleId) {
-    const user = getLoggedUser();
-    const shareType = document.getElementById('shareType').value;
-    const comment = document.getElementById('shareComment').value.trim();
+    const shareType = document.getElementById("shareType").value;
+    const comment = document.getElementById("shareComment").value || "";
+    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    if (!user?.name || !user?.id) {
-        alert("Please log in.");
+    if (!loggedUser) {
+        alert("You must be logged in to share articles.");
         return;
     }
 
-    const canShare = sessionStorage.getItem("canShare") === "true";
-    if (!canShare) {
-        alert("🚫 Your sharing ability is blocked!");
-        return;
-    }
-
-    if (shareType === "public" && comment === "") {
-        alert("🚫 You must enter a comment when sharing to Threads!");
-        return;
-    }
-
-    if (shareType === "private") {
-        const toUsername = document.getElementById('targetUser').value.trim();
-        if (!toUsername) {
-            alert("Please enter a username.");
-            return;
-        }
-        if (toUsername.toLowerCase() === user.name.toLowerCase()) {
-            alert("🚫 You cannot share an article with yourself.");
-            return;
-        }
-
-        fetch("/api/Articles/Share", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                senderUsername: user.name,
-                toUsername,
-                articleId,
-                comment
-            })
-        })
-            .then(res => {
-                if (res.ok) {
-                    closeShareModal();
-                    showShareSuccessModal();
-                } else {
-                    alert("❌ Error sharing.");
-                }
-            })
-            .catch(() => alert("❌ Error."));
-    } else {
+    if (shareType === "public") {
+        // ✅ Public Share
         fetch("/api/Articles/SharePublic", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                userId: user.id,
-                articleId,
-                comment
+                userId: loggedUser.id,
+                articleId: articleId,
+                comment: comment
             })
         })
             .then(res => {
-                if (res.ok) {
-                    closeShareModal();
-                    showShareSuccessModal();
-                } else {
-                    alert("❌ Error.");
-                }
+                if (!res.ok) throw new Error("Failed to share publicly");
+                alert("✅ Article shared publicly to threads!");
+                closeShareModal();
             })
-            .catch(() => alert("❌ Error."));
+            .catch(err => {
+                console.error(err);
+                alert("❌ Error sharing publicly: " + err.message);
+            });
+    } else {
+        // ✅ Private Share
+        const targetUsername = document.getElementById("targetUser").value.trim();
+        if (!targetUsername) {
+            alert("Please enter a target username.");
+            return;
+        }
+
+        fetch("/api/Articles/ShareByUsernames", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                senderUsername: loggedUser.name,
+                toUsername: targetUsername,
+                articleId: articleId,
+                comment: comment
+            })
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to share privately");
+                alert(`✅ Article shared privately with ${targetUsername}!`);
+                closeShareModal();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("❌ Error sharing privately: " + err.message);
+            });
     }
 }
+
 
 // Close the share modal
 function closeShareModal() {
@@ -383,11 +372,16 @@ function loadComments(articleId, isModal = false) {
     const container = document.getElementById(targetId);
     if (!container) return;
 
+    const user = getLoggedUser();
+
     fetch(`/api/Comments/Get/${articleId}`)
         .then(res => res.json())
         .then(comments => {
             container.innerHTML = "";
+
             comments.forEach(c => {
+                const isOwner = user && user.id === c.userId;
+
                 container.innerHTML += `
                     <div class="border rounded p-2 mb-1">
                         <strong>${c.username}</strong>: ${c.commentText}
@@ -395,12 +389,16 @@ function loadComments(articleId, isModal = false) {
                             ❤️
                         </button>
                         <span id="like-count-${c.id}" class="ms-1">0</span>
-                        <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>🚩</button>
+                        ${!isOwner
+                        ? `<button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id})'>🚩</button>`
+                        : ''}
                     </div>`;
+
                 updateLikeCount(c.id);
             });
         });
 }
+
 
 // Open the comments modal for an article
 function openCommentsModal(articleId) {
@@ -571,14 +569,18 @@ function toggleLike(articleId) {
         });
 }
 
-// Update the like count display for an article
+// ✅ Listen to real-time like count for an article
 function updateArticleLikeCount(articleId) {
-    fetch(`/api/Likes/Count/${articleId}`)
-        .then(res => res.json())
-        .then(count => {
-            document.getElementById(`like-count-${articleId}`).innerText = `${count}`;
-        });
+    const likeRef = firebase.database().ref(`likes/article_${articleId}`);
+    likeRef.on("value", (snapshot) => {
+        const count = snapshot.val();
+        const element = document.getElementById(`like-count-${articleId}`);
+        if (element && count !== null) {
+            element.innerText = count;
+        }
+    });
 }
+
 
 
 // Initialize the carousel slides and indicators
@@ -775,6 +777,38 @@ function filterArticles() {
     isSearchActive = true;
     filteredPage = 1;
     renderVisibleArticles();
+}
+
+function toggleShare(articleId) {
+    const modalHtml = `
+        <div class="save-modal-overlay" id="shareModalOverlay">
+            <div class="save-modal">
+                <h2 class="save-modal-title">📤 Share Article</h2>
+                <select id="shareType" class="form-control mb-2" onchange="toggleShareType()">
+                    <option value="private">Private Share</option>
+                    <option value="public">Public Thread</option>
+                </select>
+                <input type="text" id="targetUser" placeholder="Target username (for private share)" class="form-control mb-2">
+                <textarea id="shareComment" placeholder="Add a comment..." class="form-control mb-2"></textarea>
+                <div class="modal-buttons">
+                    <button class="btn btn-secondary" onclick="closeShareModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitShare(${articleId})">Share</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML("beforeend", modalHtml);
+    setTimeout(() => {
+        document.getElementById("shareModalOverlay").classList.add("show");
+        toggleShareType(); // ← מיד עם פתיחת המודל
+    }, 50);
+}
+
+// ✅ Shows/hides the target user field based on selected share type
+function toggleShareType() {
+    const shareType = document.getElementById("shareType").value;
+    const targetUser = document.getElementById("targetUser");
+    targetUser.style.display = shareType === "private" ? "block" : "none";
 }
 
 

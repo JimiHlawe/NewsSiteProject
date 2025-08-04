@@ -16,6 +16,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DBServices>();
 builder.Services.AddSingleton<ImageGenerationService>();
 builder.Services.AddSingleton<AdsGenerationService>();
+builder.Services.AddSingleton<FirebaseRealtimeService>();
+
 
 
 builder.Services.AddSingleton<NewsApiService>();

@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ✅ Render shared articles in card layout
+// ✅ Render shared articles in card layout
 function renderSharedArticles(articles) {
     var container = document.getElementById("sharedContainer");
     container.innerHTML = "";
@@ -95,13 +96,17 @@ function renderSharedArticles(articles) {
                     <span class='shared-author'>${article.author || 'Unknown'}</span>
                     ${dateHtml}
                 </div>
-                <button class='btn btn-danger btn-sm remove-btn'>Remove</button>
+                <button class='btn btn-danger btn-sm remove-btn' data-shared-id='${article.sharedId}'>Remove</button>
             </div>
         `;
 
-        articleCard.querySelector(".remove-btn").addEventListener("click", function (event) {
+        // ✅ Attach remove event using data attribute and closest card
+        const removeBtn = articleCard.querySelector(".remove-btn");
+        removeBtn.addEventListener("click", function (event) {
             event.stopPropagation();
-            removeSharedArticle(article.sharedId, articleCard);
+            const sharedId = this.getAttribute("data-shared-id");
+            const cardElement = this.closest(".shared-article-card");
+            removeSharedArticle(sharedId, cardElement);
         });
 
         articleCard.addEventListener("click", function () {
@@ -135,6 +140,7 @@ function removeSharedArticle(sharedId, cardElement) {
             alert("❌ Failed to remove shared article");
         });
 }
+
 
 // ✅ Mark all shared articles as read for this user
 function markAllSharedAsRead(userId) {

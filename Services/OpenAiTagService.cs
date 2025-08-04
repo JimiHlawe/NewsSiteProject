@@ -24,18 +24,19 @@ namespace NewsSite1.Services
             _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
+        // ✅ Sends the article to OpenAI and extracts relevant tags from the allowed list
         public async Task<List<string>> DetectTagsAsync(string title, string content)
         {
             string prompt = $@"
-From the following list of allowed tags, choose all that are relevant to this article. 
-Do not invent new tags. Only use tags from this list:
-{string.Join(", ", AllowedTags)}
+            From the following list of allowed tags, choose all that are relevant to this article. 
+            Do not invent new tags. Only use tags from this list:
+            {string.Join(", ", AllowedTags)}
 
----
-Title: {title}
-Content: {content}
+            ---
+            Title: {title}
+            Content: {content}
 
-Tags (comma-separated):";
+            Tags (comma-separated):";
 
             var requestBody = new
             {
@@ -49,7 +50,7 @@ Tags (comma-separated):";
 
             var requestJson = JsonSerializer.Serialize(requestBody);
             var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
-            request.Headers.Add("Authorization", $"Bearer {_openAiApiKey}"); // ← תוקן כאן
+            request.Headers.Add("Authorization", $"Bearer {_openAiApiKey}");
             request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             var response = await _httpClient.SendAsync(request);
@@ -69,11 +70,15 @@ Tags (comma-separated):";
             using var contentStream = await response.Content.ReadAsStreamAsync();
             using var doc = await JsonDocument.ParseAsync(contentStream);
 
-            var tagsText = doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
+            string tagsText = "";
+
+            if (doc.RootElement.TryGetProperty("choices", out JsonElement choicesArray) &&
+                choicesArray.GetArrayLength() > 0 &&
+                choicesArray[0].TryGetProperty("message", out JsonElement messageElement) &&
+                messageElement.TryGetProperty("content", out JsonElement contentElement))
+            {
+                tagsText = contentElement.GetString() ?? "";
+            }
 
             var resultTags = tagsText.Split(',')
                                      .Select(t => t.Trim().ToLower())

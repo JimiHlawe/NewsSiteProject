@@ -3,7 +3,8 @@ using NewsSite1.DAL;
 using NewsSite1.Models;
 using NewsSite1.Models.DTOs.Requests;
 using NewsSite1.Models.DTOs;
-
+using NewsSite1.Services; // ✅ הוספת namespace של FirebaseRealtimeService
+using System.Threading.Tasks;
 
 namespace NewsSite1.Controllers
 {
@@ -12,25 +13,35 @@ namespace NewsSite1.Controllers
     public class LikesController : ControllerBase
     {
         private readonly DBServices _db;
+        private readonly FirebaseRealtimeService _firebase;
 
-        public LikesController(DBServices db)
+        public LikesController(DBServices db, FirebaseRealtimeService firebase)
         {
             _db = db;
+            _firebase = firebase;
         }
 
-        // ✅ Adds like to an article
+        // ✅ Adds like to an article and updates Firebase
         [HttpPost("Like")]
-        public IActionResult Like([FromBody] LikeRequest req)
+        public async Task<IActionResult> Like([FromBody] LikeRequest req)
         {
             _db.AddLike(req.UserId, req.ArticleId);
+
+            int newCount = _db.GetLikesCount(req.ArticleId);
+            await _firebase.UpdateLikeCount(req.ArticleId, newCount);
+
             return Ok();
         }
 
-        // ✅ Removes like from an article
+        // ✅ Removes like from an article and updates Firebase
         [HttpPost("Unlike")]
-        public IActionResult Unlike([FromBody] LikeRequest req)
+        public async Task<IActionResult> Unlike([FromBody] LikeRequest req)
         {
             _db.RemoveLike(req.UserId, req.ArticleId);
+
+            int newCount = _db.GetLikesCount(req.ArticleId);
+            await _firebase.UpdateLikeCount(req.ArticleId, newCount);
+
             return Ok();
         }
 
@@ -42,13 +53,18 @@ namespace NewsSite1.Controllers
             return Ok(count);
         }
 
-        // ✅ Toggles like on a public thread article
+        // ✅ Toggles like on a public thread article and updates Firebase
         [HttpPost("ToggleThreadLike")]
-        public IActionResult ToggleThreadLike([FromBody] LikeThreadRequest req)
+        public async Task<IActionResult> ToggleThreadLike([FromBody] LikeThreadRequest req)
         {
             bool liked = _db.ToggleThreadLike(req.UserId, req.PublicArticleId);
+
+            int newCount = _db.GetThreadLikeCount(req.PublicArticleId);
+            await _firebase.UpdateLikeCount(req.PublicArticleId, newCount);
+
             return Ok(new { liked });
         }
+
 
         // ✅ Checks if user liked a public thread article
         [HttpGet("Check/{userId}/{articleId}")]
@@ -58,7 +74,7 @@ namespace NewsSite1.Controllers
             return Ok(liked);
         }
 
-        // ✅ Toggle like for a public comment
+        // ✅ Toggle like for a public comment (no Firebase sync needed here)
         [HttpPost("TogglePublicCommentLike")]
         public IActionResult TogglePublicCommentLike([FromBody] PublicCommentLikeRequest req)
         {
@@ -74,7 +90,7 @@ namespace NewsSite1.Controllers
             return Ok(count);
         }
 
-
+        // ✅ Gets like count for a public thread article
         [HttpGet("ThreadLikeCount/{publicArticleId}")]
         public IActionResult GetThreadLikeCount(int publicArticleId)
         {
@@ -88,6 +104,5 @@ namespace NewsSite1.Controllers
         {
             throw new Exception("Simulated failure from LikesController");
         }
-
     }
 }

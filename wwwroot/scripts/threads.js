@@ -42,11 +42,13 @@ function renderVisibleThreads() {
     visibleThreads.forEach(article => {
         const card = createThreadCard(article);
         container.appendChild(card);
+        loadThreadLikeCount(article.publicArticleId);
         loadComments(article.publicArticleId);
     });
 
     toggleLoadMoreThreadsButton();
 }
+
 
 // ✅ Load more threads (increment current page)
 function loadMoreThreads() {
@@ -119,7 +121,7 @@ function createThreadCard(article) {
                 <button class='btn btn-sm btn-info comment-btn' id="like-thread-btn-${id}">
                 <img src="../pictures/like.png" alt="Like" class="share-icon">
                 </button>
-                <span id="like-thread-count-${id}" class="ms-2">0</span>
+                <span id="like-thread-count-${id}" class="ms-2" style="opacity: 10.5;">0</span>
                 <button class='btn btn-sm btn-info comment-btn' onclick="showCommentsModal(${id}); event.stopPropagation();">
                     <img src="../pictures/comment1.png" alt="Comment" class="share-icon">
                 </button>
@@ -225,6 +227,8 @@ function showCommentsModal(articleId) {
 
 // ✅ Load comments for modal view
 function loadCommentsForModal(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+
     fetch("/api/Comments/Public/" + articleId)
         .then(res => res.json())
         .then(comments => {
@@ -232,19 +236,24 @@ function loadCommentsForModal(articleId) {
             container.innerHTML = "";
 
             comments.forEach(c => {
+                const isOwner = user && user.id === c.userId;
+
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'border rounded p-2 mb-1';
                 commentDiv.innerHTML = `
                     <strong>${c.username}</strong>: ${c.comment}
                     <button onclick="togglePublicCommentLike(${c.id})">❤️</button>
                     <span id="public-like-count-${c.id}">0</span>
-                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
+                    ${!isOwner
+                        ? `<button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>`
+                        : ""}
                 `;
                 container.appendChild(commentDiv);
                 updatePublicLikeCount(c.id);
             });
         });
 }
+
 
 // ✅ Send a comment from modal
 function sendCommentFromModal(articleId) {
@@ -353,6 +362,8 @@ function sendComment(articleId) {
 
 // ✅ Load comments into the article card
 function loadComments(articleId) {
+    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+
     fetch("/api/Comments/Public/" + articleId)
         .then(res => res.json())
         .then(comments => {
@@ -360,11 +371,15 @@ function loadComments(articleId) {
             container.innerHTML = "";
 
             comments.forEach(c => {
+                const isOwner = user && user.id === c.userId;
+
                 const commentDiv = document.createElement('div');
                 commentDiv.className = 'border rounded p-2 mb-1';
                 commentDiv.innerHTML = `
                     <strong>${c.username}</strong>: ${c.comment}
-                    <button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>
+                    ${!isOwner
+                        ? `<button class='btn btn-sm btn-warning ms-2' onclick='reportComment(${c.id}); event.stopPropagation();'>Report</button>`
+                        : ""}
                 `;
                 commentDiv.addEventListener('click', function (event) {
                     event.stopPropagation();
@@ -374,11 +389,18 @@ function loadComments(articleId) {
         });
 }
 
+
 // ✅ Block a user by their name
 function blockUser(senderName) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     if (!user?.id) {
         alert("Please login first.");
+        return;
+    }
+
+    // 🔒 Prevent blocking self
+    if (senderName === user.name) {
+        alert("❌ You cannot block yourself.");
         return;
     }
 
@@ -397,19 +419,22 @@ function blockUser(senderName) {
         .catch(() => alert("Error"));
 }
 
-// ✅ Load and update the like count and button status
+
+// ✅ Listen to real-time thread like count from Firebase
 function loadThreadLikeCount(articleId) {
+    const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
+    if (!likeCountSpan) return;
+
+    const ref = firebase.database().ref(`likes/article_${articleId}`);
+    ref.on("value", (snapshot) => {
+        const count = snapshot.val();
+        if (count !== null) {
+            likeCountSpan.textContent = `${count}`;
+        }
+    });
+
+    // ✅ Check if user liked the thread (as before)
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-
-    fetch(`/api/Likes/ThreadLikeCount/${articleId}`)
-        .then(res => res.json())
-        .then(count => {
-            const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
-            if (likeCountSpan) {
-                likeCountSpan.textContent = `${count}`;
-            }
-        });
-
     if (user?.id) {
         fetch(`/api/Likes/Check/${articleId}/${user.id}`)
             .then(res => res.json())
@@ -421,6 +446,7 @@ function loadThreadLikeCount(articleId) {
             });
     }
 }
+
 
 // ✅ Toggle like/unlike for a thread
 function toggleThreadLike(article) {

@@ -11,8 +11,10 @@
     <link href="../css/navbar.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
-    <!-- Navbar Script -->
+    <!-- Navbar and Firebase Scripts -->
     <script type="module" src="../scripts/navbar.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -57,7 +59,7 @@
                 <!-- Notification Toggle -->
                 <div id="notification-toggle">
                     <label>
-                        <input type="checkbox" id="notification-checkbox" onchange="toggleNotifications()" />
+                        <input type="checkbox" id="notificationToggle" onchange="toggleNotifications()" />
                         <span class="checkmark"></span>
                         Enable News Notifications
                     </label>

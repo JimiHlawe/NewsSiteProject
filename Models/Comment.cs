@@ -2,11 +2,30 @@
 {
     public class Comment
     {
-        public int Id { get; set; }
-        public int ArticleId { get; set; }
-        public int UserId { get; set; }
-        public string CommentText { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string Username { get; set; }
+        private int id;
+        private int articleId;
+        private int userId;
+        private string commentText;
+        private DateTime createdAt;
+        private string username;
+
+        public Comment() { }
+
+        public Comment(int id, int articleId, int userId, string commentText, DateTime createdAt, string username)
+        {
+            this.id = id;
+            this.articleId = articleId;
+            this.userId = userId;
+            this.commentText = commentText;
+            this.createdAt = createdAt;
+            this.username = username;
+        }
+
+        public int Id { get => id; set => id = value; }
+        public int ArticleId { get => articleId; set => articleId = value; }
+        public int UserId { get => userId; set => userId = value; }
+        public string CommentText { get => commentText; set => commentText = value; }
+        public DateTime CreatedAt { get => createdAt; set => createdAt = value; }
+        public string Username { get => username; set => username = value; }
     }
 }

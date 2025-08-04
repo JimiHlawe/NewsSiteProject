@@ -1,12 +1,12 @@
-﻿namespace NewsSite.Services
+﻿namespace NewsSite.Models
 {
-    public class NewsApiModels
+    public class NewsApi
     {
         private List<NewsApiArticle> articles = new List<NewsApiArticle>();
 
-        public NewsApiModels() { }
+        public NewsApi() { }
 
-        public NewsApiModels(List<NewsApiArticle> articles)
+        public NewsApi(List<NewsApiArticle> articles)
         {
             this.articles = articles;
         }

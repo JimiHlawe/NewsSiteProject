@@ -2,6 +2,7 @@
 using NewsSite.Services;
 using NewsSite1.DAL;
 using NewsSite1.Models;
+using NewsSite1.Models.DTOs.Requests;
 using NewsSite1.Services;
 using System.Threading.Tasks;
 
@@ -14,13 +15,22 @@ namespace NewsSite1.Controllers
         private readonly DBServices _db;
         private readonly NewsApiService _newsApiService;
         private readonly ImageGenerationService _openAiService;
+        private readonly FirebaseRealtimeService _firebase;
 
-        public ArticlesController(DBServices db, NewsApiService newsApiService, ImageGenerationService openAiService)
+
+        public ArticlesController(
+            DBServices db,
+            NewsApiService newsApiService,
+            ImageGenerationService openAiService,
+            FirebaseRealtimeService firebase 
+        )
         {
             _db = db;
             _newsApiService = newsApiService;
             _openAiService = openAiService;
+            _firebase = firebase; 
         }
+
 
         // ✅ Gets articles with tags and supports pagination
         [HttpGet("WithTags")]
@@ -143,45 +153,54 @@ namespace NewsSite1.Controllers
             }
         }
 
-        // ✅ Fixes missing images using OpenAI image generation
-        [HttpPost("FixMissingImages")]
-        public async Task<IActionResult> FixMissingImages()
+        // ✅ Shares an article privately using usernames and updates Firebase inbox count
+        [HttpPost("ShareByUsernames")]
+        public async Task<IActionResult> ShareByUsernames([FromBody] SharedArticleRequest req)
         {
-            var articles = _db.GetArticlesWithMissingImages();
-            int success = 0, skipped = 0, failed = 0;
-
-            foreach (var article in articles)
+            try
             {
-                try
-                {
-                    string imageUrl = await _openAiService.GenerateImageUrlFromPrompt(article.Title, article.Description);
+                // Perform DB share action
+                _db.ShareArticleByUsernames(req.SenderUsername, req.ToUsername, req.ArticleId, req.Comment);
 
-                    if (!string.IsNullOrEmpty(imageUrl))
-                    {
-                        _db.UpdateArticleImageUrl(article.Id, imageUrl);
-                        success++;
-                    }
-                    else
-                    {
-                        skipped++;
-                    }
+                // Get receiver's ID by username
+                int? targetUserId = _db.GetUserIdByUsername(req.ToUsername);
 
-                    await Task.Delay(12000);
-                }
-                catch
+                // Update inbox count in Firebase
+                if (targetUserId != null)
                 {
-                    failed++;
+                    int newCount = _db.GetUnreadSharedArticlesCount(targetUserId.Value);
+                    await _firebase.UpdateInboxCount(targetUserId.Value, newCount);
                 }
+
+                return Ok(new { message = "✅ Article shared by username and inbox updated." });
             }
-
-            return Ok(new
+            catch (Exception ex)
             {
-                Total = articles.Count,
-                Success = success,
-                SkippedDueToContentPolicy = skipped,
-                Failed = failed
-            });
+                return StatusCode(500, "❌ Error sharing article: " + ex.Message);
+            }
         }
+
+
+
+
+
+        // ✅ Shares an article publicly to Threads
+        [HttpPost("SharePublic")]
+        public IActionResult SharePublicArticle([FromBody] PublicArticleShareRequest req)
+        {
+            try
+            {
+                _db.ShareArticlePublic(req.UserId, req.ArticleId, req.Comment);
+                return Ok(new { message = "Article shared publicly." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error sharing article publicly: " + ex.Message);
+            }
+        }
+
+
+
     }
 }
 

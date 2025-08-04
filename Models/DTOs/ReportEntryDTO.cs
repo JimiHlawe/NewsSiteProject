@@ -1,6 +1,6 @@
 ﻿namespace NewsSite1.Models.DTOs
 {
-    public class ReportEntry
+    public class ReportEntryDTO
     {
         public int Id { get; set; }
         public int ReporterId { get; set; }

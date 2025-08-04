@@ -1035,18 +1035,39 @@ ORDER BY Priority, publishedAt DESC
             }
         }
 
+        // ✅ Returns number of likes for a public thread article and updates Firebase
+        public int GetThreadLikeCount(int publicArticleId)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE PublicArticleId = @id", con);
+            cmd.Parameters.AddWithValue("@id", publicArticleId);
+            int count = (int)cmd.ExecuteScalar();
+
+            // ✅ Update Firebase
+            var firebase = new FirebaseRealtimeService();
+            firebase.UpdateLikeCount(publicArticleId, count).Wait(); // או GetAwaiter().GetResult()
+
+            return count;
+        }
+
+        // ✅ Returns number of likes for a shared article and updates Firebase
         public int GetLikesCount(int articleId)
         {
-            using (SqlConnection con = connect())
+            using var con = connect();
+            using var cmd = new SqlCommand("NewsSP_GetLikesCount", con)
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetLikesCount", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                return (int)cmd.ExecuteScalar();
-            }
+                CommandType = CommandType.StoredProcedure
+            };
+            cmd.Parameters.AddWithValue("@ArticleId", articleId);
+            int count = (int)cmd.ExecuteScalar();
+
+            // ✅ Update Firebase
+            var firebase = new FirebaseRealtimeService();
+            firebase.UpdateLikeCount(articleId, count).Wait(); // או GetAwaiter().GetResult()
+
+            return count;
         }
+
 
         public void AddThreadLike(int userId, int publicArticleId)
         {
@@ -1067,16 +1088,6 @@ ORDER BY Priority, publishedAt DESC
             cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId); // ✅ תואם לשם ב-SP
             cmd.ExecuteNonQuery();
         }
-
-
-        public int GetThreadLikeCount(int publicArticleId)
-        {
-            using var con = connect();
-            using var cmd = new SqlCommand("SELECT COUNT(*) FROM News_ThreadLikes WHERE PublicArticleId = @id", con);
-            cmd.Parameters.AddWithValue("@id", publicArticleId);
-            return (int)cmd.ExecuteScalar();
-        }
-
 
         public bool ToggleThreadLike(int userId, int publicArticleId)
         {
@@ -1763,9 +1774,9 @@ ORDER BY Priority, publishedAt DESC
             return list;
         }
 
-        public List<ReportEntry> GetAllReports()
+        public List<ReportEntryDTO> GetAllReports()
         {
-            List<ReportEntry> list = new List<ReportEntry>();
+            List<ReportEntryDTO> list = new List<ReportEntryDTO>();
             using (SqlConnection con = connect())
             {
                 SqlCommand cmd = new SqlCommand("NewsSP_GetAllReports", con);
@@ -1774,7 +1785,7 @@ ORDER BY Priority, publishedAt DESC
                 SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    ReportEntry r = new ReportEntry
+                    ReportEntryDTO r = new ReportEntryDTO
                     {
                         Id = (int)reader["id"],
                         ReporterId = (int)reader["ReporterId"],

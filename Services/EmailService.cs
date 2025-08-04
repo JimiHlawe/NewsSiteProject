@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Mail;
-using NewsSite1.Services;
 
 namespace NewsSite1.Services
 {
@@ -10,6 +9,8 @@ namespace NewsSite1.Services
         private readonly int smtpPort = 587;
         private readonly string senderEmail = "newspapperproject@gmail.com";
         private readonly string senderPassword = "cgouasarvswsxbns";
+
+        // ✅ Sends an HTML email to a specified recipient
         public void Send(string toEmail, string subject, string body)
         {
             var smtpClient = new SmtpClient(smtpHost)

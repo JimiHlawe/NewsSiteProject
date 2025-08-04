@@ -18,11 +18,12 @@ public class TaggingRunner
     public TaggingRunner(IConfiguration config)
     {
         _tagService = new OpenAiTagService(config);
-        _mailer = new EmailService();       // Email sender
-        _db = new DBServices();             // DB access
+        _mailer = new EmailService();
+        _db = new DBServices();
         _connectionString = config.GetConnectionString("myProjDB");
     }
 
+    // ✅ Main entry point to tag articles and notify interested users
     public async Task RunAsync()
     {
         var articles = GetArticlesFromDb();
@@ -33,8 +34,6 @@ public class TaggingRunner
             {
                 var tags = await _tagService.DetectTagsAsync(article.Title, article.Content);
                 SaveTagsToDb(article.Id, tags);
-
-                // ✅ Send emails to interested users
                 NotifyInterestedUsers(article, tags);
 
                 Console.WriteLine($"✓ Tagged and notified for article ID: {article.Id}");
@@ -49,6 +48,7 @@ public class TaggingRunner
         Console.WriteLine("✓ All articles tagged and notifications sent.");
     }
 
+    // ✅ Retrieves all articles that do not yet have tags
     private List<Article> GetArticlesFromDb()
     {
         var list = new List<Article>();
@@ -80,6 +80,7 @@ public class TaggingRunner
         return list;
     }
 
+    // ✅ Saves tags to the database for a given article
     private void SaveTagsToDb(int articleId, List<string> tags)
     {
         using var con = new SqlConnection(_connectionString);
@@ -98,13 +99,14 @@ public class TaggingRunner
             }
             catch (SqlException ex)
             {
-                if (ex.Number == 2627 || ex.Number == 2601) // Duplicate
+                if (ex.Number == 2627 || ex.Number == 2601) // Duplicate key
                     continue;
                 throw;
             }
         }
     }
 
+    // ✅ Gets an existing tag ID or creates a new one if it doesn't exist
     private int GetOrCreateTagId(string tagName, SqlConnection con)
     {
         var checkCmd = new SqlCommand("SELECT id FROM News_Tags WHERE name = @name", con);
@@ -119,13 +121,12 @@ public class TaggingRunner
         return (int)insertCmd.ExecuteScalar();
     }
 
+    // ✅ Notifies all users interested in the detected tags
     private void NotifyInterestedUsers(Article article, List<string> tags)
     {
         List<int> tagIds = tags.Select(tagName => _db.GetOrAddTagId(tagName)).ToList();
-
         if (!tagIds.Any()) return;
 
-        // ✅ שליחה רק למי שהפעיל קבלת מיילים
         List<User> interestedUsers = _db.GetUsersInterestedInTags(tagIds)
                                         .Where(u => u.ReceiveNotifications)
                                         .ToList();

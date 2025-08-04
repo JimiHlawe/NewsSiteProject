@@ -20,12 +20,10 @@ namespace NewsSite.Services
             _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
+        // ✅ Generates an image URL from the given title and description using OpenAI
         public async Task<string> GenerateImageUrlFromPrompt(string title, string description)
         {
             string safePrompt = BuildSafePrompt(title, description);
-
-            Console.WriteLine("🧾 Prompt sent to OpenAI:");
-            Console.WriteLine(safePrompt);
 
             var requestBody = new
             {
@@ -47,42 +45,38 @@ namespace NewsSite.Services
 
             var response = await _httpClient.SendAsync(request);
             var json = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("📥 OpenAI response: " + json);
 
             if (!response.IsSuccessStatusCode)
             {
                 if (json.Contains("content_policy_violation", StringComparison.OrdinalIgnoreCase))
                 {
-                    Console.WriteLine("⚠️ Blocked by OpenAI safety system. Using fallback image.");
                     return DefaultImageUrl;
                 }
 
-                Console.WriteLine("❌ OpenAI image generation failed.");
                 return null;
             }
 
             using var doc = JsonDocument.Parse(json);
             if (!doc.RootElement.TryGetProperty("data", out JsonElement dataArray) || dataArray.GetArrayLength() == 0)
             {
-                Console.WriteLine("❌ No image URL found in response");
                 return DefaultImageUrl;
             }
 
-            return dataArray[0].GetProperty("url").GetString();
+            return dataArray[0].GetProperty("url").GetString() ?? DefaultImageUrl;
         }
 
+        // ✅ Builds a safe prompt for the image generation request
         private string BuildSafePrompt(string title, string description)
         {
             string rawCombined = title + " " + description;
 
             if (IsSensitive(rawCombined))
             {
-                Console.WriteLine("🚨 Sensitive content detected. Using generic prompt.");
                 return @"Create a visually compelling illustration suitable for a global news platform.
-Depict a dynamic 'Breaking News' concept with abstract elements like world map overlays, digital grids, glowing headlines, or satellite imagery.
-Avoid any political, violent, or controversial visuals.
+                        Depict a dynamic 'Breaking News' concept with abstract elements like world map overlays, digital grids, glowing headlines, or satellite imagery.
+                        Avoid any political, violent, or controversial visuals.
 
-Style: Clean, professional, editorial-style design with sharp lines, glowing highlights, and a modern tech-inspired color scheme.";
+                        Style: Clean, professional, editorial-style design with sharp lines, glowing highlights, and a modern tech-inspired color scheme.";
             }
 
             string safeTitle = Clean(title);
@@ -91,17 +85,17 @@ Style: Clean, professional, editorial-style design with sharp lines, glowing hig
                 : Clean(TrimToLength(description, 300));
 
             return @$"Create a modern, professional editorial-style illustration for a news article titled: ""{safeTitle}"".
-The article is about: {cleanDesc}
+                    The article is about: {cleanDesc}
 
-The image should visually reflect the core message or emotion of the article, while staying appropriate for public media.
+                    The image should visually reflect the core message or emotion of the article, while staying appropriate for public media.
 
-Avoid: political figures, explicit scenes, violence, or controversial symbols.
+                    Avoid: political figures, explicit scenes, violence, or controversial symbols.
 
-Style: Digital illustration with a clean, magazine-worthy layout, balanced colors, elegant lighting, and subtle depth.
-Incorporate abstract visual cues (e.g., news tickers, glowing headlines, world icons) if literal imagery is not suitable.";
+                    Style: Digital illustration with a clean, magazine-worthy layout, balanced colors, elegant lighting, and subtle depth.
+                    Incorporate abstract visual cues (e.g., news tickers, glowing headlines, world icons) if literal imagery is not suitable.";
         }
 
-
+        // ✅ Cleans the text by redacting forbidden and sensitive words
         private string Clean(string text)
         {
             if (string.IsNullOrEmpty(text)) return "";
@@ -133,6 +127,7 @@ Incorporate abstract visual cues (e.g., news tickers, glowing headlines, world i
             return text;
         }
 
+        // ✅ Checks if the input contains any sensitive or triggering keywords
         private bool IsSensitive(string input)
         {
             string[] triggers = new[]
@@ -152,6 +147,7 @@ Incorporate abstract visual cues (e.g., news tickers, glowing headlines, world i
             return false;
         }
 
+        // ✅ Trims the text to a specific max length
         private string TrimToLength(string text, int maxLength)
         {
             if (string.IsNullOrWhiteSpace(text)) return "";
