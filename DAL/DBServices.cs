@@ -847,7 +847,7 @@ ORDER BY Priority, publishedAt DESC
 
         public void UpdateArticleImageUrl(int articleId, string imageUrl)
         {
-            using (SqlConnection conn = connect()) // connect() כבר פותח את החיבור
+            using (SqlConnection conn = connect()) 
             {
                 SqlCommand cmd = new SqlCommand("UPDATE News_Articles SET imageUrl = @url WHERE Id = @id", conn);
                 cmd.Parameters.AddWithValue("@url", imageUrl);
@@ -1764,11 +1764,11 @@ ORDER BY Priority, publishedAt DESC
                     list.Add(new ReportedCommentDTO
                     {
                         ReporterName = reader["ReporterName"].ToString(),
-                        TargetName = reader["TargetName"].ToString(),
                         CommentText = reader["CommentText"].ToString(),
                         Reason = reader["Reason"].ToString(),
                         ReportedAt = Convert.ToDateTime(reader["ReportedAt"])
                     });
+
                 }
             }
             return list;
@@ -1794,13 +1794,23 @@ ORDER BY Priority, publishedAt DESC
                         ReferenceId = (int)reader["referenceId"],
                         Reason = reader["reason"].ToString(),
                         ReportedAt = Convert.ToDateTime(reader["reportedAt"]),
-                        Content = reader["ReportedContent"].ToString(),
-                        TargetName = reader["TargetName"].ToString()
+                        Content = reader["ReportedContent"] != DBNull.Value ? reader["ReportedContent"].ToString() : null,
+                        TargetName = reader["TargetName"] != DBNull.Value ? reader["TargetName"].ToString() : null
                     };
                     list.Add(r);
                 }
             }
             return list;
+        }
+
+        public int GetTodayArticleReportsCount()
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_GetTodayArticleReportsCount", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                return (int)cmd.ExecuteScalar(); 
+            }
         }
 
 

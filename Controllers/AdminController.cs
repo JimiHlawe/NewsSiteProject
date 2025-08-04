@@ -48,6 +48,20 @@ namespace NewsSite1.Controllers
             }
         }
 
+        [HttpGet("Reports/TodayCount")]
+        public IActionResult GetTodayReportsCount()
+        {
+            try
+            {
+                int count = db.GetTodayArticleReportsCount();
+                return Ok(count);
+            }
+            catch
+            {
+                return StatusCode(500, "Failed to get report count");
+            }
+        }
+
         // ✅ Returns reported comments for review
         [HttpGet("ReportedComments")]
         public IActionResult GetReportedComments()

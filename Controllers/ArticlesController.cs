@@ -16,19 +16,22 @@ namespace NewsSite1.Controllers
         private readonly NewsApiService _newsApiService;
         private readonly ImageGenerationService _openAiService;
         private readonly FirebaseRealtimeService _firebase;
+        private readonly ImageGenerationService _imageGen;
 
 
         public ArticlesController(
             DBServices db,
             NewsApiService newsApiService,
             ImageGenerationService openAiService,
-            FirebaseRealtimeService firebase 
+            FirebaseRealtimeService firebase,
+            ImageGenerationService imageGen
         )
         {
             _db = db;
             _newsApiService = newsApiService;
             _openAiService = openAiService;
-            _firebase = firebase; 
+            _firebase = firebase;
+            _imageGen = imageGen;
         }
 
 
@@ -200,7 +203,64 @@ namespace NewsSite1.Controllers
         }
 
 
+        [HttpPost("FixMissingImages")]
+        public async Task<IActionResult> FixMissingImages()
+        {
+            var allArticles = _db.GetAllArticles(); // שלוף את כל הכתבות
+            int success = 0, failed = 0, skippedDueToContentPolicy = 0;
 
+            foreach (var article in allArticles.Where(a => string.IsNullOrWhiteSpace(a.ImageUrl)))
+            {
+                try
+                {
+                    var imageUrl = await _imageGen.GenerateImageUrlFromPrompt(article.Title, article.Content);
+
+                    if (imageUrl == null)
+                    {
+                        failed++;
+                        continue;
+                    }
+
+                    if (imageUrl.Contains("News1.jpg")) // מזהה את ברירת המחדל -> content policy violation
+                    {
+                        skippedDueToContentPolicy++;
+                        continue;
+                    }
+
+                    article.ImageUrl = imageUrl;
+                    _db.UpdateArticleImageUrl(article.Id, imageUrl); // מימוש בצד DB
+                    success++;
+                }
+                catch
+                {
+                    failed++;
+                }
+            }
+
+            return Ok(new
+            {
+                success,
+                skippedDueToContentPolicy,
+                failed
+            });
+        }
+
+        [HttpPost("Report")]
+        public IActionResult ReportContent([FromBody] ReportRequest req)
+        {
+            if (req == null || req.UserId <= 0 || string.IsNullOrEmpty(req.ReferenceType))
+                return BadRequest("Invalid report data");
+
+            try
+            {
+                _db.ReportContent(req.UserId, req.ReferenceType, req.ReferenceId, req.Reason);
+                return Ok("Reported");
+            }
+            catch
+            {
+                return StatusCode(500, "Error reporting content");
+            }
+        }
     }
 }
 

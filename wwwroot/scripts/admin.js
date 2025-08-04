@@ -85,15 +85,15 @@ function loadAllStats() {
             if (!container) return;
 
             container.innerHTML = `
-            <div class="stat-card"><span class="stat-value">${stats.totalUsers || 0}</span><span class="stat-label">👥 Total Users</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.totalArticles || 0}</span><span class="stat-label">📰 Total Articles</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.totalSaved || 0}</span><span class="stat-label">💾 Saved Articles</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.todayLogins || 0}</span><span class="stat-label">🔐 Today's Logins</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.todayFetches || 0}</span><span class="stat-label">📊 Today's Fetches</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.articleLikes || 0}</span><span class="stat-label">❤️ Article Likes</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.articleLikesToday || 0}</span><span class="stat-label">💕 Today's Article Likes</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.threadLikes || 0}</span><span class="stat-label">🧵 Thread Likes</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.threadLikesToday || 0}</span><span class="stat-label">🔥 Today's Thread Likes</span></div>`;
+            <div class="stat-card"><span class="stat-value">${stats.totalUsers || 0}</span><span class="stat-label"> Total Users</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.totalArticles || 0}</span><span class="stat-label"> Total Articles</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.totalSaved || 0}</span><span class="stat-label"> Saved Articles</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.todayLogins || 0}</span><span class="stat-label"> Today's Logins</span></div>
+            <div class="stat-card"><span class="stat-value">${stats.todayFetches || 0}</span><span class="stat-label"> Today's Fetches</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.articleLikes || 0}</span><span class="stat-label"> Article Likes</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.articleLikesToday || 0}</span><span class="stat-label"> Today's Article Likes</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.threadLikes || 0}</span><span class="stat-label"> Thread Likes</span></div>
+            <div class="stat-card"><span class="stat-value">${likes.threadLikesToday || 0}</span><span class="stat-label"> Today's Thread Likes</span></div>`;
         })
         .catch(() => {
             const container = document.getElementById("statsContainer");

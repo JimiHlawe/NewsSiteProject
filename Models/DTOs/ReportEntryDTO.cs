@@ -9,7 +9,8 @@
         public int ReferenceId { get; set; }
         public string Reason { get; set; }
         public DateTime ReportedAt { get; set; }
-        public string Content { get; set; }
-        public string TargetName { get; set; }
+        public string Content { get; set; }        // ReportedContent
+        public string TargetName { get; set; }     // Name of the user who wrote the reported item
     }
+
 }

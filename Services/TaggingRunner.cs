@@ -135,10 +135,10 @@ public class TaggingRunner
         {
             string subject = "📰 New article in your interest!";
             string body = $@"
-Hello {user.Name},<br/><br/>
-A new article has been published that matches your interest:<br/>
-<b>{article.Title}</b><br/><br/>
-<a href='https://your-site-url.com'>Click here to read it on our website</a>";
+            Hello {user.Name},<br/><br/>
+            A new article has been published that matches your interest:<br/>
+            <b>{article.Title}</b><br/><br/>
+            <a href='https://your-site-url.com'>Click here to read it on our website</a>";
 
             try
             {

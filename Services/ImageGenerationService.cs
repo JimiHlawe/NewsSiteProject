@@ -12,7 +12,7 @@ namespace NewsSite.Services
     {
         private readonly HttpClient _httpClient;
         private readonly string _openAiApiKey;
-        private const string DefaultImageUrl = "/images/news-placeholder.png";
+        private const string DefaultImageUrl = "http://tbinfo.org/sites/default/files/gallery/News1.jpg";
 
         public ImageGenerationService(IConfiguration config)
         {
@@ -23,7 +23,12 @@ namespace NewsSite.Services
         // ✅ Generates an image URL from the given title and description using OpenAI
         public async Task<string> GenerateImageUrlFromPrompt(string title, string description)
         {
+            Console.WriteLine("✅ [ImageGenerationService] Generating image for:");
+            Console.WriteLine($"   Title: {title}");
+            Console.WriteLine($"   Description: {description}");
+
             string safePrompt = BuildSafePrompt(title, description);
+            Console.WriteLine($"🧠 Prompt Sent: {safePrompt}");
 
             var requestBody = new
             {
@@ -43,26 +48,42 @@ namespace NewsSite.Services
                 Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
             };
 
-            var response = await _httpClient.SendAsync(request);
-            var json = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                if (json.Contains("content_policy_violation", StringComparison.OrdinalIgnoreCase))
+                var response = await _httpClient.SendAsync(request);
+                var json = await response.Content.ReadAsStringAsync();
+
+                Console.WriteLine($"📦 Response Status: {response.StatusCode}");
+                Console.WriteLine($"📦 Response JSON: {json}");
+
+                if (!response.IsSuccessStatusCode)
                 {
+                    if (json.Contains("content_policy_violation", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("⚠️ Content policy violation detected. Using default image.");
+                        return DefaultImageUrl;
+                    }
+
+                    Console.WriteLine("❌ Request failed. Returning null.");
+                    return null;
+                }
+
+                using var doc = JsonDocument.Parse(json);
+                if (!doc.RootElement.TryGetProperty("data", out JsonElement dataArray) || dataArray.GetArrayLength() == 0)
+                {
+                    Console.WriteLine("❌ No data returned from OpenAI. Using default image.");
                     return DefaultImageUrl;
                 }
 
+                string url = dataArray[0].GetProperty("url").GetString();
+                Console.WriteLine($"✅ Image URL generated: {url}");
+                return url ?? DefaultImageUrl;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception occurred: {ex.Message}");
                 return null;
             }
-
-            using var doc = JsonDocument.Parse(json);
-            if (!doc.RootElement.TryGetProperty("data", out JsonElement dataArray) || dataArray.GetArrayLength() == 0)
-            {
-                return DefaultImageUrl;
-            }
-
-            return dataArray[0].GetProperty("url").GetString() ?? DefaultImageUrl;
         }
 
         // ✅ Builds a safe prompt for the image generation request
@@ -72,6 +93,7 @@ namespace NewsSite.Services
 
             if (IsSensitive(rawCombined))
             {
+                Console.WriteLine("🚨 Sensitive content detected. Using fallback prompt.");
                 return @"Create a visually compelling illustration suitable for a global news platform.
                         Depict a dynamic 'Breaking News' concept with abstract elements like world map overlays, digital grids, glowing headlines, or satellite imagery.
                         Avoid any political, violent, or controversial visuals.

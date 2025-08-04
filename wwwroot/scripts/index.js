@@ -515,7 +515,7 @@ function submitReport(referenceType, referenceId) {
         return;
     }
 
-    fetch("/api/Reports/Report", {
+    fetch("/api/Articles/Report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
