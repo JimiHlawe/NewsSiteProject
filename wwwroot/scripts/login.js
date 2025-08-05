@@ -27,7 +27,6 @@ if (loginBtn) {
 // ✅ Notification system
 function showNotification(message, type = "error") {
     document.querySelectorAll('.auth-notification').forEach(n => n.remove());
-
     const notification = document.createElement('div');
     notification.className = `auth-notification notification-${type}`;
     notification.innerHTML = `
@@ -37,42 +36,15 @@ function showNotification(message, type = "error") {
         </div>
     `;
 
-    const bgColor = getNotificationColor(type);
-    const isMobile = window.innerWidth <= 768;
-
-    notification.style.cssText = `
-        position: fixed;
-        ${isMobile ? 'top: 15px; left: 15px; right: 15px;' : 'top: 20px; right: 20px; max-width: 400px;'}
-        background: ${bgColor};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        z-index: 10000;
-        animation: ${isMobile ? 'slideInTop' : 'slideInRight'} 0.3s ease-out;
-        font-weight: 500;
-        border: 1px solid rgba(255,255,255,0.2);
-    `;
-
     document.body.appendChild(notification);
 
     setTimeout(() => {
         if (notification.parentElement) {
-            notification.style.animation = `${isMobile ? 'slideOutTop' : 'slideOutRight'} 0.3s ease-in`;
+            const isMobile = window.innerWidth <= 768;
+            notification.classList.add(isMobile ? 'notification-slide-out-top' : 'notification-slide-out-right');
             setTimeout(() => notification.remove(), 300);
         }
     }, 5000);
-}
-
-// ✅ Return gradient background color based on type
-function getNotificationColor(type) {
-    const colors = {
-        success: 'linear-gradient(135deg, #10b981, #059669)',
-        error: 'linear-gradient(135deg, #ef4444, #dc2626)',
-        warning: 'linear-gradient(135deg, #f59e0b, #d97706)',
-        info: 'linear-gradient(135deg, #3b82f6, #2563eb)'
-    };
-    return colors[type] || colors.error;
 }
 
 // ✅ Load interest tags for signup
@@ -258,3 +230,32 @@ function saveUserTags() {
         window.location.href = "index.html";
     }, 1000);
 }
+
+// ✅ Mobile
+function initMobile() {
+    if (window.innerWidth <= 768) {
+        const signInForm = document.querySelector('.sign-in');
+        const signUpForm = document.querySelector('.sign-up');
+
+        if (signInForm && signUpForm) {
+            signInForm.classList.add('mobile-active');
+            signUpForm.classList.remove('mobile-active');
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initMobile);
+
+window.addEventListener('resize', function () {
+    if (window.innerWidth <= 768) {
+        initMobile();
+    } else {
+        const signInForm = document.querySelector('.sign-in');
+        const signUpForm = document.querySelector('.sign-up');
+
+        if (signInForm && signUpForm) {
+            signInForm.classList.remove('mobile-active');
+            signUpForm.classList.remove('mobile-active');
+        }
+    }
+})

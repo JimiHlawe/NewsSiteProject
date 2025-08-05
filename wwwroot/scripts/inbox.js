@@ -32,7 +32,7 @@ function renderSharedArticles(articles) {
     if (articles.length === 0) {
         container.innerHTML = `
             <div class="no-articles-message fade-in">
-                <h3>📭 No shared articles yet</h3>
+                <h3>No shared articles yet</h3>
                 <p>Articles that friends and colleagues share with you will appear here.</p>
             </div>`;
         return;
@@ -137,7 +137,7 @@ function removeSharedArticle(sharedId, cardElement) {
             cardElement.remove();
         })
         .catch(function () {
-            alert("❌ Failed to remove shared article");
+            alert("Failed to remove shared article");
         });
 }
 

@@ -61,7 +61,7 @@ function loadUsers() {
         })
         .catch(() => {
             const tbody = document.querySelector("#usersTable tbody");
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">❌ Failed to load users</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Failed to load users</td></tr>';
         });
 }
 
@@ -171,12 +171,12 @@ function loadReports() {
 
                 html += `
                     <tr>
-                        <td><strong>${r.reporterName}</strong></td>
-                        <td>${r.targetName || "–"}</td>
-                        <td><span style="background: var(--accent-red); color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.8rem;">${r.reportType}</span></td>
-                        <td>${r.reason}</td>
-                        <td class="report-content">${r.content}</td>
-                        <td class="report-date">${date}</td>
+                      <td><strong>${r.reporterName}</strong></td>
+                      <td>${r.targetName || "–"}</td>
+                      <td><span class="report-type-badge">${r.reportType}</span></td>
+                      <td>${r.reason}</td>
+                      <td class="report-content">${r.content}</td>
+                      <td class="report-date">${date}</td>
                     </tr>`;
             });
 
@@ -188,7 +188,7 @@ function loadReports() {
             if (container) {
                 container.innerHTML = `
                     <div class="status-message error">
-                        ⚠️ Failed to load reports
+                        Failed to load reports
                     </div>`;
             }
         });
@@ -202,7 +202,7 @@ function setupImportExternal() {
 
     importBtn.addEventListener("click", () => {
         importBtn.disabled = true;
-        importBtn.innerHTML = '⏳ Importing...';
+        importBtn.innerHTML = 'Importing...';
 
         fetch("/api/Articles/ImportExternal", { method: "POST" })
             .then(res => {
@@ -211,15 +211,15 @@ function setupImportExternal() {
             })
             .then(data => {
                 document.getElementById("importStatus").innerHTML =
-                    `<div class='status-message success'>✅ ${data.length} new articles were imported successfully!</div>`;
+                    `<div class='status-message success'>${data.length} new articles were imported successfully!</div>`;
             })
             .catch(err => {
                 document.getElementById("importStatus").innerHTML =
-                    `<div class='status-message error'>❌ Error: ${err.message}</div>`;
+                    `<div class='status-message error'>Error: ${err.message}</div>`;
             })
             .finally(() => {
                 importBtn.disabled = false;
-                importBtn.innerHTML = '📥 Import Articles';
+                importBtn.innerHTML = 'Import Articles';
             });
     });
 }
@@ -232,7 +232,7 @@ function setupTagging() {
 
     taggingBtn.addEventListener("click", () => {
         taggingBtn.disabled = true;
-        taggingBtn.innerHTML = '⏳ Tagging...';
+        taggingBtn.innerHTML = 'Tagging...';
 
         fetch("/api/Tagging/RunTagging", { method: "POST" })
             .then(res => {
@@ -241,15 +241,15 @@ function setupTagging() {
             })
             .then(() => {
                 document.getElementById("taggingStatus").innerHTML =
-                    `<div class='status-message success'>🏷️ Tagging completed successfully!</div>`;
+                    `<div class='status-message success'>Tagging completed successfully!</div>`;
             })
             .catch(err => {
                 document.getElementById("taggingStatus").innerHTML =
-                    `<div class='status-message error'>❌ Error: ${err.message}</div>`;
+                    `<div class='status-message error'> Error: ${err.message}</div>`;
             })
             .finally(() => {
                 taggingBtn.disabled = false;
-                taggingBtn.innerHTML = '🏷️ Tag Articles';
+                taggingBtn.innerHTML = 'Tag Articles';
             });
     });
 }
@@ -262,7 +262,7 @@ function setupFixMissingImages() {
 
     fixBtn.addEventListener("click", () => {
         fixBtn.disabled = true;
-        fixBtn.innerHTML = '⏳ Fixing...';
+        fixBtn.innerHTML = 'Fixing...';
 
         fetch("/api/Articles/FixMissingImages", { method: "POST" })
             .then(res => {
@@ -272,16 +272,16 @@ function setupFixMissingImages() {
             .then(data => {
                 document.getElementById("fixImagesStatus").innerHTML = `
                     <div class='status-message success'>
-                        ✅ Fixed: ${data.success}, Skipped: ${data.skippedDueToContentPolicy}, Failed: ${data.failed}
+                        Fixed: ${data.success}, Skipped: ${data.skippedDueToContentPolicy}, Failed: ${data.failed}
                     </div>`;
             })
             .catch(err => {
                 document.getElementById("fixImagesStatus").innerHTML =
-                    `<div class='status-message error'>❌ Error: ${err.message}</div>`;
+                    `<div class='status-message error'>Error: ${err.message}</div>`;
             })
             .finally(() => {
                 fixBtn.disabled = false;
-                fixBtn.innerHTML = '🖼️ Fix Missing Images';
+                fixBtn.innerHTML = 'Fix Missing Images';
             });
     });
 }

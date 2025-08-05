@@ -2713,6 +2713,20 @@ article-section {
             background: rgba(100, 116, 139, 0.8);
         }
 
+body.mobile-menu-open .hero-carousel {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+body.mobile-menu-open .carousel-dots,
+body.mobile-menu-open .carousel-indicators,
+body.mobile-menu-open .carousel-navigation,
+body.mobile-menu-open .carousel-controls {
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* Close Button */
 .comments-modal-close {
     position: absolute;

@@ -173,10 +173,10 @@ function saveArticle(articleId) {
             if (res.ok) {
                 showSaveModal();
             } else {
-                alert("❌ Failed to save.");
+                alert("Failed to save.");
             }
         })
-        .catch(() => alert("❌ Network error."));
+        .catch(() => alert("Network error."));
 }
 
 /**
@@ -244,12 +244,12 @@ function submitShare(articleId) {
         })
             .then(res => {
                 if (!res.ok) throw new Error("Failed to share publicly");
-                alert("✅ Article shared publicly to threads!");
+                alert("Article shared publicly to threads!");
                 closeShareModal();
             })
             .catch(err => {
                 console.error(err);
-                alert("❌ Error sharing publicly: " + err.message);
+                alert("Error sharing publicly: " + err.message);
             });
     } else {
         // ✅ Private Share
@@ -271,12 +271,12 @@ function submitShare(articleId) {
         })
             .then(res => {
                 if (!res.ok) throw new Error("Failed to share privately");
-                alert(`✅ Article shared privately with ${targetUsername}!`);
+                alert(`Article shared privately with ${targetUsername}!`);
                 closeShareModal();
             })
             .catch(err => {
                 console.error(err);
-                alert("❌ Error sharing privately: " + err.message);
+                alert("Error sharing privately: " + err.message);
             });
     }
 }
@@ -342,7 +342,7 @@ function sendComment(articleId, isModal = false) {
 
     const canComment = sessionStorage.getItem("canComment") === "true";
     if (!canComment) {
-        alert("🚫 Your commenting ability is blocked!");
+        alert("Your commenting ability is blocked!");
         return;
     }
 
@@ -360,10 +360,10 @@ function sendComment(articleId, isModal = false) {
                 document.getElementById(commentBoxId).value = "";
                 loadComments(articleId, isModal);
             } else {
-                alert("❌ You may not be allowed to comment.");
+                alert("You may not be allowed to comment.");
             }
         })
-        .catch(() => alert("❌ Network error"));
+        .catch(() => alert("Network error"));
 }
 
 // Load comments for an article
@@ -464,7 +464,7 @@ function showReportModal(referenceType, referenceId) {
     const modalHTML = `
         <div class="save-modal-overlay" id="reportModalOverlay">
             <div class="save-modal">
-                <h2 class="save-modal-title">🚩 Report Content</h2>
+                <h2 class="save-modal-title">Report Content</h2>
                 <p class="save-modal-subtitle">Please choose the reason for your report:</p>
 
                 <select id="reportReasonSelect" onchange="toggleOtherReason()" class="form-control mb-2">
@@ -525,8 +525,8 @@ function submitReport(referenceType, referenceId) {
             reason
         })
     })
-        .then(res => res.ok ? alert("✅ Reported!") : alert("❌ Error reporting."))
-        .catch(() => alert("❌ Network error"))
+        .then(res => res.ok ? alert("Reported!") : alert("❌ Error reporting."))
+        .catch(() => alert("Network error"))
         .finally(() => closeReportModal());
 }
 
@@ -783,7 +783,7 @@ function toggleShare(articleId) {
     const modalHtml = `
         <div class="save-modal-overlay" id="shareModalOverlay">
             <div class="save-modal">
-                <h2 class="save-modal-title">📤 Share Article</h2>
+                <h2 class="save-modal-title">Share Article</h2>
                 <select id="shareType" class="form-control mb-2" onchange="toggleShareType()">
                     <option value="private">Private Share</option>
                     <option value="public">Public Thread</option>
@@ -800,7 +800,7 @@ function toggleShare(articleId) {
     document.body.insertAdjacentHTML("beforeend", modalHtml);
     setTimeout(() => {
         document.getElementById("shareModalOverlay").classList.add("show");
-        toggleShareType(); // ← מיד עם פתיחת המודל
+        toggleShareType(); 
     }, 50);
 }
 

@@ -88,11 +88,11 @@ function handleImageUpload(event) {
             document.getElementById("avatarIcon").style.display = "none";
             user.profileImagePath = data.imageUrl;
             sessionStorage.setItem("loggedUser", JSON.stringify(user));
-            showNotification("✅ Image uploaded!", "success");
+            showNotification("Image uploaded!", "success");
             setTimeout(() => window.location.reload(), 1000);
         })
         .catch(() => {
-            showNotification("❌ Failed to upload image", "error");
+            showNotification("Failed to upload image", "error");
         });
 }
 
@@ -391,20 +391,7 @@ function showNotification(message, type = 'info') {
         </div>
     `;
 
-    notification.style.cssText = `
-        position: fixed;
-        top: 120px;
-        right: 20px;
-        background: ${getNotificationColor(type)};
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease-out;
-        max-width: 400px;
-        font-weight: 500;
-    `;
+    notification.className = `notification notification-${type}`;
 
     document.body.appendChild(notification);
 
@@ -437,52 +424,3 @@ function getNotificationColor(type) {
     };
     return colors[type] || colors.info;
 }
-
-// ✅ Add basic notification animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-    .notification-content {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-    .notification-close {
-        background: rgba(255,255,255,0.2);
-        border: none;
-        color: white;
-        font-size: 1.2rem;
-        cursor: pointer;
-        margin-left: auto;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: background 0.2s ease;
-    }
-    .notification-close:hover {
-        background: rgba(255,255,255,0.3);
-    }
-`;
-document.head.appendChild(style);

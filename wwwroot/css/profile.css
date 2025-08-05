@@ -1220,130 +1220,191 @@ body {
     }
 }
 
+.notification {
+    position: fixed;
+    top: 120px;
+    right: 20px;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    z-index: 10000;
+    animation: slideInRight 0.3s ease-out;
+    max-width: 400px;
+    font-weight: 500;
+}
+
+.notification-error {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.notification-success {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.notification-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.notification-info {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.notification-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+    .notification-close:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.notification-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+    .notification-close:hover {
+        background: rgba(255,255,255,0.3);
+    }
+
 /* ---RESPONSIVE DESIGN --- */
-@media screen and (max-width: 1400px) {
-    .main-container {
-        max-width: 95%;
-        padding: var(--spacing-xl);
-    }
 
-    .profile-avatar-section {
-        max-width: 95%;
-        padding: var(--spacing-xl);
-        gap: var(--spacing-xl);
-    }
-
-    .profile-cards-grid {
-        gap: var(--spacing-lg);
-    }
-}
-
-@media screen and (max-width: 1200px) {
-    .profile-cards-grid {
-        grid-template-areas:
-            "blocked blocked blocked blocked interests interests interests interests interests interests interests interests"
-            "add add add add add add add add add add add add";
-    }
-
-    .profile-avatar-section {
-        grid-template-columns: auto 1fr;
-        gap: var(--spacing-xl);
-    }
-
-    .password-section {
-        grid-column: 1 / -1;
-        margin-top: var(--spacing-lg);
-        min-width: unset;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    .profile-name {
-        font-size: 2rem;
-    }
-
-    .profile-email {
-        font-size: 1rem;
-    }
-}
-
-@media screen and (max-width: 1024px) {
+@media (max-width: 1200px) {
     .main-container {
         padding: var(--spacing-lg);
-        margin-top: var(--spacing-lg);
-    }
-
-    .profile-avatar-section {
-        max-width: 100%;
-        padding: var(--spacing-xl);
-        gap: var(--spacing-lg);
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-
-    .avatar-section {
-        order: 1;
-    }
-
-    .profile-info-section {
-        order: 2;
-        text-align: center;
-        gap: var(--spacing-xs);
-    }
-
-    .password-section {
-        order: 3;
-        margin-top: var(--spacing-lg);
-        max-width: 350px;
-        margin-left: auto;
-        margin-right: auto;
+        margin-top: 75px;
     }
 
     .profile-cards-grid {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: 1fr;
         grid-template-areas:
-            "blocked blocked blocked interests interests interests"
-            "add add add add add add";
+            "blocked"
+            "interests"
+            "add";
         gap: var(--spacing-lg);
     }
 
     .profile-card {
         min-height: 300px;
     }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: var(--spacing-md);
+        margin-top: 75px;
+    }
+
+    .profile-avatar-section {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
+        text-align: center;
+        padding: var(--spacing-xl);
+        border-radius: 20px;
+        max-width: 95%;
+    }
+
+    .avatar-section {
+        grid-row: 1;
+        margin: 0;
+    }
+
+    .profile-info-section {
+        grid-row: 2;
+        text-align: center;
+    }
+
+    .password-section {
+        grid-row: 3;
+        min-width: auto;
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+    }
 
     .profile-name {
         font-size: 1.8rem;
-        margin-bottom: var(--spacing-xs);
+        margin-bottom: var(--spacing-sm);
     }
 
     .profile-email {
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
 
     .profile-role {
         font-size: 0.8rem;
-        margin-top: var(--spacing-xs);
-    }
-}
-
-@media screen and (max-width: 768px) {
-    body {
-        padding: var(--spacing-md);
+        padding: 0.2rem 0.6rem;
     }
 
-    .main-container {
-        padding: var(--spacing-md);
-        margin-top: var(--spacing-md);
+    .imageUpload {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
     }
 
-    .profile-cards-grid {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-lg);
-        grid-template-areas:
-            "blocked"
-            "interests"
-            "add";
+    #avatarRankImage {
+        width: 32px !important;
+        height: 32px !important;
+        bottom: -6px !important;
+        right: -6px !important;
     }
 
     .profile-card {
@@ -1352,267 +1413,33 @@ body {
         min-height: auto;
     }
 
-    .profile-avatar-section {
-        padding: var(--spacing-xl);
-        grid-template-columns: 1fr;
-        gap: var(--spacing-lg);
-        text-align: center;
-        border-radius: 20px;
-        margin-bottom: var(--spacing-lg);
-    }
-
-    .avatar-section {
-        order: 1;
-        gap: var(--spacing-md);
-    }
-
-    .profile-info-section {
-        order: 2;
-        text-align: center;
-        gap: var(--spacing-sm);
-    }
-
-    .password-section {
-        order: 3;
-        margin-top: var(--spacing-lg);
-        max-width: 100%;
-        padding: var(--spacing-lg);
-    }
-
-    .profile-name {
-        font-size: 1.75rem;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .profile-email {
-        font-size: 0.9rem;
-        margin-bottom: var(--spacing-xs);
-    }
-
-    .profile-role {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.6rem;
-    }
-
-    .imageUpload {
-        width: 110px;
-        height: 110px;
-        font-size: 2.8rem;
-    }
-
-    #avatarRankImage {
-        width: 35px !important;
-        height: 35px !important;
-        bottom: -6px !important;
-        right: -6px !important;
-    }
-
-    #avatarRank {
-        font-size: 12px;
-        padding: 6px 12px;
-        margin-top: 12px;
-    }
-
     .card-title {
         font-size: 1rem;
-        margin-bottom: var(--spacing-md);
+        gap: var(--spacing-xs);
     }
 
-    .form-control,
-    .password-input {
-        padding: 14px 16px;
-        font-size: 16px;
-        border-radius: 10px;
+    .password-section h3 {
+        font-size: 0.9rem;
     }
 
-    .btn,
-    .password-btn {
-        padding: 14px 20px;
-        font-size: 14px;
-        border-radius: 10px;
-        width: 100%;
-        margin-top: var(--spacing-md);
-    }
-
-    .tags-container,
-    .available-tags-container {
-        padding: var(--spacing-md);
-        border-radius: 10px;
-        min-height: 100px;
-    }
-
-    .available-tags-container {
-        max-height: 180px;
-    }
-
-    .user-tag {
-        padding: 6px 10px;
-        font-size: 12px;
-        border-radius: 10px;
-    }
-
-    .available-tag label {
-        padding: 6px 10px;
-        font-size: 12px;
-        border-radius: 10px;
-    }
-
-    .blocked-user-item {
-        padding: var(--spacing-md);
-        border-radius: 10px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-sm);
-    }
-
-        .blocked-user-item .btn {
-            width: 100%;
-            margin-top: var(--spacing-sm);
-            padding: 10px 16px;
-            font-size: 13px;
-        }
-
-    #notification-toggle {
-        padding: 14px 18px;
-        border-radius: 14px;
-        margin-top: 16px;
-    }
-
-        #notification-toggle label {
-            font-size: 14px;
-            gap: 12px;
-        }
-
-        #notification-toggle .checkmark {
-            width: 22px;
-            height: 22px;
-            border-radius: 6px;
-        }
-
-    .alert-notification {
-        top: 15px;
-        right: 15px;
-        left: 15px;
-        max-width: none;
-        border-radius: 10px;
-    }
-}
-
-@media screen and (max-width: 600px) {
-    body {
-        padding: var(--spacing-sm);
-    }
-
-    .main-container {
-        padding: var(--spacing-sm);
-        margin-top: 0;
-    }
-
-    .profile-avatar-section {
-        padding: var(--spacing-lg);
-        border-radius: 18px;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .profile-card {
-        padding: var(--spacing-md);
-        border-radius: 18px;
-    }
-
-    .profile-cards-grid {
-        gap: var(--spacing-md);
-    }
-
-    .profile-name {
-        font-size: 1.6rem;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .profile-email {
-        font-size: 0.85rem;
-    }
-
-    .profile-role {
-        font-size: 0.7rem;
-        padding: 0.15rem 0.5rem;
-        margin-top: var(--spacing-xs);
-    }
-
-    .imageUpload {
-        width: 100px;
-        height: 100px;
-        font-size: 2.5rem;
-        border-width: 2px;
-    }
-
-    #avatarRankImage {
-        width: 32px !important;
-        height: 32px !important;
-        bottom: -5px !important;
-        right: -5px !important;
-        border-width: 2px !important;
-    }
-
-    #avatarRank {
-        font-size: 11px;
-        padding: 5px 10px;
-        margin-top: 10px;
-        letter-spacing: 1px;
-    }
-
-    .upload-hint {
-        font-size: 11px;
-        margin-top: 8px;
-    }
-
-    .password-section {
-        padding: var(--spacing-md);
-        border-radius: 14px;
-    }
-
-        .password-section h3 {
-            font-size: 0.9rem;
-            margin-bottom: var(--spacing-sm);
-        }
-
-    .password-form {
-        gap: var(--spacing-sm);
-    }
-
-    .card-title {
-        font-size: 0.95rem;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .form-control,
-    .password-input {
-        padding: 12px 14px;
-        font-size: 16px;
-        border-radius: 8px;
-    }
-
-    .btn,
-    .password-btn {
-        padding: 12px 18px;
+    .password-input,
+    .form-control {
+        padding: 10px 12px;
         font-size: 13px;
-        border-radius: 8px;
+        border-radius: 10px;
     }
 
-    .tags-container,
-    .available-tags-container {
-        padding: var(--spacing-sm);
-        border-radius: 8px;
-        min-height: 80px;
-    }
-
-    .available-tags-container {
-        max-height: 160px;
+    .password-btn,
+    .btn {
+        padding: 10px 35px;
+        font-size: 13px;
+        border-radius: 10px;
     }
 
     .user-tag {
-        padding: 5px 8px;
-        font-size: 11px;
-        border-radius: 8px;
+        padding: 3px 6px;
+        font-size: 10px;
+        border-radius: 10px;
     }
 
     .remove-tag-btn {
@@ -1622,96 +1449,112 @@ body {
     }
 
     .available-tag label {
-        padding: 5px 8px;
-        font-size: 11px;
-        border-radius: 8px;
+        padding: 3px 6px;
+        font-size: 10px;
+        border-radius: 10px;
     }
 
     .blocked-user-item {
         padding: var(--spacing-sm);
-        border-radius: 8px;
+        border-radius: var(--radius-sm);
         margin-bottom: var(--spacing-sm);
     }
 
-        .blocked-user-item strong {
-            font-size: 0.8rem;
+        .blocked-user-item .btn {
+            padding: 6px 12px;
+            font-size: 11px;
         }
 
-        .blocked-user-item .btn {
-            padding: 8px 14px;
-            font-size: 12px;
-        }
+    .tags-container,
+    .available-tags-container {
+        padding: 10px;
+        border-radius: 10px;
+        min-height: 100px;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .available-tags-container {
+        max-height: 150px;
+    }
+
+    #avatarRank {
+        font-size: 11px;
+        padding: 6px 12px;
+        border-radius: 15px;
+        margin-top: 10px;
+    }
 
     #notification-toggle {
         padding: 12px 16px;
         border-radius: 12px;
-        margin-top: 14px;
+        margin-top: 15px;
     }
 
         #notification-toggle label {
-            font-size: 13px;
+            font-size: 14px;
             gap: 10px;
         }
 
         #notification-toggle .checkmark {
             width: 20px;
             height: 20px;
-            border-radius: 5px;
-            border-width: 2px;
+            border-radius: 6px;
         }
 
         #notification-toggle input:checked + .checkmark::after {
-            left: 6px;
+            left: 5px;
             top: 2px;
             width: 6px;
             height: 10px;
             border-width: 0 2px 2px 0;
         }
+
+    .alert-notification {
+        top: 15px;
+        right: 15px;
+        left: 15px;
+        max-width: none;
+        font-size: 14px;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+    }
 }
 
-@media screen and (max-width: 480px) {
+@media (max-width: 480px) {
     body {
-        padding: 8px;
+        padding: 15px;
     }
 
     .main-container {
-        padding: 8px;
+        padding: var(--spacing-sm);
+        margin-top: 75px;
     }
 
     .profile-avatar-section {
-        padding: var(--spacing-md);
-        border-radius: 16px;
-        margin-bottom: var(--spacing-sm);
-    }
-
-    .profile-card {
-        padding: var(--spacing-sm);
-        border-radius: 16px;
-    }
-
-    .profile-cards-grid {
-        gap: var(--spacing-sm);
+        padding: var(--spacing-lg);
+        border-radius: 15px;
+        margin-bottom: var(--spacing-lg);
+        gap: var(--spacing-md);
     }
 
     .profile-name {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         margin-bottom: var(--spacing-xs);
     }
 
     .profile-email {
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
 
     .profile-role {
-        font-size: 0.65rem;
-        padding: 0.1rem 0.4rem;
-        border-radius: 6px;
+        font-size: 0.75rem;
+        padding: 0.15rem 0.5rem;
     }
 
     .imageUpload {
-        width: 90px;
-        height: 90px;
-        font-size: 2.2rem;
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
         border-width: 2px;
     }
 
@@ -1723,82 +1566,49 @@ body {
         border-width: 2px !important;
     }
 
-    #avatarRank {
-        font-size: 10px;
-        padding: 4px 8px;
-        margin-top: 8px;
-        letter-spacing: 0.5px;
-        border-radius: 16px;
-    }
-
-    .upload-hint {
-        font-size: 10px;
-        margin-top: 6px;
-    }
-
     .password-section {
         padding: var(--spacing-sm);
-        border-radius: 12px;
-        margin-top: var(--spacing-sm);
+        border-radius: var(--radius-sm);
+        min-width: auto;
     }
 
         .password-section h3 {
             font-size: 0.85rem;
-            margin-bottom: 8px;
+            margin-bottom: var(--spacing-xs);
         }
 
-            .password-section h3::before {
-                font-size: 0.75rem;
-            }
+    .profile-card {
+        padding: var(--spacing-md);
+        border-radius: 15px;
+        margin-bottom: var(--spacing-md);
+    }
 
     .card-title {
         font-size: 0.9rem;
-        margin-bottom: 10px;
-        gap: 6px;
+        margin-bottom: var(--spacing-sm);
     }
 
-    .card-header {
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-    }
-
-    .form-group {
-        margin-bottom: 10px;
-    }
-
-    .form-control,
-    .password-input {
-        padding: 10px 12px;
-        font-size: 15px;
-        border-radius: 6px;
-        border-width: 1.5px;
-    }
-
-    .btn,
-    .password-btn {
-        padding: 10px 16px;
+    .password-input,
+    .form-control {
+        padding: 8px 10px;
         font-size: 12px;
-        border-radius: 6px;
-        letter-spacing: 0.5px;
-    }
-
-    .tags-container,
-    .available-tags-container {
-        padding: 8px;
-        border-radius: 6px;
-        min-height: 70px;
+        border-radius: 8px;
         border-width: 1.5px;
     }
 
-    .available-tags-container {
-        max-height: 140px;
+    .password-btn,
+    .btn {
+        padding: 8px 25px;
+        font-size: 12px;
+        border-radius: 8px;
+        margin-top: 8px;
     }
 
     .user-tag {
-        padding: 4px 6px;
-        font-size: 10px;
-        border-radius: 6px;
-        gap: 4px;
+        padding: 2px 5px;
+        font-size: 9px;
+        border-radius: 8px;
+        gap: 2px;
     }
 
     .remove-tag-btn {
@@ -1809,57 +1619,80 @@ body {
     }
 
     .available-tag label {
-        padding: 4px 6px;
-        font-size: 10px;
-        border-radius: 6px;
+        padding: 2px 5px;
+        font-size: 9px;
+        border-radius: 8px;
     }
 
     .blocked-user-item {
-        padding: 10px;
+        padding: var(--spacing-xs);
         border-radius: 6px;
-        margin-bottom: 8px;
-        gap: 8px;
+        margin-bottom: var(--spacing-xs);
+        flex-direction: column;
+        gap: var(--spacing-xs);
+        text-align: center;
     }
 
         .blocked-user-item strong {
-            font-size: 0.75rem;
-            line-height: 1.2;
+            font-size: 0.8rem;
         }
 
         .blocked-user-item .btn {
-            padding: 6px 12px;
-            font-size: 11px;
-            border-radius: 4px;
+            padding: 5px 10px;
+            font-size: 10px;
+            margin-top: 0;
+            align-self: center;
         }
 
-    .loading-placeholder,
-    .empty-state,
-    .error-state {
-        min-height: 60px;
-        font-size: 0.8rem;
-        padding: 10px;
+    .tags-container,
+    .available-tags-container {
+        padding: 8px;
+        border-radius: 8px;
+        min-height: 80px;
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .available-tags-container {
+        max-height: 120px;
+    }
+
+    .form-group {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    #avatarRank {
+        font-size: 10px;
+        padding: 5px 10px;
+        border-radius: 12px;
+        margin-top: 8px;
+        letter-spacing: 1px;
+    }
+
+    .upload-hint {
+        font-size: 10px;
+        margin-top: 8px;
     }
 
     #notification-toggle {
-        padding: 10px 14px;
+        padding: 10px 12px;
         border-radius: 10px;
         margin-top: 12px;
     }
 
         #notification-toggle label {
-            font-size: 12px;
+            font-size: 13px;
             gap: 8px;
         }
 
         #notification-toggle .checkmark {
             width: 18px;
             height: 18px;
-            border-radius: 4px;
+            border-radius: 5px;
             border-width: 2px;
         }
 
         #notification-toggle input:checked + .checkmark::after {
-            left: 5px;
+            left: 4px;
             top: 1px;
             width: 5px;
             height: 9px;
@@ -1870,60 +1703,48 @@ body {
         top: 10px;
         right: 10px;
         left: 10px;
-        padding: 0.8rem 1.2rem;
+        font-size: 13px;
+        padding: 0.6rem 0.8rem;
         border-radius: 8px;
-        font-size: 0.85rem;
+    }
+
+    .loading-placeholder,
+    .empty-state,
+    .error-state {
+        min-height: 60px;
+        font-size: 0.8rem;
+        padding: var(--spacing-sm);
     }
 }
 
-@media screen and (max-width: 380px) {
+@media (max-width: 320px) {
     body {
-        padding: 6px;
+        padding: 10px;
     }
 
     .main-container {
-        padding: 6px;
+        padding: 0.25rem;
+        margin-top: 75px;
     }
 
     .profile-avatar-section {
-        padding: 12px;
-        border-radius: 14px;
-        margin-bottom: 10px;
-        gap: 12px;
-    }
-
-    .profile-card {
-        padding: 10px;
-        border-radius: 14px;
-    }
-
-    .profile-cards-grid {
-        gap: 10px;
+        padding: var(--spacing-md);
+        border-radius: 12px;
+        margin-bottom: var(--spacing-md);
     }
 
     .profile-name {
-        font-size: 1.2rem;
-        margin-bottom: 4px;
-        line-height: 1.1;
+        font-size: 1.3rem;
     }
 
     .profile-email {
-        font-size: 0.75rem;
-        margin-bottom: 4px;
-    }
-
-    .profile-role {
-        font-size: 0.6rem;
-        padding: 0.05rem 0.3rem;
-        border-radius: 4px;
-        margin-top: 4px;
+        font-size: 0.8rem;
     }
 
     .imageUpload {
-        width: 80px;
-        height: 80px;
-        font-size: 2rem;
-        border-width: 2px;
+        width: 70px;
+        height: 70px;
+        font-size: 1.8rem;
     }
 
     #avatarRankImage {
@@ -1931,828 +1752,77 @@ body {
         height: 24px !important;
         bottom: -3px !important;
         right: -3px !important;
-        border-width: 2px !important;
-    }
-
-    #avatarRank {
-        font-size: 9px;
-        padding: 3px 6px;
-        margin-top: 6px;
-        letter-spacing: 0.3px;
-        border-radius: 12px;
-        border-width: 1.5px;
-    }
-
-    .upload-hint {
-        font-size: 9px;
-        margin-top: 4px;
     }
 
     .password-section {
-        padding: 10px;
-        border-radius: 10px;
-        margin-top: 8px;
+        padding: 0.75rem;
+        border-radius: 8px;
     }
 
-        .password-section h3 {
-            font-size: 0.8rem;
-            margin-bottom: 6px;
-        }
-
-            .password-section h3::before {
-                font-size: 0.7rem;
-            }
-
-    .password-form {
-        gap: 8px;
+    .profile-card {
+        padding: 0.75rem;
+        border-radius: 12px;
+        margin-bottom: 0.75rem;
     }
 
     .card-title {
         font-size: 0.85rem;
-        margin-bottom: 8px;
-        gap: 4px;
     }
 
-    .card-header {
-        margin-bottom: 8px;
-        padding-bottom: 6px;
-        border-width: 1px;
-    }
-
-    .form-group {
-        margin-bottom: 8px;
-    }
-
-    .form-control,
-    .password-input {
-        padding: 8px 10px;
-        font-size: 14px;
-        border-radius: 4px;
-        border-width: 1.5px;
-    }
-
-    .btn,
-    .password-btn {
-        padding: 8px 14px;
+    .password-input,
+    .form-control {
+        padding: 6px 8px;
         font-size: 11px;
-        border-radius: 4px;
-        letter-spacing: 0.3px;
-        margin-top: 8px;
+        border-radius: 6px;
+    }
+
+    .password-btn,
+    .btn {
+        padding: 6px 20px;
+        font-size: 11px;
+        border-radius: 6px;
     }
 
     .tags-container,
     .available-tags-container {
         padding: 6px;
-        border-radius: 4px;
-        min-height: 60px;
-        border-width: 1.5px;
-        gap: 4px;
-    }
-
-    .available-tags-container {
-        max-height: 120px;
-    }
-
-    .user-tag {
-        padding: 3px 5px;
-        font-size: 9px;
-        border-radius: 4px;
-        gap: 2px;
-    }
-
-    .remove-tag-btn {
-        width: 10px;
-        height: 10px;
-        font-size: 8px;
-        margin-left: 1px;
-    }
-
-    .available-tag label {
-        padding: 3px 5px;
-        font-size: 9px;
-        border-radius: 4px;
-    }
-
-    .blocked-user-item {
-        padding: 8px;
-        border-radius: 4px;
-        margin-bottom: 6px;
-        gap: 6px;
-    }
-
-        .blocked-user-item strong {
-            font-size: 0.7rem;
-            line-height: 1.1;
-        }
-
-        .blocked-user-item .btn {
-            padding: 5px 10px;
-            font-size: 10px;
-            border-radius: 3px;
-        }
-
-    .loading-placeholder,
-    .empty-state,
-    .error-state {
-        min-height: 50px;
-        font-size: 0.75rem;
-        padding: 8px;
-    }
-
-    #notification-toggle {
-        padding: 8px 12px;
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-
-        #notification-toggle label {
-            font-size: 11px;
-            gap: 6px;
-        }
-
-        #notification-toggle .checkmark {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            border-width: 2px;
-        }
-
-        #notification-toggle input:checked + .checkmark::after {
-            left: 4px;
-            top: 1px;
-            width: 4px;
-            height: 8px;
-            border-width: 0 2px 2px 0;
-        }
-
-    .alert-notification {
-        top: 8px;
-        right: 8px;
-        left: 8px;
-        padding: 0.7rem 1rem;
         border-radius: 6px;
-        font-size: 0.8rem;
-    }
-}
-
-@media screen and (max-width: 320px) {
-    body {
-        padding: 4px;
-    }
-
-    .main-container {
-        padding: 4px;
-    }
-
-    .profile-avatar-section {
-        padding: 10px;
-        border-radius: 12px;
-        margin-bottom: 8px;
-        gap: 10px;
-    }
-
-    .profile-card {
-        padding: 8px;
-        border-radius: 12px;
-    }
-
-    .profile-cards-grid {
-        gap: 8px;
-    }
-
-    .profile-name {
-        font-size: 1.1rem;
-        margin-bottom: 3px;
-        line-height: 1;
-    }
-
-    .profile-email {
-        font-size: 0.7rem;
-        margin-bottom: 3px;
-    }
-
-    .profile-role {
-        font-size: 0.55rem;
-        padding: 0.02rem 0.25rem;
-        border-radius: 3px;
-        margin-top: 3px;
-    }
-
-    .imageUpload {
-        width: 70px;
-        height: 70px;
-        font-size: 1.8rem;
-        border-width: 2px;
-    }
-
-    #avatarRankImage {
-        width: 20px !important;
-        height: 20px !important;
-        bottom: -2px !important;
-        right: -2px !important;
-        border-width: 1.5px !important;
-    }
-
-    #avatarRank {
-        font-size: 8px;
-        padding: 2px 4px;
-        margin-top: 4px;
-        letter-spacing: 0.2px;
-        border-radius: 10px;
-        border-width: 1px;
-    }
-
-    .upload-hint {
-        font-size: 8px;
-        margin-top: 3px;
-    }
-
-    .password-section {
-        padding: 8px;
-        border-radius: 8px;
-        margin-top: 6px;
-    }
-
-        .password-section h3 {
-            font-size: 0.75rem;
-            margin-bottom: 5px;
-        }
-
-            .password-section h3::before {
-                font-size: 0.65rem;
-            }
-
-    .password-form {
-        gap: 6px;
-    }
-
-    .card-title {
-        font-size: 0.8rem;
-        margin-bottom: 6px;
-        gap: 3px;
-    }
-
-    .card-header {
-        margin-bottom: 6px;
-        padding-bottom: 4px;
-        border-width: 1px;
-    }
-
-    .form-group {
-        margin-bottom: 6px;
-    }
-
-    .form-control,
-    .password-input {
-        padding: 6px 8px;
-        font-size: 13px;
-        border-radius: 3px;
-        border-width: 1px;
-    }
-
-    .btn,
-    .password-btn {
-        padding: 6px 12px;
-        font-size: 10px;
-        border-radius: 3px;
-        letter-spacing: 0.2px;
-        margin-top: 6px;
-    }
-
-    .tags-container,
-    .available-tags-container {
-        padding: 5px;
-        border-radius: 3px;
-        min-height: 50px;
-        border-width: 1px;
-        gap: 3px;
+        min-height: 60px;
     }
 
     .available-tags-container {
         max-height: 100px;
     }
 
-    .user-tag {
-        padding: 2px 4px;
-        font-size: 8px;
-        border-radius: 3px;
-        gap: 1px;
-    }
-
-    .remove-tag-btn {
-        width: 8px;
-        height: 8px;
-        font-size: 7px;
-        margin-left: 1px;
-    }
-
-    .available-tag label {
-        padding: 2px 4px;
-        font-size: 8px;
-        border-radius: 3px;
-    }
-
-    .blocked-user-item {
-        padding: 6px;
-        border-radius: 3px;
-        margin-bottom: 4px;
-        gap: 4px;
-    }
-
-        .blocked-user-item strong {
-            font-size: 0.65rem;
-            line-height: 1;
-        }
-
-        .blocked-user-item .btn {
-            padding: 4px 8px;
-            font-size: 9px;
-            border-radius: 2px;
-        }
-
-    .loading-placeholder,
-    .empty-state,
-    .error-state {
-        min-height: 40px;
-        font-size: 0.7rem;
-        padding: 6px;
+    #avatarRank {
+        font-size: 9px;
+        padding: 4px 8px;
+        border-radius: 10px;
+        margin-top: 6px;
     }
 
     #notification-toggle {
-        padding: 6px 10px;
-        border-radius: 6px;
-        margin-top: 8px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        margin-top: 10px;
     }
 
         #notification-toggle label {
-            font-size: 10px;
-            gap: 4px;
+            font-size: 12px;
+            gap: 6px;
         }
 
         #notification-toggle .checkmark {
-            width: 14px;
-            height: 14px;
-            border-radius: 2px;
-            border-width: 1.5px;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
         }
 
         #notification-toggle input:checked + .checkmark::after {
             left: 3px;
-            top: 0px;
-            width: 3px;
+            top: 1px;
+            width: 4px;
             height: 7px;
             border-width: 0 1.5px 1.5px 0;
-        }
-
-    .alert-notification {
-        top: 6px;
-        right: 6px;
-        left: 6px;
-        padding: 0.6rem 0.8rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-    }
-}
-
-@media screen and (orientation: landscape) and (max-height: 600px) {
-    body {
-        padding: 8px;
-    }
-
-    .main-container {
-        padding: 8px;
-        margin-top: 8px;
-    }
-
-    .profile-avatar-section {
-        padding: var(--spacing-md);
-        grid-template-columns: auto 1fr auto;
-        gap: var(--spacing-lg);
-        text-align: left;
-        margin-bottom: var(--spacing-md);
-    }
-
-    .avatar-section {
-        order: 1;
-    }
-
-    .profile-info-section {
-        order: 2;
-        text-align: left;
-    }
-
-    .password-section {
-        order: 3;
-        margin-top: 0;
-        max-width: 280px;
-    }
-
-    .profile-cards-grid {
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-areas: "blocked interests add";
-        gap: var(--spacing-md);
-    }
-
-    .profile-card {
-        min-height: 250px;
-        padding: var(--spacing-sm);
-    }
-
-    .imageUpload {
-        width: 80px;
-        height: 80px;
-        font-size: 2rem;
-    }
-
-    #avatarRankImage {
-        width: 24px !important;
-        height: 24px !important;
-    }
-
-    .profile-name {
-        font-size: 1.4rem;
-    }
-
-    .profile-email {
-        font-size: 0.8rem;
-    }
-
-    .card-title {
-        font-size: 0.9rem;
-    }
-
-    .tags-container,
-    .available-tags-container {
-        min-height: 60px;
-        max-height: 120px;
-    }
-}
-
-@media screen and (max-width: 768px) {
-
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    select,
-    textarea {
-        font-size: 16px !important;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-    }
-
-    .btn,
-    .password-btn,
-    .imageUpload,
-    .user-tag,
-    .available-tag label,
-    .remove-tag-btn,
-    .blocked-user-item .btn,
-    #notification-toggle {
-        touch-action: manipulation;
-    }
-
-    .profile-card {
-        animation: none;
-    }
-
-    .user-tag {
-        animation: none;
-    }
-
-    .profile-name {
-        animation: none;
-    }
-
-    .card-title {
-        animation: none;
-    }
-
-    #avatarRank {
-        animation: none;
-    }
-
-    .password-section h3::before {
-        animation: none;
-    }
-
-    .profile-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 25px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    .profile-avatar-section:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 25px 40px rgba(0, 0, 0, 0.12);
-    }
-
-    .imageUpload:hover {
-        transform: scale(1.02);
-        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
-    }
-
-    .btn:hover,
-    .password-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(74, 144, 226, 0.4);
-    }
-
-    .user-tag:hover {
-        transform: translateY(-1px) scale(1.02);
-        box-shadow: 0 6px 15px rgba(74, 144, 226, 0.3);
-    }
-
-    .available-tag:hover label {
-        transform: translateY(-1px) scale(1.02);
-        box-shadow: 0 3px 10px rgba(74, 144, 226, 0.2);
-    }
-
-    .blocked-user-item:hover {
-        transform: none;
-        box-shadow: 0 3px 10px rgba(220, 38, 38, 0.08);
-    }
-
-    body::before {
-        animation-duration: 12s;
-    }
-
-    .password-section::before,
-    .profile-avatar-section::before,
-    .card-header::after {
-        display: none;
-    }
-
-    .scroll-to-top {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(135deg, #4a90e2, #64b5f6);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        font-size: 1.2rem;
-        cursor: pointer;
-        box-shadow: 0 8px 25px rgba(74, 144, 226, 0.4);
-        z-index: 1000;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-    }
-
-        .scroll-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .scroll-to-top:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(74, 144, 226, 0.5);
-        }
-}
-
-@media screen and (max-width: 768px) {
-    .profile-cards-grid {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-lg);
-    }
-
-    .profile-card:nth-child(1),
-    .profile-card:nth-child(2),
-    .profile-card:nth-child(3) {
-        grid-area: unset;
-        min-height: auto;
-        order: unset;
-    }
-}
-
-@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
-    .profile-name,
-    .card-title,
-    #avatarRank {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    .imageUpload,
-    #avatarRankImage {
-        image-rendering: -webkit-optimize-contrast;
-        image-rendering: crisp-edges;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-
-    .profile-card,
-    .user-tag,
-    .profile-name,
-    .card-title,
-    #avatarRank,
-    .password-section h3::before {
-        animation: none;
-    }
-
-    body::before {
-        animation: none;
-    }
-}
-
-@media (prefers-color-scheme: dark) and (max-width: 768px) {
-    .profile-avatar-section,
-    .profile-card {
-        background: rgba(26, 26, 26, 0.95);
-        border-color: rgba(74, 144, 226, 0.3);
-    }
-
-    .profile-name,
-    .card-title {
-        background: linear-gradient(135deg, #ffffff 0%, #4a90e2 50%, #ffffff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .profile-email {
-        color: #e2e8f0;
-    }
-
-    .profile-role {
-        background: rgba(74, 85, 104, 0.3);
-        color: #cbd5e1;
-    }
-
-    .form-control,
-    .password-input {
-        background: rgba(45, 45, 45, 0.8);
-        border-color: rgba(74, 144, 226, 0.3);
-        color: #ffffff;
-    }
-
-        .form-control::placeholder,
-        .password-input::placeholder {
-            color: #9ca3af;
-        }
-
-    .tags-container,
-    .available-tags-container {
-        background: rgba(45, 45, 45, 0.6);
-        border-color: rgba(74, 144, 226, 0.3);
-    }
-
-    .available-tag label {
-        background: rgba(55, 65, 81, 0.9);
-        color: #e5e7eb;
-        border-color: rgba(74, 144, 226, 0.4);
-    }
-
-    .blocked-user-item {
-        background: rgba(45, 45, 45, 0.9);
-        border-color: rgba(220, 38, 38, 0.4);
-    }
-
-        .blocked-user-item strong {
-            color: #f3f4f6;
-        }
-
-    #notification-toggle {
-        background: rgba(45, 45, 45, 0.8);
-        border-color: rgba(74, 144, 226, 0.3);
-    }
-
-        #notification-toggle label {
-            color: #e5e7eb;
-        }
-
-        #notification-toggle .checkmark {
-            background: rgba(55, 65, 81, 0.9);
-            border-color: rgba(74, 144, 226, 0.4);
-        }
-}
-
-@media screen and (max-width: 768px) {
-
-    .tags-container {
-        overflow: visible;
-        word-wrap: break-word;
-    }
-
-    .available-tags-container {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .form-control:focus,
-    .password-input:focus {
-        transform: none;
-        zoom: 1;
-    }
-
-    .profile-avatar-section {
-        will-change: transform;
-    }
-
-    .profile-card {
-        will-change: transform;
-    }
-
-    .remove-tag-btn {
-        flex-shrink: 0;
-        min-width: auto;
-    }
-
-    .profile-email {
-        word-break: break-word;
-        overflow-wrap: break-word;
-    }
-
-    .blocked-user-item strong {
-        word-break: break-word;
-        overflow-wrap: break-word;
-        flex: 1;
-        min-width: 0;
-    }
-
-    .available-tags-container::-webkit-scrollbar {
-        width: 3px;
-    }
-
-    .available-tags-container::-webkit-scrollbar-track {
-        background: rgba(74, 144, 226, 0.05);
-    }
-
-    .available-tags-container::-webkit-scrollbar-thumb {
-        background: rgba(74, 144, 226, 0.3);
-        border-radius: 2px;
-    }
-}
-
-@media screen and (max-width: 320px) {
-
-    .main-container {
-        overflow-x: hidden;
-    }
-
-    .profile-avatar-section,
-    .profile-card {
-        overflow-x: hidden;
-        word-wrap: break-word;
-    }
-
-    .btn,
-    .password-btn,
-    .blocked-user-item .btn {
-        min-height: 32px;
-        min-width: 60px;
-    }
-
-    .remove-tag-btn {
-        min-width: 8px;
-        min-height: 8px;
-    }
-
-    .profile-name {
-        word-break: break-word;
-        hyphens: auto;
-    }
-
-    .profile-email {
-        font-size: 0.65rem;
-        line-height: 1.2;
-    }
-
-    .profile-info-section {
-        gap: 2px;
-    }
-
-    .card-header {
-        margin-bottom: 4px;
-        padding-bottom: 2px;
-    }
-}
-
-@media screen and (max-width: 768px) {
-    .mobile-optimized {
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-
-        .mobile-optimized input,
-        .mobile-optimized textarea {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
         }
 }

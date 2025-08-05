@@ -613,19 +613,22 @@
     }
 }
 
-/* --- ENHANCED RESPONSIVE DESIGN FOR NEWS PAGE --- */
+/* --- RESPONSIVE DESIGN --- */
 
 @media screen and (max-width: 1024px) {
     .main-container {
         max-width: 95%;
         padding: 1.5rem;
+        margin-top: 80px;
     }
 
     .page-header {
         max-width: 90%;
         padding: 3.5rem 0 2.5rem;
-        margin-top: 15px;
+        margin-top: 0; 
         margin-bottom: 2.5rem;
+        position: relative;
+        z-index: 10;
     }
 
     .page-title {
@@ -655,15 +658,18 @@
     .main-container {
         max-width: 100%;
         padding: 1rem;
-        margin-top: 0;
+        margin-top: 70px;
+        padding-top: 20px;
     }
 
     .page-header {
         max-width: 95%;
-        padding: 3rem 1rem 2rem;
+        padding: 2.5rem 1rem 2rem; 
         margin-bottom: 2rem;
-        margin-top: 15px;
+        margin-top: 0; 
         border-radius: 0 0 30px 30px;
+        position: relative;
+        z-index: 10;
     }
 
     .page-title {
@@ -780,12 +786,14 @@
 @media screen and (max-width: 600px) {
     .main-container {
         padding: 0.8rem;
+        margin-top: 60px;
+        padding-top: 15px;
     }
 
     .page-header {
         max-width: 98%;
-        padding: 2.5rem 0.8rem 1.8rem;
-        margin-top: 10px;
+        padding: 2rem 0.8rem 1.8rem; 
+        margin-top: 0; 
         margin-bottom: 1.5rem;
         border-radius: 0 0 25px 25px;
     }
@@ -872,12 +880,14 @@
 @media screen and (max-width: 480px) {
     .main-container {
         padding: 0.5rem;
+        margin-top: 55px;
+        padding-top: 10px;
     }
 
     .page-header {
         max-width: 99%;
-        padding: 2rem 0.5rem 1.5rem;
-        margin-top: 8px;
+        padding: 1.5rem 0.5rem 1.5rem;
+        margin-top: 0; 
         margin-bottom: 1.2rem;
         border-radius: 0 0 20px 20px;
     }
@@ -1003,11 +1013,13 @@
 @media screen and (max-width: 380px) {
     .main-container {
         padding: 0.4rem;
+        margin-top: 50px;
+        padding-top: 5px;
     }
 
     .page-header {
-        padding: 1.8rem 0.4rem 1.2rem;
-        margin-top: 5px;
+        padding: 1.2rem 0.4rem 1.2rem; 
+        margin-top: 0;
         margin-bottom: 1rem;
     }
 
@@ -1092,11 +1104,13 @@
 @media screen and (max-width: 320px) {
     .main-container {
         padding: 0.3rem;
+        margin-top: 45px;
+        padding-top: 5px;
     }
 
     .page-header {
-        padding: 1.5rem 0.3rem 1rem;
-        margin-top: 3px;
+        padding: 1rem 0.3rem 1rem;
+        margin-top: 0;
         margin-bottom: 0.8rem;
         border-radius: 0 0 15px 15px;
     }
@@ -1175,9 +1189,26 @@
     }
 }
 
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+    .main-container {
+        margin-top: calc(70px + env(safe-area-inset-top, 0px));
+        padding-top: calc(20px + env(safe-area-inset-top, 0px));
+    }
+
+    .page-title,
+    .article-title {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+}
+
 @media screen and (max-width: 768px) and (orientation: landscape) {
+    .main-container {
+        margin-top: 40px;
+    }
+
     .page-header {
-        padding: 2rem 1rem 1.5rem;
+        padding: 1.5rem 1rem 1rem;
         margin-bottom: 1.5rem;
     }
 
@@ -1246,18 +1277,20 @@
     }
 }
 
-@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
-    .page-title,
-    .article-title {
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     * {
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+@supports (padding: max(0px)) {
+    @media screen and (max-width: 768px) {
+        .main-container {
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
     }
 }

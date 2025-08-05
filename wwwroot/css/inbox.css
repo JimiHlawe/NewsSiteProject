@@ -541,3 +541,198 @@
         max-width: 350px;
     }
 }
+
+/* --- RESPONSIVE DESIGN --- */
+
+@media (max-width: 1200px) {
+    .main-container {
+        padding: 0 1.5rem;
+        margin-top: 75px;
+    }
+
+    .articles-container {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .shared-article-card {
+        max-width: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-container {
+        padding: 0 1rem;
+        margin-top: 75px;
+    }
+
+    .page-header {
+        max-width: 95%;
+        padding: 2.5rem 1rem 2rem;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        margin-top: 1rem;
+    }
+
+    .page-title {
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+    }
+
+    .page-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .articles-container {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .shared-article-card {
+        border-radius: 16px;
+    }
+
+    .shared-content {
+        padding: 1.25rem;
+    }
+
+    .shared-image-container {
+        height: 200px;
+    }
+
+    .shared-info {
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .shared-by {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .shared-meta {
+        flex-direction: column;
+        gap: 0.8rem;
+        align-items: flex-start;
+    }
+
+    .shared-author,
+    .shared-date {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-container {
+        padding: 0 0.75rem;
+        margin-top: 75px;
+    }
+
+    .page-header {
+        padding: 2rem 0.75rem 1.5rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0 0 15px 15px;
+        margin-top: 1rem;
+    }
+
+    .page-title {
+        font-size: clamp(1.5rem, 8vw, 2rem);
+        margin-bottom: 0.75rem;
+    }
+
+    .page-subtitle {
+        font-size: 1rem;
+    }
+
+    .articles-container {
+        gap: 1.25rem;
+    }
+
+    .shared-article-card {
+        border-radius: 12px;
+    }
+
+    .shared-content {
+        padding: 1rem;
+    }
+
+    .shared-image-container {
+        height: 180px;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .shared-info {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .shared-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .shared-description {
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .comment-text {
+        font-size: 0.85rem;
+        padding: 0.75rem;
+    }
+
+    .shared-tags {
+        top: 0.75rem;
+        left: 0.75rem;
+    }
+
+    .tag-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    .remove-btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .no-articles-message {
+        padding: 2rem 1rem;
+        margin: 1rem 0;
+    }
+
+        .no-articles-message h3 {
+            font-size: 1.25rem;
+        }
+
+        .no-articles-message p {
+            font-size: 1rem;
+        }
+}
+
+@media (max-width: 320px) {
+    .main-container {
+        padding: 0 0.5rem;
+        margin-top: 75px;
+    }
+
+    .page-header {
+        padding: 1.5rem 0.5rem 1.25rem;
+    }
+
+    .shared-content {
+        padding: 0.75rem;
+    }
+
+    .shared-image-container {
+        height: 160px;
+    }
+
+    .shared-info {
+        padding: 0.75rem;
+    }
+
+    .articles-container {
+        gap: 1rem;
+    }
+}

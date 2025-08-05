@@ -400,7 +400,7 @@ function blockUser(senderName) {
 
     // 🔒 Prevent blocking self
     if (senderName === user.name) {
-        alert("❌ You cannot block yourself.");
+        alert("You cannot block yourself.");
         return;
     }
 
@@ -414,7 +414,7 @@ function blockUser(senderName) {
             blockedUsername: senderName
         })
     })
-        .then(res => res.ok ? alert(`✅ ${senderName} blocked!`) : alert("Error blocking user"))
+        .then(res => res.ok ? alert(`${senderName} blocked!`) : alert("Error blocking user"))
         .then(() => loadThreadsArticles())
         .catch(() => alert("Error"));
 }
@@ -553,12 +553,12 @@ function submitReport(referenceType, referenceId) {
     })
         .then(res => {
             if (res.ok) {
-                alert("✅ Reported!");
+                alert("Reported!");
             } else {
-                alert("❌ Error reporting.");
+                alert("Error reporting.");
             }
         })
-        .catch(() => alert("❌ Network error"))
+        .catch(() => alert("Network error"))
         .finally(() => closeReportModal());
 }
 

@@ -151,3 +151,84 @@ function listenToInboxCount(userId) {
         }
     });
 }
+
+// Initialize mobile menu functionality
+function initMobileMenu() {
+    const hamburger = document.querySelector('.hamburger');
+    const overlay = document.querySelector('.mobile-menu-overlay');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+
+    if (hamburger) {
+        hamburger.addEventListener('click', toggleMobileMenu);
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', closeMobileMenu);
+    }
+
+    // Add click listeners to mobile nav links
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', closeMobileMenu);
+    });
+
+    // Close menu on outside click
+    document.addEventListener('click', function (event) {
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const navbar = document.querySelector('.navbar');
+
+        if (mobileMenu && navbar) {
+            if (!navbar.contains(event.target) &&
+                !mobileMenu.contains(event.target) &&
+                mobileMenu.classList.contains('active')) {
+                closeMobileMenu();
+            }
+        }
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeMobileMenu();
+        }
+    });
+}
+
+// Toggle mobile menu
+function toggleMobileMenu() {
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const overlay = document.querySelector('.mobile-menu-overlay');
+    const hamburger = document.querySelector('.hamburger');
+
+    if (mobileMenu && overlay && hamburger) {
+        const isActive = mobileMenu.classList.contains('active');
+
+        if (isActive) {
+            closeMobileMenu();
+        } else {
+            mobileMenu.classList.add('active');
+            overlay.classList.add('active');
+            hamburger.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.body.classList.add('mobile-menu-open'); // ← הוספתי את זה
+        }
+    }
+}
+
+// Close mobile menu
+function closeMobileMenu() {
+    const mobileMenu = document.querySelector('.mobile-menu');
+    const overlay = document.querySelector('.mobile-menu-overlay');
+    const hamburger = document.querySelector('.hamburger');
+
+    if (mobileMenu && overlay && hamburger) {
+        mobileMenu.classList.remove('active');
+        overlay.classList.remove('active');
+        hamburger.classList.remove('active');
+        document.body.style.overflow = '';
+        document.body.classList.remove('mobile-menu-open'); // ← הוספתי את זה
+    }
+}
+
+// Make functions available globally
+window.toggleMobileMenu = toggleMobileMenu;
+window.closeMobileMenu = closeMobileMenu;
