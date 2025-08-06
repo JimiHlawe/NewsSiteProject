@@ -90,6 +90,8 @@ function renderVisibleArticles() {
                     <span>${formattedDate}</span>
                 </div>`;
 
+        updateArticleLikeCount(article.id);
+
         if (user && user.id) {
             html += `
                 <div class="article-actions">
@@ -112,7 +114,6 @@ function renderVisibleArticles() {
                     </button>
                 </div>`;
 
-            updateArticleLikeCount(article.id);
         }
 
         html += `</div>`; // Close article-content
@@ -226,8 +227,9 @@ function submitShare(articleId) {
     const comment = document.getElementById("shareComment").value || "";
     const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    if (!loggedUser) {
-        alert("You must be logged in to share articles.");
+    // ✅ בדיקה אם המשתמש חסום לשיתוף
+    if (loggedUser.canShare === false) {
+        alert("You are blocked from sharing articles.");
         return;
     }
 
@@ -346,7 +348,7 @@ function sendComment(articleId, isModal = false) {
         return;
     }
 
-    const canComment = sessionStorage.getItem("canComment") === "true";
+    const canComment = user.canComment === true;
     if (!canComment) {
         alert("Your commenting ability is blocked!");
         return;
@@ -728,18 +730,37 @@ document.addEventListener('keydown', function (e) {
 function submitNewArticle(event) {
     if (event) event.preventDefault();
 
-    const tagsRaw = document.getElementById("newTags").value;
+    const title = document.getElementById("newTitle").value.trim();
+    const description = document.getElementById("newDescription").value.trim();
+    const content = document.getElementById("newContent").value.trim();
+    const author = document.getElementById("newAuthor").value.trim();
+    const sourceUrl = document.getElementById("newSourceUrl").value.trim();
+    const imageUrl = document.getElementById("newImageUrl").value.trim();
+    const publishedAtRaw = document.getElementById("newPublishedAt").value.trim();
+    const tagsRaw = document.getElementById("newTags").value.trim();
+
+    if (!title || !description || !content || !author || !sourceUrl || !imageUrl || !publishedAtRaw || !tagsRaw) {
+        alert("Please fill in all fields before submitting.");
+        return;
+    }
+
+    const publishedAt = new Date(publishedAtRaw);
+    if (isNaN(publishedAt)) {
+        alert("Please enter a valid published date.");
+        return;
+    }
+
     const tags = tagsRaw.split(",").map(s => s.trim()).filter(s => s !== "");
 
     const newArticle = {
-        title: document.getElementById("newTitle").value,
-        description: document.getElementById("newDescription").value,
-        content: document.getElementById("newContent").value,
-        author: document.getElementById("newAuthor").value,
-        sourceUrl: document.getElementById("newSourceUrl").value,
-        imageUrl: document.getElementById("newImageUrl").value,
-        publishedAt: document.getElementById("newPublishedAt").value,
-        tags: tags
+        title,
+        description,
+        content,
+        author,
+        sourceUrl,
+        imageUrl,
+        publishedAt,
+        tags
     };
 
     fetch("/api/Articles/AddUserArticle", {
@@ -747,9 +768,19 @@ function submitNewArticle(event) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newArticle)
     })
-        .then(res => res.ok ? res.json() : res.text())
-        .then(() => toggleAddArticleModal())
-        .catch(() => alert("❌ Failed to submit article."));
+        .then(res => res.ok ? res.json() : Promise.reject(res))
+        .then(() => {
+            alert("✅ Article added successfully.");
+            toggleAddArticleModal();
+        })
+        .catch(async res => {
+            const errorText = await res.text();
+            if (errorText.includes("already exists")) {
+                alert("❌ Article already exists.");
+            } else {
+                alert("❌ Failed to submit article: " + errorText);
+            }
+        });
 }
 
 

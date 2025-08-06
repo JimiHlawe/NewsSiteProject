@@ -118,6 +118,10 @@ namespace NewsSite1.Controllers
             try
             {
                 int newId = _db.AddUserArticle(article);
+
+                if (newId == -1)
+                    return Conflict("Article with the same URL already exists");
+
                 article.Id = newId;
                 return Ok(article);
             }
@@ -126,6 +130,7 @@ namespace NewsSite1.Controllers
                 return StatusCode(500, "Error adding user article");
             }
         }
+
 
         // ✅ Returns all public articles shared with comment (Threads)
         [HttpGet("Public/{userId}")]
