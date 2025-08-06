@@ -1222,13 +1222,12 @@
 
 /* Share Article Modal */
 .share-modal-overlay {
+    background: url(../pictures/wallpaper.png);
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.92) 50%, rgba(51, 65, 85, 0.88) 100%);
-    backdrop-filter: blur(20px);
     z-index: 10000;
     display: flex;
     align-items: center;
@@ -2413,7 +2412,7 @@ article-section {
 
 /* Add Article Form */
 .add-article-form {
-    background: var(--bg-card);
+    background: url(../pictures/wallpaper.png);
     border-radius: 25px;
     padding: 3rem;
     box-shadow: 0 20px 60px rgba(0,0,0,0.15);
