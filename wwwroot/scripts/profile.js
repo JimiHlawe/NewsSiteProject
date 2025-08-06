@@ -4,7 +4,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const rawUser = sessionStorage.getItem("loggedUser");
     if (!rawUser) {
-        alert("Please log in");
         window.location.href = "index.html";
         return;
     }

@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", function () {
     var userJson = sessionStorage.getItem("loggedUser");
     if (!userJson) {
-        window.location.href = "/html/login.html";
+        window.location.href = "/html/index.html";
         return;
     }
 

@@ -3,11 +3,21 @@ var allSavedArticles = [];
 
 // ✅ On page load – fetch saved articles and set up search form
 document.addEventListener("DOMContentLoaded", function () {
+    // ✅ Check if user is logged in
     var userJson = sessionStorage.getItem("loggedUser");
-    var user = userJson ? JSON.parse(userJson) : null;
+    if (!userJson) {
+        window.location.href = "/html/index.html";
+        return;
+    }
 
-    if (!user || !user.id) return;
+    var user = JSON.parse(userJson);
+    if (!user || !user.id) {
+        alert("Invalid session, please log in again");
+        window.location.href = "/html/login.html";
+        return;
+    }
 
+    // ✅ Fetch saved articles
     fetch("/api/Users/GetSavedArticles/" + user.id)
         .then(function (res) { return res.json(); })
         .then(function (data) {
@@ -19,6 +29,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 '<div class="alert alert-danger">Error loading saved articles</div>';
         });
 
+    // ✅ Set up search form
     var form = document.getElementById("searchForm");
     if (form) {
         form.addEventListener("submit", function (e) {
@@ -27,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
 
 // ✅ Filter saved articles by title and date range
 function filterArticles() {

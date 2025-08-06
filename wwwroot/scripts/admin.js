@@ -1,5 +1,13 @@
-﻿// ✅ On page load – initialize admin features
+﻿// ✅ On page load – initialize admin featuress
 document.addEventListener("DOMContentLoaded", () => {
+    // ✅ Check if user is logged in
+    const rawUser = sessionStorage.getItem("loggedUser");
+    if (!rawUser) {
+        window.location.href = "/html/login.html";
+        return;
+    }
+
+    // ✅ Load admin data
     loadUsers();
     loadAllStats();
     loadReports();
@@ -7,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupTagging();
     setupFixMissingImages();
 
-    // Add fade-in animations
+    // ✅ Add fade-in animations
     setTimeout(() => {
         document.querySelectorAll('.fade-in').forEach((el, index) => {
             setTimeout(() => {
@@ -17,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }, 100);
 });
+
 
 // ✅ Load and display all users in admin table
 function loadUsers() {

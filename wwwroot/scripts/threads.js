@@ -3,10 +3,17 @@ let allThreads = [];
 let currentThreadsPage = 1;
 const threadsPageSize = 5;
 
-// ✅ Load threads when the page is ready
+// ✅ On page load – verify login and load threads
 document.addEventListener("DOMContentLoaded", function () {
+    const rawUser = sessionStorage.getItem("loggedUser");
+    if (!rawUser) {
+        window.location.href = "index.html";
+        return;
+    }
+
     loadThreadsArticles();
 });
+
 
 // ✅ Get the logged-in user from sessionStorage
 function getLoggedUser() {
