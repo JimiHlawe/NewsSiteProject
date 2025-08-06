@@ -263,45 +263,24 @@ namespace NewsSite1.Controllers
         {
             try
             {
-                bool success = db.UnblockUser(req.BlockerUserId, req.BlockedUserId);
-                return success ? Ok() : BadRequest();
+                if (req == null || req.BlockerUserId <= 0 || req.BlockedUserId <= 0)
+                    return BadRequest(new { message = "Invalid unblock request" });
+
+                db.UnblockUser(req.BlockerUserId, req.BlockedUserId);
+
+                // תמיד נחזיר הצלחה, גם אם לא הייתה חסימה בפועל
+                return Ok(new { message = "User unblocked" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Error unblocking user: " + ex.Message);
+                return StatusCode(500, new { message = "Error unblocking user: " + ex.Message });
             }
         }
 
-        // ✅ Sets active status of a user
-        [HttpPost("SetActiveStatus")]
-        public IActionResult SetActiveStatus([FromBody] SetStatusRequest req)
-        {
-            db.SetUserActiveStatus(req.UserId, req.IsActive);
-            return Ok("User status updated");
-        }
 
-        // ✅ Sets whether user can share articles
-        [HttpPost("SetSharingStatus")]
-        public IActionResult SetSharingStatus([FromBody] SharingStatusRequest req)
-        {
-            db.SetUserSharingStatus(req.UserId, req.CanShare);
-            return Ok("Sharing status updated");
-        }
 
-        // ✅ Sets whether user can comment on articles
-        [HttpPost("SetCommentingStatus")]
-        public IActionResult SetCommentingStatus([FromBody] SharingStatusRequest req)
-        {
-            db.SetUserCommentingStatus(req.UserId, req.CanComment);
-            return Ok("Commenting status updated");
-        }
 
-        // ✅ Gets overall site statistics
-        [HttpGet("GetStatistics")]
-        public IActionResult GetStatistics()
-        {
-            return Ok(db.GetSiteStatistics());
-        }
+    
 
         // ✅ Uploads user profile image and updates path in DB
         [HttpPost("UploadProfileImage")]
@@ -334,14 +313,15 @@ namespace NewsSite1.Controllers
         {
             try
             {
-                bool success = db.ToggleUserNotifications(req.UserId, req.Enable);
-                return success ? Ok(new { message = "Updated" }) : BadRequest("Failed to update");
+                db.ToggleUserNotifications(req.UserId, req.Enable); 
+                return Ok(new { message = "Notification preference updated" });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Error toggling notifications: " + ex.Message);
             }
         }
+
 
         // ✅ Removes a shared article by sharedId
         [HttpDelete("RemoveShared/{sharedId}")]

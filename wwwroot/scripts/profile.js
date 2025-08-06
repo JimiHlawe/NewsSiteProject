@@ -238,9 +238,9 @@ function updatePassword() {
         return;
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-        showNotification("Password must include uppercase and number", "warning");
+        showNotification("Password must include uppercase, number, and special character", "warning");
         return;
     }
 
@@ -306,32 +306,43 @@ function loadBlockedUsers() {
         });
 }
 
-// ✅ Unblock a previously blocked user
+// ✅ Sends a request to unblock a user
 function unblockUser(blockedUserId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     if (!confirm("Are you sure you want to unblock this user?")) return;
-
+    console.log("userId:", user.id);
+    console.log("enable:", isEnabled);
+    console.log("Sending to:", `${apiBase}/ToggleNotifications`);
     const userItem = event.target.closest('.blocked-user-item');
     userItem.style.opacity = '0.5';
 
     fetch("/api/Users/UnblockUser", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blockerUserId: user.id, blockedUserId })
+        body: JSON.stringify({
+            blockerUserId: user.id,
+            blockedUserId: blockedUserId
+        })
+
     })
-        .then(res => {
+
+
+        .then(async res => {
+            const data = await res.json();
             if (res.ok) {
-                showNotification("User unblocked", "success");
-                loadBlockedUsers();
+                showNotification(data.message || "User unblocked", "success");
+                loadBlockedUsers(); // ריענון הרשימה
             } else {
-                throw new Error();
+                throw new Error(data.message || "Unblock failed");
             }
         })
-        .catch(() => {
+        .catch(err => {
             userItem.style.opacity = '1';
-            showNotification("Failed to unblock user", "error");
+            showNotification(err.message, "error");
         });
 }
+
+
 
 
 // ✅ Load avatar level and matching icon

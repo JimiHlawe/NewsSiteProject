@@ -232,6 +232,12 @@ function submitShare(articleId) {
     }
 
     if (shareType === "public") {
+        // ✅ בדיקה שהתגובה לא ריקה
+        if (comment.trim().length === 0) {
+            alert("Please enter a comment before sharing publicly.");
+            return;
+        }
+
         // ✅ Public Share
         fetch("/api/Articles/SharePublic", {
             method: "POST",
@@ -251,6 +257,7 @@ function submitShare(articleId) {
                 console.error(err);
                 alert("Error sharing publicly: " + err.message);
             });
+
     } else {
         // ✅ Private Share
         const targetUsername = document.getElementById("targetUser").value.trim();
@@ -280,7 +287,6 @@ function submitShare(articleId) {
             });
     }
 }
-
 
 // Close the share modal
 function closeShareModal() {

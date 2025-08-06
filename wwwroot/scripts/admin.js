@@ -67,7 +67,7 @@ function loadUsers() {
 
 // ✅ Set user active/inactive status
 function setStatus(userId, isActive) {
-    fetch("/api/Users/SetActiveStatus", {
+    fetch("/api/Admin/SetActiveStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, isActive })
@@ -77,7 +77,7 @@ function setStatus(userId, isActive) {
 // ✅ Load admin statistics: users, articles, likes, etc.
 function loadAllStats() {
     Promise.all([
-        fetch("/api/Users/GetStatistics").then(res => res.json()),
+        fetch("/api/Admin/GetStatistics").then(res => res.json()),
         fetch("/api/Admin/LikesStats").then(res => res.json())
     ])
         .then(([stats, likes]) => {
@@ -109,7 +109,7 @@ function loadAllStats() {
 
 // ✅ Toggle user's sharing permission
 function toggleSharing(userId, canShare) {
-    fetch("/api/Users/SetSharingStatus", {
+    fetch("/api/Admin/SetSharingStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, canShare })
@@ -118,7 +118,7 @@ function toggleSharing(userId, canShare) {
 
 // ✅ Toggle user's commenting permission
 function toggleCommenting(userId, canComment) {
-    fetch("/api/Users/SetCommentingStatus", {
+    fetch("/api/Admin/SetCommentingStatus", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, canComment })
@@ -204,7 +204,7 @@ function setupImportExternal() {
         importBtn.disabled = true;
         importBtn.innerHTML = 'Importing...';
 
-        fetch("/api/Articles/ImportExternal", { method: "POST" })
+        fetch("/api/Admin/ImportExternal", { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error();
                 return res.json();
