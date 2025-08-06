@@ -40,20 +40,6 @@ namespace NewsSite1.Controllers
             }
         }
 
-        // ✅ Returns reported articles for review
-        [HttpGet("ReportedArticles")]
-        public IActionResult GetReportedArticles()
-        {
-            try
-            {
-                return Ok(db.GetReportedArticles());
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Failed to load reported articles");
-            }
-        }
-
         [HttpGet("Reports/TodayCount")]
         public IActionResult GetTodayReportsCount()
         {
@@ -65,20 +51,6 @@ namespace NewsSite1.Controllers
             catch
             {
                 return StatusCode(500, "Failed to get report count");
-            }
-        }
-
-        // ✅ Returns reported comments for review
-        [HttpGet("ReportedComments")]
-        public IActionResult GetReportedComments()
-        {
-            try
-            {
-                return Ok(db.GetReportedComments());
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Failed to load reported comments");
             }
         }
 

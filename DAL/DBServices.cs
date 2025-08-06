@@ -1608,53 +1608,6 @@ namespace NewsSite1.DAL
             }
         }
 
-
-        public List<ReportedArticleDTO> GetReportedArticles()
-        {
-            List<ReportedArticleDTO> list = new List<ReportedArticleDTO>();
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetReportedArticles", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    list.Add(new ReportedArticleDTO
-                    {
-                        ReporterName = reader["ReporterName"].ToString(),
-                        TargetName = reader["TargetName"].ToString(),
-                        ArticleTitle = reader["ArticleTitle"].ToString(),
-                        Reason = reader["Reason"].ToString(),
-                        ReportedAt = Convert.ToDateTime(reader["ReportedAt"])
-                    });
-                }
-            }
-            return list;
-        }
-
-        public List<ReportedCommentDTO> GetReportedComments()
-        {
-            List<ReportedCommentDTO> list = new List<ReportedCommentDTO>();
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetReportedComments", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    list.Add(new ReportedCommentDTO
-                    {
-                        ReporterName = reader["ReporterName"].ToString(),
-                        CommentText = reader["CommentText"].ToString(),
-                        Reason = reader["Reason"].ToString(),
-                        ReportedAt = Convert.ToDateTime(reader["ReportedAt"])
-                    });
-
-                }
-            }
-            return list;
-        }
-
         public List<ReportEntryDTO> GetAllReports()
         {
             List<ReportEntryDTO> list = new List<ReportEntryDTO>();
