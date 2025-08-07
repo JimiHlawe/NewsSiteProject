@@ -90,8 +90,6 @@ function renderVisibleArticles() {
                     <span>${formattedDate}</span>
                 </div>`;
 
-        updateArticleLikeCount(article.id);
-
         if (user && user.id) {
             html += `
                 <div class="article-actions">
@@ -132,6 +130,9 @@ function renderVisibleArticles() {
 
     const loadMoreBtn = document.getElementById("loadMoreBtn");
     loadMoreBtn.style.display = pageSize * currentPageUsed >= sourceList.length ? "none" : "block";
+    visibleArticles.forEach(article => {
+        updateArticleLikeCount(article.id);
+    });
 }
 
 
@@ -560,22 +561,28 @@ function reportComment(commentId) {
 // Toggle like for an article
 function toggleLike(articleId) {
     if (!requireLogin()) return;
-    const user = getLoggedUser();
-    const isLiked = document.getElementById(`like-btn-${articleId}`).classList.contains("liked");
-    const endpoint = isLiked ? "Unlike" : "Like";
 
-    fetch(`/api/Likes/${endpoint}`, {
+    const user = getLoggedUser();
+
+    fetch("/api/Likes/ToggleArticleLike", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
     })
-        .then(res => {
-            if (res.ok) {
-                updateArticleLikeCount(articleId);
-                document.getElementById(`like-btn-${articleId}`).classList.toggle("liked");
+        .then(res => res.ok ? res.json() : Promise.reject())
+        .then(data => {
+            // Update UI according to 'liked' response from server
+            const btn = document.getElementById(`like-btn-${articleId}`);
+            if (btn) {
+                btn.classList.toggle("liked", data.liked); // הוספה או הסרה לפי מה שהשרת החזיר
             }
+            updateArticleLikeCount(articleId); // רענון מונה הלייקים
+        })
+        .catch(() => {
+            alert("Failed to toggle like.");
         });
 }
+
 
 // ✅ Listen to real-time like count for an article
 function updateArticleLikeCount(articleId) {

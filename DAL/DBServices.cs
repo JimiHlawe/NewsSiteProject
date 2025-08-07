@@ -975,34 +975,6 @@ namespace NewsSite1.DAL
         // ============== LIKES =====================
         // ============================================
 
-        public void AddLike(int userId, int articleId)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddLike", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
-        public void RemoveLike(int userId, int articleId)
-        {
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_RemoveLike", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.ExecuteNonQuery();
-            }
-        }
-
         // ✅ Returns the number of likes for a public article (thread) and updates Firebase in real-time
         public int GetThreadLikeCount(int publicArticleId)
         {
@@ -1059,6 +1031,27 @@ namespace NewsSite1.DAL
 
                     object result = cmd.ExecuteScalar();
                     return result != null && Convert.ToInt32(result) == 1; // 1 = like added, 0 = like removed
+                }
+            }
+        }
+
+        // ✅ Toggles a like on a regular article for the given user.
+        // Returns true if like was added, false if removed.
+        public bool ToggleArticleLike(int userId, int articleId)
+        {
+            using (var con = connect())
+            {
+                if (con.State != ConnectionState.Open)
+                    con.Open();
+
+                using (var cmd = new SqlCommand("NewsSP_ToggleArticleLike", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserId", userId);
+                    cmd.Parameters.AddWithValue("@ArticleId", articleId);
+
+                    object result = cmd.ExecuteScalar();
+                    return result != null && Convert.ToInt32(result) == 1;
                 }
             }
         }

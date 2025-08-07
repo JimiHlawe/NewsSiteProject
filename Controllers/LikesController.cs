@@ -21,36 +21,17 @@ namespace NewsSite1.Controllers
             _firebase = firebase;
         }
 
-        // ✅ Adds like to an article and updates Firebase
-        [HttpPost("Like")]
-        public async Task<IActionResult> Like([FromBody] LikeRequest req)
+        // ✅ Toggles like on a regular article and updates Firebase
+        // ✅ Toggles like on a regular article and updates Firebase
+        [HttpPost("ToggleArticleLike")]
+        public async Task<IActionResult> ToggleArticleLike([FromBody] LikeRequest req)
         {
-            _db.AddLike(req.UserId, req.ArticleId);
+            bool liked = _db.ToggleArticleLike(req.UserId, req.ArticleId);
 
             int newCount = _db.GetLikesCount(req.ArticleId);
             await _firebase.UpdateLikeCount(req.ArticleId, newCount);
 
-            return Ok();
-        }
-
-        // ✅ Removes like from an article and updates Firebase
-        [HttpPost("Unlike")]
-        public async Task<IActionResult> Unlike([FromBody] LikeRequest req)
-        {
-            _db.RemoveLike(req.UserId, req.ArticleId);
-
-            int newCount = _db.GetLikesCount(req.ArticleId);
-            await _firebase.UpdateLikeCount(req.ArticleId, newCount);
-
-            return Ok();
-        }
-
-        // ✅ Gets like count for an article
-        [HttpGet("Count/{articleId}")]
-        public IActionResult GetLikesCount(int articleId)
-        {
-            int count = _db.GetLikesCount(articleId);
-            return Ok(count);
+            return Ok(new { liked });
         }
 
         // ✅ Toggles like on a public thread article and updates Firebase
@@ -66,24 +47,28 @@ namespace NewsSite1.Controllers
         }
 
 
+        //// ✅ Gets like count for an article
+        //[HttpGet("Count/{articleId}")]
+        //public IActionResult GetLikesCount(int articleId)
+        //{
+        //    int count = _db.GetLikesCount(articleId);
+        //    return Ok(count);
+        //}
+
+        // ✅ Gets like count for a public thread article
+        //[HttpGet("ThreadLikeCount/{publicArticleId}")]
+        //public IActionResult GetThreadLikeCount(int publicArticleId)
+        //{
+        //    int count = _db.GetThreadLikeCount(publicArticleId);
+        //    return Ok(count);
+        //}
+
         // ✅ Checks if user liked a public thread article
         [HttpGet("Check/{userId}/{articleId}")]
         public IActionResult CheckUserLike(int userId, int articleId)
         {
             bool liked = _db.CheckIfUserLikedThread(userId, articleId);
             return Ok(liked);
-        }
-
-
-
-
-
-        // ✅ Gets like count for a public thread article
-        [HttpGet("ThreadLikeCount/{publicArticleId}")]
-        public IActionResult GetThreadLikeCount(int publicArticleId)
-        {
-            int count = _db.GetThreadLikeCount(publicArticleId);
-            return Ok(count);
         }
 
         // ✅ Endpoint for triggering test exception
