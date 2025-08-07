@@ -17,7 +17,7 @@ namespace NewsSite1.Controllers
             _db = db;
         }
 
-        [HttpPost("Add")]
+        [HttpPost("AddToArticle")] 
         public IActionResult AddComment([FromBody] CommentRequest comment)
         {
             if (comment == null || comment.ArticleId <= 0 || comment.UserId <= 0 || string.IsNullOrWhiteSpace(comment.Comment))
@@ -38,7 +38,7 @@ namespace NewsSite1.Controllers
         }
 
         // ✅ Gets comments for an article
-        [HttpGet("Get/{articleId}")]
+        [HttpGet("GetForArticle/{articleId}")]
         public IActionResult GetComments(int articleId)
         {
             try
@@ -52,16 +52,46 @@ namespace NewsSite1.Controllers
             }
         }
 
+        [HttpPost("AddToThreads")]
+        public IActionResult AddCommentToThreads([FromBody] PublicComment comment)
+        {
+            try
+            {
+                if (comment == null)
+                    return BadRequest("Invalid comment");
+
+                _db.AddCommentToThreads(comment.PublicArticleId, comment.UserId, comment.Comment);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error adding comment to thread");
+            }
+        }
+
+        [HttpGet("GetForThreads/{articleId}")]
+        public IActionResult LoadThreadsComments(int articleId)
+        {
+            try
+            {
+                var comments = _db.LoadThreadsComments(articleId);
+                return Ok(comments);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error retrieving thread comments");
+            }
+        }
+
         // ✅ Toggles like on a regular comment
-        [HttpPost("ToggleLike")]
+        [HttpPost("ToggleLikeForArticles")]
         public IActionResult ToggleCommentLike([FromBody] CommentLikeRequest req)
         {
             _db.ToggleCommentLike(req.UserId, req.CommentId);
             return Ok();
         }
 
-        // ✅ Toggles like on a public comment
-        [HttpPost("TogglePublicLike")]
+        [HttpPost("ToggleLikeForThreads")]
         public IActionResult TogglePublicCommentLike([FromBody] PublicCommentLikeRequest req)
         {
             _db.TogglePublicCommentLike(req.UserId, req.PublicCommentId);
@@ -69,45 +99,27 @@ namespace NewsSite1.Controllers
         }
 
         // ✅ Gets like count for a regular comment
-        [HttpGet("LikeCount/{commentId}")]
-        public IActionResult GetCommentLikeCount(int commentId)
+        [HttpGet("ArticleCommentLikeCount/{commentId}")]
+        public IActionResult GetArticleCommentLikeCount(int commentId)
         {
-            int count = _db.GetCommentLikeCount(commentId);
+            int count = _db.GetArticleCommentLikeCount(commentId);
+            return Ok(count);
+        }
+
+        // ✅ Get total likes for a public comment
+        [HttpGet("ThreadsCommentLikeCount/{publicCommentId}")]
+        public IActionResult GetPublicCommentLikeCount(int publicCommentId)
+        {
+            int count = _db.GetPublicCommentLikeCount(publicCommentId);
             return Ok(count);
         }
 
 
-        [HttpPost("AddPublic")]
-        public IActionResult AddPublicComment([FromBody] PublicComment comment)
-        {
-            try
-            {
-                if (comment == null)
-                    return BadRequest("Invalid comment");
-
-                _db.AddPublicComment(comment.PublicArticleId, comment.UserId, comment.Comment);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error adding comment");
-            }
-        }
 
 
-        [HttpGet("Public/{articleId}")]
-        public IActionResult GetCommentsForPublicArticle(int articleId)
-        {
-            try
-            {
-                var comments = _db.GetCommentsForPublicArticle(articleId);
-                return Ok(comments);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "Error retrieving public comments");
-            }
-        }
+
+
+
 
 
 

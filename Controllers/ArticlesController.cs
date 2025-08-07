@@ -16,54 +16,20 @@ namespace NewsSite1.Controllers
         private readonly NewsApiService _newsApiService;
         private readonly ImageGenerationService _openAiService;
         private readonly FirebaseRealtimeService _firebase;
-        private readonly ImageGenerationService _imageGen;
-
 
         public ArticlesController(
             DBServices db,
             NewsApiService newsApiService,
             ImageGenerationService openAiService,
-            FirebaseRealtimeService firebase,
-            ImageGenerationService imageGen
+            FirebaseRealtimeService firebase
         )
         {
             _db = db;
             _newsApiService = newsApiService;
             _openAiService = openAiService;
             _firebase = firebase;
-            _imageGen = imageGen;
         }
 
-
-        // ✅ Gets articles with tags and supports pagination
-        [HttpGet("WithTags")]
-        public IActionResult GetArticlesWithTags(int page = 1, int pageSize = 20)
-        {
-            try
-            {
-                var articles = _db.GetArticlesWithTags(page, pageSize);
-                return Ok(articles);
-            }
-            catch
-            {
-                return StatusCode(500, "Error loading articles with tags");
-            }
-        }
-
-        // ✅ Gets all tags for a specific article
-        [HttpGet("GetTagsForArticle/{articleId}")]
-        public IActionResult GetTagsForArticle(int articleId)
-        {
-            try
-            {
-                var tags = _db.GetTagsForArticle(articleId);
-                return Ok(tags);
-            }
-            catch
-            {
-                return StatusCode(500, "Error loading tags for article");
-            }
-        }
 
         // ✅ Gets filtered articles by user's interests (once per day)
         [HttpGet("AllFiltered")]
@@ -82,63 +48,31 @@ namespace NewsSite1.Controllers
         }
 
 
-        // ✅ Gets articles paginated
-        [HttpGet("Paginated")]
-        public IActionResult GetPaginated(int page = 1, int pageSize = 6)
+        // ✅ Gets sidebar articles
+        [HttpGet("Sidebar")]
+        public IActionResult GetSidebarArticles(int page = 1, int pageSize = 6)
         {
             try
             {
-                var paged = _db.GetArticlesPaginated(page, pageSize);
+                var paged = _db.GetSidebarArticles(page, pageSize);
                 return Ok(paged);
             }
             catch
             {
-                return StatusCode(500, "Error loading paginated articles");
-            }
-        }
-
-        // ✅ Adds a new user article
-        [HttpPost("AddUserArticle")]
-        public IActionResult AddUserArticle([FromBody] Article article)
-        {
-            if (article == null ||
-                string.IsNullOrEmpty(article.Title) ||
-                string.IsNullOrEmpty(article.Description) ||
-                string.IsNullOrEmpty(article.Content) ||
-                string.IsNullOrEmpty(article.Author) ||
-                string.IsNullOrEmpty(article.SourceUrl) ||
-                string.IsNullOrEmpty(article.ImageUrl) ||
-                article.PublishedAt == default)
-            {
-                return BadRequest("Invalid article data");
-            }
-
-            article.Tags ??= new List<string>();
-
-            try
-            {
-                int newId = _db.AddUserArticle(article);
-
-                if (newId == -1)
-                    return Conflict("Article with the same URL already exists");
-
-                article.Id = newId;
-                return Ok(article);
-            }
-            catch
-            {
-                return StatusCode(500, "Error adding user article");
+                return StatusCode(500, "Error loading sidebar articles");
             }
         }
 
 
-        // ✅ Returns all public articles shared with comment (Threads)
-        [HttpGet("Public/{userId}")]
-        public IActionResult GetPublicArticles(int userId)
+
+
+        // ✅ Returns all public threads (articles shared publicly with comment)
+        [HttpGet("Threads/{userId}")]
+        public IActionResult GetThreads(int userId)
         {
             try
             {
-                var threads = _db.GetAllPublicArticles(userId);
+                var threads = _db.GetAllThreads(userId);
                 return Ok(threads);
             }
             catch (Exception ex)
@@ -147,19 +81,22 @@ namespace NewsSite1.Controllers
             }
         }
 
-        [HttpGet("SharedWithMe/{userId}")]
-        public IActionResult GetSharedWithMe(int userId)
+
+        // ✅ Returns all articles shared privately with the user (Inbox)
+        [HttpGet("Inbox/{userId}")]
+        public IActionResult GetInbox(int userId)
         {
             try
             {
-                var shared = _db.GetSharedArticlesForUser(userId);
-                return Ok(shared);
+                var inbox = _db.GetInboxArticles(userId);
+                return Ok(inbox);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Error fetching shared articles: " + ex.Message);
+                return StatusCode(500, "Error fetching inbox articles: " + ex.Message);
             }
         }
+
 
         // ✅ Shares an article privately using usernames and updates Firebase inbox count
         [HttpPost("ShareByUsernames")]
@@ -193,62 +130,23 @@ namespace NewsSite1.Controllers
 
 
         // ✅ Shares an article publicly to Threads
-        [HttpPost("SharePublic")]
-        public IActionResult SharePublicArticle([FromBody] PublicArticleShareRequest req)
+        [HttpPost("ShareToThreads")]
+        public IActionResult ShareToThreads([FromBody] PublicArticleShareRequest req)
         {
             try
             {
-                _db.ShareArticlePublic(req.UserId, req.ArticleId, req.Comment);
-                return Ok(new { message = "Article shared publicly." });
+                _db.ShareToThreads(req.UserId, req.ArticleId, req.Comment);
+                return Ok(new { message = "Article shared publicly to threads." });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "Error sharing article publicly: " + ex.Message);
+                return StatusCode(500, "Error sharing to threads: " + ex.Message);
             }
         }
 
 
-        [HttpPost("FixMissingImages")]
-        public async Task<IActionResult> FixMissingImages()
-        {
-            var allArticles = _db.GetAllArticles(); // שלוף את כל הכתבות
-            int success = 0, failed = 0, skippedDueToContentPolicy = 0;
 
-            foreach (var article in allArticles.Where(a => string.IsNullOrWhiteSpace(a.ImageUrl)))
-            {
-                try
-                {
-                    var imageUrl = await _imageGen.GenerateImageUrlFromPrompt(article.Title, article.Content);
-
-                    if (imageUrl == null)
-                    {
-                        failed++;
-                        continue;
-                    }
-
-                    if (imageUrl.Contains("News1.jpg")) // מזהה את ברירת המחדל -> content policy violation
-                    {
-                        skippedDueToContentPolicy++;
-                        continue;
-                    }
-
-                    article.ImageUrl = imageUrl;
-                    _db.UpdateArticleImageUrl(article.Id, imageUrl); // מימוש בצד DB
-                    success++;
-                }
-                catch
-                {
-                    failed++;
-                }
-            }
-
-            return Ok(new
-            {
-                success,
-                skippedDueToContentPolicy,
-                failed
-            });
-        }
+       
 
         [HttpPost("Report")]
         public IActionResult ReportContent([FromBody] ReportRequest req)

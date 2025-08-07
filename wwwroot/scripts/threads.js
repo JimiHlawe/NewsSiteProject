@@ -24,7 +24,7 @@ function getLoggedUser() {
 // ✅ Load all public thread articles from server
 function loadThreadsArticles() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    fetch("/api/Articles/Public/" + user.id)
+    fetch("/api/Articles/Threads/" + user.id)
         .then(res => {
             if (!res.ok) throw new Error("Failed to fetch threads");
             return res.json();
@@ -236,7 +236,7 @@ function showCommentsModal(articleId) {
 function loadCommentsForModal(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    fetch("/api/Comments/Public/" + articleId)
+    fetch("/api/Comments/GetForThreads/" + articleId)
         .then(res => res.json())
         .then(comments => {
             const container = document.getElementById("modal-comments-" + articleId);
@@ -279,7 +279,7 @@ function sendCommentFromModal(articleId) {
         comment: commentText
     };
 
-    fetch("/api/Comments/AddPublic", {
+    fetch("/api/Comments/AddToThreads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -316,7 +316,7 @@ function closeCommentsModalOnOutsideClick(event) {
 
 // ✅ Update like count for public comment
 function updatePublicLikeCount(publicCommentId) {
-    fetch(`/api/Likes/PublicCommentLikeCount/${publicCommentId}`)
+    fetch(`/api/Comments/ThreadsCommentLikeCount/${publicCommentId}`)
         .then(res => res.json())
         .then(count => {
             const countSpan = document.getElementById(`public-like-count-${publicCommentId}`);
@@ -327,7 +327,7 @@ function updatePublicLikeCount(publicCommentId) {
 // ✅ Toggle like for a public comment
 function togglePublicCommentLike(publicCommentId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    fetch('/api/Likes/TogglePublicCommentLike', {
+    fetch('/api/Comments/ToggleLikeForThreads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, publicCommentId })
@@ -371,7 +371,7 @@ function sendComment(articleId) {
 function loadComments(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    fetch("/api/Comments/Public/" + articleId)
+    fetch("/api/Comments/GetForThreads/" + articleId)
         .then(res => res.json())
         .then(comments => {
             const container = document.getElementById("comments-" + articleId);

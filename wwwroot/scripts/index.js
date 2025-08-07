@@ -241,7 +241,7 @@ function submitShare(articleId) {
         }
 
         // ✅ Public Share
-        fetch("/api/Articles/SharePublic", {
+        fetch("/api/Articles/ShareToThreads", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -354,7 +354,7 @@ function sendComment(articleId, isModal = false) {
         return;
     }
 
-    fetch("/api/Comments/Add", {
+    fetch("/api/Comments/AddToArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -382,7 +382,7 @@ function loadComments(articleId, isModal = false) {
 
     const user = getLoggedUser();
 
-    fetch(`/api/Comments/Get/${articleId}`)
+    fetch(`/api/Comments/GetForArticle/${articleId}`)
         .then(res => res.json())
         .then(comments => {
             container.innerHTML = "";
@@ -445,7 +445,7 @@ function closeCommentsModal(articleId) {
 // Toggle like for a comment
 function toggleCommentLike(commentId) {
     const user = getLoggedUser();
-    fetch('/api/Comments/ToggleLike', {
+    fetch('/api/Comments/ToggleLikeForArticles', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, commentId })
@@ -454,7 +454,7 @@ function toggleCommentLike(commentId) {
 
 // Update like count display for a comment
 function updateLikeCount(commentId) {
-    fetch(`/api/Comments/LikeCount/${commentId}`)
+    fetch(`/api/Comments/ArticleCommentLikeCount/${commentId}`)
         .then(res => res.json())
         .then(count => {
             document.getElementById(`like-count-${commentId}`).innerText = count;
@@ -660,7 +660,7 @@ function stopAutoSlide() {
 
 // Load sidebar sections: hot news, editor's pick, must see
 function loadSidebarSections() {
-    fetch("/api/Articles/Paginated?page=1&pageSize=8")
+    fetch("/api/Articles/Sidebar?page=1&pageSize=9")
         .then(res => res.json())
         .then(articles => {
             const hot = document.getElementById("hotNews");
@@ -763,7 +763,7 @@ function submitNewArticle(event) {
         tags
     };
 
-    fetch("/api/Articles/AddUserArticle", {
+    fetch("/api/Admin/AddUserArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newArticle)

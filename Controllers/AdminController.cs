@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using NewsSite1.Models.DTOs;
 using NewsSite1.Models.DTOs.Requests;
 using NewsSite1.Services;
+using NewsSite.Services;
 
 
 namespace NewsSite1.Controllers
@@ -16,11 +17,13 @@ namespace NewsSite1.Controllers
     {
         private readonly DBServices db;
         private readonly NewsApiService newsApiService;
+        private readonly ImageGenerationService imageGen;
 
-        public AdminController(DBServices db, NewsApiService newsApiService)
+        public AdminController(DBServices db, NewsApiService newsApiService, ImageGenerationService imageGen)
         {
             this.db = db;
             this.newsApiService = newsApiService;
+            this.imageGen = imageGen;
         }
 
 
@@ -100,6 +103,40 @@ namespace NewsSite1.Controllers
             return Ok(db.GetSiteStatistics());
         }
 
+        // ✅ Adds a new user article
+        [HttpPost("AddUserArticle")]
+        public IActionResult AddUserArticle([FromBody] Article article)
+        {
+            if (article == null ||
+                string.IsNullOrEmpty(article.Title) ||
+                string.IsNullOrEmpty(article.Description) ||
+                string.IsNullOrEmpty(article.Content) ||
+                string.IsNullOrEmpty(article.Author) ||
+                string.IsNullOrEmpty(article.SourceUrl) ||
+                string.IsNullOrEmpty(article.ImageUrl) ||
+                article.PublishedAt == default)
+            {
+                return BadRequest("Invalid article data");
+            }
+
+            article.Tags ??= new List<string>();
+
+            try
+            {
+                int newId = db.AddUserArticle(article);
+
+                if (newId == -1)
+                    return Conflict("Article with the same URL already exists");
+
+                article.Id = newId;
+                return Ok(article);
+            }
+            catch
+            {
+                return StatusCode(500, "Error adding user article");
+            }
+        }
+
         [HttpPost("ImportExternal")]
         public async Task<IActionResult> ImportExternal()
         {
@@ -124,6 +161,48 @@ namespace NewsSite1.Controllers
             {
                 return StatusCode(500, "Error importing articles: " + ex.Message);
             }
+        }
+
+        [HttpPost("FixMissingImages")]
+        public async Task<IActionResult> FixMissingImages()
+        {
+            var allArticles = db.GetAllArticles(); // שלוף את כל הכתבות
+            int success = 0, failed = 0, skippedDueToContentPolicy = 0;
+
+            foreach (var article in allArticles.Where(a => string.IsNullOrWhiteSpace(a.ImageUrl)))
+            {
+                try
+                {
+                    var imageUrl = await imageGen.GenerateImageUrlFromPrompt(article.Title, article.Content);
+
+                    if (imageUrl == null)
+                    {
+                        failed++;
+                        continue;
+                    }
+
+                    if (imageUrl.Contains("News1.jpg")) // מזהה את ברירת המחדל -> content policy violation
+                    {
+                        skippedDueToContentPolicy++;
+                        continue;
+                    }
+
+                    article.ImageUrl = imageUrl;
+                    db.UpdateArticleImageUrl(article.Id, imageUrl); // מימוש בצד DB
+                    success++;
+                }
+                catch
+                {
+                    failed++;
+                }
+            }
+
+            return Ok(new
+            {
+                success,
+                skippedDueToContentPolicy,
+                failed
+            });
         }
 
     }

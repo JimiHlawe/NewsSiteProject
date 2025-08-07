@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     var user = JSON.parse(userJson);
-    var url = "https://localhost:7084/api/Articles/SharedWithMe/" + user.id;
+    var url = "https://localhost:7084/api/Articles/Inbox/" + user.id;
 
     fetch(url)
         .then(function (res) {

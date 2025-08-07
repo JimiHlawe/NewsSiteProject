@@ -74,21 +74,9 @@ namespace NewsSite1.Controllers
             return Ok(liked);
         }
 
-        // ✅ Toggle like for a public comment (no Firebase sync needed here)
-        [HttpPost("TogglePublicCommentLike")]
-        public IActionResult TogglePublicCommentLike([FromBody] PublicCommentLikeRequest req)
-        {
-            _db.TogglePublicCommentLike(req.UserId, req.PublicCommentId);
-            return Ok();
-        }
 
-        // ✅ Get total likes for a public comment
-        [HttpGet("PublicCommentLikeCount/{publicCommentId}")]
-        public IActionResult GetPublicCommentLikeCount(int publicCommentId)
-        {
-            int count = _db.GetPublicCommentLikeCount(publicCommentId);
-            return Ok(count);
-        }
+
+
 
         // ✅ Gets like count for a public thread article
         [HttpGet("ThreadLikeCount/{publicArticleId}")]

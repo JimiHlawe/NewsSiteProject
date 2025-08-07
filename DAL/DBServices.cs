@@ -663,74 +663,26 @@ namespace NewsSite1.DAL
             }
         }
 
-        public List<ArticleWithTags> GetArticlesWithTags(int page, int pageSize)
+        public List<ArticleWithTags> GetSidebarArticles(int page, int pageSize)
         {
-            List<ArticleWithTags> articles = new List<ArticleWithTags>();
+            var articles = new Dictionary<int, ArticleWithTags>();
 
             using (SqlConnection con = connect())
+            using (SqlCommand cmd = new SqlCommand("NewsSP_GetSidebarArticles", con))
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesWithTags", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
+                cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@Page", page);
                 cmd.Parameters.AddWithValue("@PageSize", pageSize);
 
                 using (SqlDataReader rdr = cmd.ExecuteReader())
                 {
-                    while (rdr.Read())
-                    {
-                        ArticleWithTags article = new ArticleWithTags
-                        {
-                            Id = Convert.ToInt32(rdr["Id"]),
-                            Title = rdr["Title"].ToString(),
-                            Description = rdr["Description"]?.ToString(),
-                            ImageUrl = rdr["ImageUrl"]?.ToString(),
-                            SourceUrl = rdr["Url"]?.ToString(),
-                            Author = rdr["Author"]?.ToString(),
-                            PublishedAt = rdr["PublishedAt"] == DBNull.Value
-                                ? (DateTime?)null
-                                : Convert.ToDateTime(rdr["PublishedAt"]),
-                            Tags = new List<string>()
-                        };
-
-                        articles.Add(article);
-                    }
-                }
-
-                foreach (var article in articles)
-                {
-                    article.Tags = GetTagsForArticle(article.Id);
-                }
-            }
-
-            return articles;
-        }
-
-        public List<ArticleWithTags> GetArticlesPaginated(int page, int pageSize)
-        {
-            List<ArticleWithTags> articles = new List<ArticleWithTags>();
-
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetArticlesPaginated", con)
-                {
-                    CommandType = CommandType.StoredProcedure
-                };
-                cmd.Parameters.AddWithValue("@Page", page);
-                cmd.Parameters.AddWithValue("@PageSize", pageSize);
-
-                using (SqlDataReader rdr = cmd.ExecuteReader())
-                {
-                    Dictionary<int, ArticleWithTags> dict = new Dictionary<int, ArticleWithTags>();
-
                     while (rdr.Read())
                     {
                         int id = Convert.ToInt32(rdr["Id"]);
 
-                        if (!dict.ContainsKey(id))
+                        if (!articles.TryGetValue(id, out var article))
                         {
-                            dict[id] = new ArticleWithTags
+                            article = new ArticleWithTags
                             {
                                 Id = id,
                                 Title = rdr["Title"].ToString(),
@@ -738,25 +690,24 @@ namespace NewsSite1.DAL
                                 ImageUrl = rdr["ImageUrl"]?.ToString(),
                                 SourceUrl = rdr["Url"]?.ToString(),
                                 Author = rdr["Author"]?.ToString(),
-                                PublishedAt = rdr["PublishedAt"] == DBNull.Value
-                                    ? null
-                                    : (DateTime?)Convert.ToDateTime(rdr["PublishedAt"]),
+                                PublishedAt = rdr["PublishedAt"] == DBNull.Value ? null : (DateTime?)rdr["PublishedAt"],
                                 Tags = new List<string>()
                             };
+                            articles[id] = article;
                         }
 
                         if (rdr["TagName"] != DBNull.Value)
                         {
-                            dict[id].Tags.Add(rdr["TagName"].ToString());
+                            article.Tags.Add(rdr["TagName"].ToString());
                         }
                     }
-
-                    articles = dict.Values.ToList();
                 }
             }
 
-            return articles;
+            return articles.Values.ToList();
         }
+
+
 
         // ✅ Returns all articles filtered and prioritized by user's tag preferences
         // Priority 1: Articles matching user's tags
@@ -943,11 +894,11 @@ namespace NewsSite1.DAL
             }
         }
 
-        public void AddPublicComment(int publicArticleId, int userId, string comment)
+        public void AddCommentToThreads(int publicArticleId, int userId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToPublicArticle", con)
+                SqlCommand cmd = new SqlCommand("NewsSP_AddCommentToThreads", con)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
@@ -958,15 +909,15 @@ namespace NewsSite1.DAL
             }
         }
 
+
         // ✅ Retrieves all public comments for a given public article, ordered by creation time
-        public List<PublicComment> GetCommentsForPublicArticle(int articleId)
+        public List<PublicComment> LoadThreadsComments(int articleId)
         {
             List<PublicComment> comments = new List<PublicComment>();
 
             using (SqlConnection con = connect())
             {
-                // Call stored procedure to get public comments
-                SqlCommand cmd = new SqlCommand("NewsSP_GetCommentsForPublicArticle", con);
+                SqlCommand cmd = new SqlCommand("NewsSP_LoadThreadsComments", con); 
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
 
@@ -988,6 +939,7 @@ namespace NewsSite1.DAL
 
             return comments;
         }
+
 
 
         public List<Comment> GetCommentsForArticle(int articleId)
@@ -1147,17 +1099,17 @@ namespace NewsSite1.DAL
         }
 
         // ✅ Returns the number of likes on a specific comment
-        public int GetCommentLikeCount(int commentId)
+        public int GetArticleCommentLikeCount(int commentId)
         {
             using var con = connect();
 
-            // Call stored procedure to get the like count for the comment
-            var cmd = new SqlCommand("NewsSP_GetCommentLikeCount", con);
+            var cmd = new SqlCommand("NewsSP_ArticleCommentLikeCount", con); // ← SP החדש
             cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@CommentId", commentId);
 
             return (int)cmd.ExecuteScalar();
         }
+
 
 
         // ✅ Toggles like/unlike on a public comment by the user
@@ -1213,20 +1165,21 @@ namespace NewsSite1.DAL
             }
         }
 
-        public void ShareArticlePublic(int userId, int articleId, string comment)
+        public void ShareToThreads(int userId, int articleId, string comment)
         {
             using (SqlConnection con = connect())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_ShareArticlePublic", con)
+                SqlCommand cmd = new SqlCommand("NewsSP_ShareToThreads", con)
                 {
                     CommandType = CommandType.StoredProcedure
                 };
-                cmd.Parameters.AddWithValue("@UserId", userId);        // ← שים לב לשם המדויק!
+                cmd.Parameters.AddWithValue("@UserId", userId);
                 cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                cmd.Parameters.AddWithValue("@Comment", comment ?? ""); // ← null-safe
+                cmd.Parameters.AddWithValue("@Comment", comment ?? "");
                 cmd.ExecuteNonQuery();
             }
         }
+
 
         public void RemoveSharedArticle(int sharedId)
         {
@@ -1264,14 +1217,14 @@ namespace NewsSite1.DAL
         }
 
 
-        // ✅ Returns all shared articles sent to a specific user, including metadata and tags
-        public List<SharedArticle> GetSharedArticlesForUser(int userId)
+        // ✅ Returns all Inbox articles sent to a specific user, including tags
+        public List<SharedArticle> GetInboxArticles(int userId)
         {
-            List<SharedArticle> sharedArticles = new List<SharedArticle>();
+            List<SharedArticle> inboxArticles = new List<SharedArticle>();
 
             using (SqlConnection con = connect())
+            using (SqlCommand cmd = new SqlCommand("NewsSP_GetInboxArticles", con))
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetSharedArticlesForUser", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@UserId", userId);
 
@@ -1285,11 +1238,9 @@ namespace NewsSite1.DAL
                         DateTime sharedAt = Convert.ToDateTime(reader["sharedAt"]);
                         string senderName = reader["SenderName"].ToString();
 
-                        // ✅ Load the base article using its ID
                         Article baseArticle = GetArticleById(articleId);
                         if (baseArticle == null) continue;
 
-                        // ✅ Construct SharedArticle object
                         SharedArticle article = new SharedArticle(
                             baseArticle.Id,
                             baseArticle.Title,
@@ -1306,16 +1257,15 @@ namespace NewsSite1.DAL
                             sharedId
                         );
 
-                        // ✅ Load tags for the shared article
                         article.Tags = GetTagsForSharedArticle(sharedId);
-
-                        sharedArticles.Add(article);
+                        inboxArticles.Add(article);
                     }
                 }
             }
 
-            return sharedArticles;
+            return inboxArticles;
         }
+
 
 
 
@@ -1323,53 +1273,47 @@ namespace NewsSite1.DAL
         // ============================================
         // ======= PUBLIC ARTICLES & COMMENTS =========
         // ============================================
-        public List<PublicArticle> GetAllPublicArticles(int userId)
+        public List<PublicArticle> GetAllThreads(int userId)
         {
             List<PublicArticle> list = new List<PublicArticle>();
 
             using (SqlConnection con = connect())
+            using (SqlCommand cmd = new SqlCommand("NewsSP_GetAllThreads", con))
             {
-                using (SqlCommand cmd = new SqlCommand("NewsSP_GetAllPublicArticles", con))
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-
-                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
+                        var article = new PublicArticle
                         {
-                            var article = new PublicArticle
-                            {
-                                PublicArticleId = (int)reader["publicArticleId"],
-                                ArticleId = (int)reader["id"],
-                                Title = reader["title"].ToString(),
-                                Description = reader["description"].ToString(),
-                                Content = reader["content"].ToString(),
-                                Author = reader["author"].ToString(),
-                                SourceUrl = reader["sourceUrl"].ToString(),
-                                ImageUrl = reader["imageUrl"].ToString(),
-                                PublishedAt = (DateTime)reader["publishedAt"],
-                                SenderName = reader["senderName"].ToString(),
-                                InitialComment = reader["initialComment"].ToString(),
-                                SharedAt = (DateTime)reader["sharedAt"]
-                            };
-                            EnsurePublicArticleTagsExist(article.PublicArticleId);
+                            PublicArticleId = (int)reader["publicArticleId"],
+                            ArticleId = (int)reader["id"],
+                            Title = reader["title"].ToString(),
+                            Description = reader["description"].ToString(),
+                            Content = reader["content"].ToString(),
+                            Author = reader["author"].ToString(),
+                            SourceUrl = reader["sourceUrl"].ToString(),
+                            ImageUrl = reader["imageUrl"].ToString(),
+                            PublishedAt = (DateTime)reader["publishedAt"],
+                            SenderName = reader["senderName"].ToString(),
+                            InitialComment = reader["initialComment"].ToString(),
+                            SharedAt = (DateTime)reader["sharedAt"],
+                            Tags = GetTagsForPublicArticle((int)reader["publicArticleId"]),
+                            PublicComments = LoadThreadsComments((int)reader["publicArticleId"])
+                        };
 
-                            // שליפת תגובות
-                            article.PublicComments = GetCommentsForPublicArticle(article.PublicArticleId);
+                        EnsurePublicArticleTagsExist(article.PublicArticleId);
 
-                            // שליפת תגיות מהטבלה החדשה של PublicArticleTags
-                            article.Tags = GetTagsForPublicArticle(article.PublicArticleId);
-
-                            list.Add(article);
-                        }
+                        list.Add(article);
                     }
                 }
             }
 
-            // סינון לפי רשימת חסומים
-            var blocked = GetBlockedUserIds(userId);
-            return list.Where(a => !blocked.Contains(GetUserIdByUsername(a.SenderName) ?? -1)).ToList();
+            return list;
         }
+
 
         // ✅ Returns a list of user IDs that the given user has blocked
         public List<int> GetBlockedUserIds(int userId)
@@ -1523,27 +1467,6 @@ namespace NewsSite1.DAL
                 cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId);
                 cmd.ExecuteNonQuery();
             }
-        }
-
-        // ✅ Retrieves all tag names for a given article
-        public List<string> GetTagsForArticle(int articleId)
-        {
-            List<string> tags = new List<string>();
-
-            using (SqlConnection con = connect())
-            {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetTagsForArticle", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    tags.Add(reader["name"].ToString());
-                }
-            }
-
-            return tags;
         }
 
 
