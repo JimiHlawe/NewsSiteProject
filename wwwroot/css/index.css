@@ -246,6 +246,67 @@
     display: none;
 }
 
+/* Ad Container */
+.ad-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin: 20px 0;
+    padding: 0;
+}
+
+/* Ad Image Styling */
+.adImage {
+    width: 100%;
+    max-width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+    filter: brightness(0.95) saturate(1.1);
+}
+
+    .adImage:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        filter: brightness(1) saturate(1.2);
+    }
+
+/* Ad Text Styling */
+.adText {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #f8f9fa;
+    text-align: center;
+    line-height: 1.6;
+    opacity: 0.85;
+    padding: 0 20px;
+    margin: 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.3s ease;
+    letter-spacing: 0.3px;
+}
+
+    .adText:hover {
+        opacity: 1;
+    }
+
+/* ads */
+.ad-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: none;
+    border-radius: 20px;
+    padding: 20px;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+}
+
+    .ad-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+
 /* Author and Date */
 .article-author-date {
     display: flex;
@@ -4614,5 +4675,30 @@ body.mobile-menu-open .carousel-controls {
     .newsletter-section::before,
     .newsletter-section::after {
         animation: none;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .adImage {
+        height: 160px;
+        border-radius: 12px;
+    }
+
+    .adText {
+        font-size: 0.9rem;
+        padding: 0 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .adImage {
+        height: 140px;
+        border-radius: 10px;
+    }
+
+    .adText {
+        font-size: 0.85rem;
+        padding: 0 10px;
     }
 }

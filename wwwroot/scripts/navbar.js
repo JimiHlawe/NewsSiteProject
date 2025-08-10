@@ -93,11 +93,6 @@ function renderNavbarWithUser(container, user) {
             <li><a class="nav-link" href="/html/inbox.html" onclick="closeMobileMenu()">Inbox</a></li>
             <li><a class="nav-link" href="/html/threads.html" onclick="closeMobileMenu()">Threads</a></li>
             <li><a class="nav-link" href="/html/profile.html" onclick="closeMobileMenu()">Profile</a></li>
-            <li class="nav-profile-image">
-                <a href="/html/profile.html" onclick="closeMobileMenu()">
-                    <img src="${profileImage}" alt="Profile" class="profile-img-nav">
-                </a>
-            </li>
         `;
 
         if (user.isAdmin) {
@@ -209,7 +204,7 @@ function toggleMobileMenu() {
             overlay.classList.add('active');
             hamburger.classList.add('active');
             document.body.style.overflow = 'hidden';
-            document.body.classList.add('mobile-menu-open'); // ← הוספתי את זה
+            document.body.classList.add('mobile-menu-open'); 
         }
     }
 }
@@ -225,7 +220,7 @@ function closeMobileMenu() {
         overlay.classList.remove('active');
         hamburger.classList.remove('active');
         document.body.style.overflow = '';
-        document.body.classList.remove('mobile-menu-open'); // ← הוספתי את זה
+        document.body.classList.remove('mobile-menu-open'); 
     }
 }
 

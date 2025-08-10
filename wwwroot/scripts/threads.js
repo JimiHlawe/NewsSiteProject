@@ -136,8 +136,8 @@ function createThreadCard(article) {
                     ⋯
                     <div class="thread-options-menu" id="options-menu-${id}">
                         <div class="thread-options-content">
-                            <button onclick="blockUser('${article.senderName}'); event.stopPropagation();">🚫 Block ${article.senderName}</button>
-                            <button onclick="reportArticle(${id}); event.stopPropagation();">🚨 Report Article</button>
+                            <button onclick="blockUser('${article.senderName}'); event.stopPropagation();">Block ${article.senderName}</button>
+                            <button onclick="reportArticle(${id}); event.stopPropagation();">Report Article</button>
                         </div>
                     </div>
                 </div>
@@ -496,7 +496,7 @@ function showReportModal(referenceType, referenceId) {
     const modalHTML = `
         <div class="save-modal-overlay" id="reportModalOverlay">
             <div class="save-modal">
-                <h2 class="save-modal-title">🚩 Report Content</h2>
+                <h2 class="save-modal-title">Report Content</h2>
                 <p class="save-modal-subtitle">Please choose the reason for your report:</p>
 
                 <select id="reportReasonSelect" onchange="toggleOtherReason()" class="form-control mb-2">
