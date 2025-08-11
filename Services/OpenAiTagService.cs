@@ -1,4 +1,8 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -6,11 +10,18 @@ using Microsoft.Extensions.Configuration;
 
 namespace NewsSite1.Services
 {
+    /// <summary>
+    /// Uses OpenAI Chat Completions to detect relevant tags for an article
+    /// from a fixed allow-list. Returns only allowed tags (no new tags).
+    /// </summary>
     public class OpenAiTagService
     {
-        private readonly string _openAiApiKey;
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _http;
+        private readonly string _apiKey;
 
+        /// <summary>
+        /// The only tags we accept. Output is filtered strictly to this set.
+        /// </summary>
         private static readonly List<string> AllowedTags = new List<string>
         {
             "politics", "technology", "sports", "economy", "health", "culture", "science", "education",
@@ -20,25 +31,31 @@ namespace NewsSite1.Services
 
         public OpenAiTagService(IConfiguration config)
         {
-            _httpClient = new HttpClient();
-            _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
+            _http = new HttpClient();
+            _apiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
-        // ✅ Sends the article to OpenAI and extracts relevant tags from the allowed list
+        /// <summary>
+        /// Sends title/content to OpenAI and asks for comma-separated tags.
+        /// Returns only tags that exist in AllowedTags (lowercased, deduplicated).
+        /// Throws on HTTP errors (including a specific message on 502).
+        /// </summary>
         public async Task<List<string>> DetectTagsAsync(string title, string content)
         {
+            // Prompt instructs the model to pick only from AllowedTags
             string prompt = $@"
-            From the following list of allowed tags, choose all that are relevant to this article. 
-            Do not invent new tags. Only use tags from this list:
-            {string.Join(", ", AllowedTags)}
+                            From the following list of allowed tags, choose all that are relevant to this article.
+                            Do not invent new tags. Only use tags from this list:
+                            {string.Join(", ", AllowedTags)}
 
-            ---
-            Title: {title}
-            Content: {content}
+                            ---
+                            Title: {title}
+                            Content: {content}
 
-            Tags (comma-separated):";
+                            Tags (comma-separated):".Trim();
 
-            var requestBody = new
+            // Build Chat Completions request (model kept as-is)
+            var payload = new
             {
                 model = "gpt-3.5-turbo-0125",
                 messages = new[]
@@ -48,45 +65,44 @@ namespace NewsSite1.Services
                 temperature = 0.3
             };
 
-            var requestJson = JsonSerializer.Serialize(requestBody);
-            var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
-            request.Headers.Add("Authorization", $"Bearer {_openAiApiKey}");
-            request.Content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+            using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.SendAsync(request);
+            using var res = await _http.SendAsync(req);
 
-            if (!response.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode)
             {
-                var errorBody = await response.Content.ReadAsStringAsync();
+                var errorBody = await res.Content.ReadAsStringAsync();
 
-                if ((int)response.StatusCode == 502)
-                {
+                if ((int)res.StatusCode == 502)
                     throw new Exception("OpenAI API is temporarily unavailable (502 Bad Gateway). Please try again later.");
-                }
 
-                throw new Exception($"OpenAI Error ({response.StatusCode}): {errorBody}");
+                throw new Exception($"OpenAI Error ({res.StatusCode}): {errorBody}");
             }
 
-            using var contentStream = await response.Content.ReadAsStreamAsync();
-            using var doc = await JsonDocument.ParseAsync(contentStream);
+            // Parse the response JSON and extract the raw tag string
+            using var stream = await res.Content.ReadAsStreamAsync();
+            using var doc = await JsonDocument.ParseAsync(stream);
 
             string tagsText = "";
-
-            if (doc.RootElement.TryGetProperty("choices", out JsonElement choicesArray) &&
-                choicesArray.GetArrayLength() > 0 &&
-                choicesArray[0].TryGetProperty("message", out JsonElement messageElement) &&
-                messageElement.TryGetProperty("content", out JsonElement contentElement))
+            if (doc.RootElement.TryGetProperty("choices", out var choices) &&
+                choices.GetArrayLength() > 0 &&
+                choices[0].TryGetProperty("message", out var message) &&
+                message.TryGetProperty("content", out var contentEl))
             {
-                tagsText = contentElement.GetString() ?? "";
+                tagsText = contentEl.GetString() ?? "";
             }
 
-            var resultTags = tagsText.Split(',')
-                                     .Select(t => t.Trim().ToLower())
-                                     .Where(t => AllowedTags.Contains(t))
-                                     .Distinct()
-                                     .ToList();
+            // Normalize: split by comma, trim, lowercase, keep only allowed, distinct
+            var result = tagsText
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim().ToLowerInvariant())
+                .Where(t => AllowedTags.Contains(t))
+                .Distinct()
+                .ToList();
 
-            return resultTags;
+            return result;
         }
     }
 }

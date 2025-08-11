@@ -1,179 +1,109 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Text.RegularExpressions;
 
 namespace NewsSite.Services
 {
+    /// <summary>
+    /// Generates editorial-style landscape images via OpenAI Images (DALL·E 3).
+    /// Returns a default image URL on any failure.
+    /// </summary>
     public class ImageGenerationService
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _openAiApiKey;
-        private const string DefaultImageUrl = "http://tbinfo.org/sites/default/files/gallery/News1.jpg";
+        private readonly HttpClient _http;
+        private readonly string _apiKey;
+
+        // Fallback image used when generation fails
+        private const string DefaultImageUrl = "https://as2.ftcdn.net/v2/jpg/02/09/53/11/1000_F_209531103_vL5MaF5fWcdpVcXk5yREBk3KMcXE0X7m.jpg";
 
         public ImageGenerationService(IConfiguration config)
         {
-            _httpClient = new HttpClient();
-            _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
+            _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            _apiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
-        // ✅ Generates an image URL from the given title and description using OpenAI
+        /// <summary>
+        /// Builds a neutral, safe, editorial-style prompt from title/description.
+        /// Trims overly long inputs to keep prompts concise.
+        /// </summary>
+        private static string BuildPrompt(string title, string description)
+        {
+            string safeTitle = (title ?? string.Empty).Trim();
+            string safeDesc = (description ?? string.Empty).Trim();
+
+            if (safeTitle.Length > 180) safeTitle = safeTitle[..180] + "...";
+            if (safeDesc.Length > 280) safeDesc = safeDesc[..280] + "...";
+
+            string about = string.IsNullOrWhiteSpace(safeDesc) ? "a significant news event" : safeDesc;
+
+            return @$"Create a modern, professional editorial-style image for a news article titled ""{safeTitle}"".
+                      The article is about: {about}.
+                      Use abstract news cues (world map overlays, digital grids, subtle glowing headlines).
+                      Avoid text in the image and avoid explicit or graphic content.
+                      Style: clean, magazine-worthy composition, balanced colors, elegant lighting, subtle depth.
+                      Aspect: landscape, suitable for a NEWS website.";
+        }
+
+        /// <summary>
+        /// Calls OpenAI Images (DALL·E 3) to generate a 1792x1024 image URL.
+        /// Returns DefaultImageUrl on any failure.
+        /// </summary>
         public async Task<string> GenerateImageUrlFromPrompt(string title, string description)
         {
-            Console.WriteLine("✅ [ImageGenerationService] Generating image for:");
-            Console.WriteLine($"   Title: {title}");
-            Console.WriteLine($"   Description: {description}");
+            Console.WriteLine("[ImageGenerationService] Generating image...");
+            Console.WriteLine($"  Title: {title}");
+            Console.WriteLine($"  Description: {description}");
 
-            string safePrompt = BuildSafePrompt(title, description);
-            Console.WriteLine($"🧠 Prompt Sent: {safePrompt}");
+            string prompt = BuildPrompt(title, description);
+            Console.WriteLine($"  Prompt: {prompt}");
 
-            var requestBody = new
+            var payload = new
             {
-                prompt = safePrompt,
-                n = 1,
-                size = "512x512"
+                model = "dall-e-3",
+                prompt,
+                size = "1792x1024", // landscape
+                quality = "standard",
+                n = 1
             };
 
-            var request = new HttpRequestMessage
-            {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri("https://api.openai.com/v1/images/generations"),
-                Headers =
-                {
-                    { "Authorization", $"Bearer {_openAiApiKey}" }
-                },
-                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-            };
+            using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/images/generations");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
             try
             {
-                var response = await _httpClient.SendAsync(request);
-                var json = await response.Content.ReadAsStringAsync();
+                using var res = await _http.SendAsync(req);
+                string json = await res.Content.ReadAsStringAsync();
 
-                Console.WriteLine($"📦 Response Status: {response.StatusCode}");
-                Console.WriteLine($"📦 Response JSON: {json}");
+                Console.WriteLine($"  Response Status: {(int)res.StatusCode}");
 
-                if (!response.IsSuccessStatusCode)
+                if (!res.IsSuccessStatusCode)
                 {
-                    if (json.Contains("content_policy_violation", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Console.WriteLine("⚠️ Content policy violation detected. Using default image.");
-                        return DefaultImageUrl;
-                    }
-
-                    Console.WriteLine("❌ Request failed. Returning null.");
-                    return null;
-                }
-
-                using var doc = JsonDocument.Parse(json);
-                if (!doc.RootElement.TryGetProperty("data", out JsonElement dataArray) || dataArray.GetArrayLength() == 0)
-                {
-                    Console.WriteLine("❌ No data returned from OpenAI. Using default image.");
+                    Console.WriteLine($"  Request failed. Body: {json}");
                     return DefaultImageUrl;
                 }
 
-                string url = dataArray[0].GetProperty("url").GetString();
-                Console.WriteLine($"✅ Image URL generated: {url}");
-                return url ?? DefaultImageUrl;
+                using var doc = JsonDocument.Parse(json);
+                var data = doc.RootElement.GetProperty("data");
+                if (data.GetArrayLength() == 0)
+                {
+                    Console.WriteLine("  No data returned from OpenAI. Using default image.");
+                    return DefaultImageUrl;
+                }
+
+                string? url = data[0].GetProperty("url").GetString();
+                Console.WriteLine($"  Image URL: {url}");
+                return string.IsNullOrWhiteSpace(url) ? DefaultImageUrl : url;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Exception occurred: {ex.Message}");
-                return null;
+                Console.WriteLine($"  Exception: {ex.Message}");
+                return DefaultImageUrl;
             }
-        }
-
-        // ✅ Builds a safe prompt for the image generation request
-        private string BuildSafePrompt(string title, string description)
-        {
-            string rawCombined = title + " " + description;
-
-            if (IsSensitive(rawCombined))
-            {
-                Console.WriteLine("🚨 Sensitive content detected. Using fallback prompt.");
-                return @"Create a visually compelling illustration suitable for a global news platform.
-                        Depict a dynamic 'Breaking News' concept with abstract elements like world map overlays, digital grids, glowing headlines, or satellite imagery.
-                        Avoid any political, violent, or controversial visuals.
-
-                        Style: Clean, professional, editorial-style design with sharp lines, glowing highlights, and a modern tech-inspired color scheme.";
-            }
-
-            string safeTitle = Clean(title);
-            string cleanDesc = string.IsNullOrWhiteSpace(description)
-                ? "breaking news coverage of a significant event"
-                : Clean(TrimToLength(description, 300));
-
-            return @$"Create a modern, professional editorial-style illustration for a news article titled: ""{safeTitle}"".
-                    The article is about: {cleanDesc}
-
-                    The image should visually reflect the core message or emotion of the article, while staying appropriate for public media.
-
-                    Avoid: political figures, explicit scenes, violence, or controversial symbols.
-
-                    Style: Digital illustration with a clean, magazine-worthy layout, balanced colors, elegant lighting, and subtle depth.
-                    Incorporate abstract visual cues (e.g., news tickers, glowing headlines, world icons) if literal imagery is not suitable.";
-        }
-
-        // ✅ Cleans the text by redacting forbidden and sensitive words
-        private string Clean(string text)
-        {
-            if (string.IsNullOrEmpty(text)) return "";
-
-            string[] forbiddenWords = new[]
-            {
-                "bomb", "terror", "kill", "nude", "blood", "dead", "shoot", "weapon",
-                "gun", "murder", "attack", "sex", "rape", "suicide", "explosion", "war",
-                "drugs", "violence", "abuse", "politics", "death", "death toll",
-                "hostage", "conflict", "military", "missile", "airstrike", "ceasefire"
-            };
-
-            string[] sensitiveNames = new[]
-            {
-                "Trump", "Biden", "Putin", "Xi Jinping", "Netanyahu", "Iran", "Israel",
-                "Russia", "Ukraine", "Palestine", "Hamas", "Hezbollah", "China", "USA"
-            };
-
-            foreach (var word in forbiddenWords.Concat(sensitiveNames))
-            {
-                text = Regex.Replace(
-                    text,
-                    $@"\b{Regex.Escape(word)}\b",
-                    "[REDACTED]",
-                    RegexOptions.IgnoreCase
-                );
-            }
-
-            return text;
-        }
-
-        // ✅ Checks if the input contains any sensitive or triggering keywords
-        private bool IsSensitive(string input)
-        {
-            string[] triggers = new[]
-            {
-                "war", "ceasefire", "conflict", "explosion", "terror", "kill", "Trump", "Iran", "Israel",
-                "attack", "violence", "nuclear", "missile", "hostage", "politics", "Putin", "Biden", "suicide"
-            };
-
-            foreach (var word in triggers)
-            {
-                if (Regex.IsMatch(input, $@"\b{Regex.Escape(word)}\b", RegexOptions.IgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        // ✅ Trims the text to a specific max length
-        private string TrimToLength(string text, int maxLength)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return "";
-            return text.Length > maxLength ? text.Substring(0, maxLength) + "..." : text;
         }
     }
 }

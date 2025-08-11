@@ -20,7 +20,7 @@ namespace NewsSite1.Services
         }
 
         // ✅ Fetches top US news headlines and maps them to internal Article model
-        public async Task<List<Article>> GetTopHeadlinesAsync()
+        public async Task<List<Article>> GetNewsAPISAsync()
         {
             try
             {

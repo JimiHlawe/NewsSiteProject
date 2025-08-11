@@ -861,7 +861,7 @@ function loadAdBanner() {
     if (adLoaded) return;
     adLoaded = true;
 
-    fetch("/api/Ads/Generate?category=technology")
+    fetch("/api/Ads/Generate?category=breaking news")
         .then(res => res.json())
         .then(ad => {
             document.getElementById("adImage").src = ad.imageUrl;

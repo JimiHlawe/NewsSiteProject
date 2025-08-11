@@ -2801,22 +2801,20 @@ body.mobile-menu-open .carousel-controls {
 .ad-banner {
     width: 100%;
     margin: 40px auto;
-    position: relative;
     display: flex;
     justify-content: center;
-    padding: 0 2rem;
+    padding: 0 1rem;
 }
 
 .ad-card {
     position: relative;
     width: 100%;
     max-width: 900px;
-    margin: auto;
     border-radius: 20px;
     overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     cursor: pointer;
 }
 
@@ -2825,33 +2823,17 @@ body.mobile-menu-open .carousel-controls {
         box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
     }
 
-    .ad-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-        z-index: 1;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .ad-card:hover::before {
-        opacity: 1;
-    }
-
 .ad-image {
     width: 100%;
-    height: 200px;
-    object-fit: cover;
+    height: 300px; /* שומר על פרופורציות מקוריות */
+    object-fit: contain; /* מציג את כל התמונה */
+    background-color: #000; /* רקע אחיד לפסים */
     display: block;
     transition: transform 0.3s ease;
 }
 
 .ad-card:hover .ad-image {
-    transform: scale(1.05);
+    transform: scale(1.03);
 }
 
 .ad-text {
@@ -2859,33 +2841,16 @@ body.mobile-menu-open .carousel-controls {
     bottom: 0;
     left: 0;
     right: 0;
+    padding: 50px;
+    font-size: 1.5rem;
+    font-weight: normal; /* במקום bold */
     color: white;
-    font-size: 1.8rem;
     background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
-    padding: 40px 30px 25px;
-    font-weight: bold;
+    text-align: left;
     z-index: 2;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-.ad-card::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
-    border-radius: 22px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    animation: glow 3s ease-in-out infinite alternate;
-}
-
-.ad-card:hover::after {
-    opacity: 0.3;
-}
 
 @keyframes glow {
     0% {

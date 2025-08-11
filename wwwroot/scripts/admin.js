@@ -213,7 +213,7 @@ function setupImportExternal() {
         importBtn.disabled = true;
         importBtn.innerHTML = 'Importing...';
 
-        fetch("/api/Admin/ImportExternal", { method: "POST" })
+        fetch("/api/Admin/GetFromNewsAPI", { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error();
                 return res.json();
@@ -273,7 +273,7 @@ function setupFixMissingImages() {
         fixBtn.disabled = true;
         fixBtn.innerHTML = 'Fixing...';
 
-        fetch("/api/Articles/FixMissingImages", { method: "POST" })
+        fetch("/api/Admin/FixMissingImages", { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error();
                 return res.json();

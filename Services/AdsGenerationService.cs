@@ -8,116 +8,134 @@ using Microsoft.Extensions.Configuration;
 
 namespace NewsSite.Services
 {
+    /// <summary>Holds the ad text and its image URL.</summary>
     public class AdResult
     {
         public string Text { get; set; }
         public string ImageUrl { get; set; }
     }
 
+    /// <summary>Creates short ad copy and a matching wide image.</summary>
     public class AdsGenerationService
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _openAiApiKey;
+        private readonly HttpClient _http;
+        private readonly string _apiKey;
+
+        // Last failure reason (for quick diagnostics)
+        public string LastError { get; private set; } = "";
+
+        // Local fallback image if generation fails
+        private const string PlaceholderImage = "/images/news-placeholder.png";
 
         public AdsGenerationService(IConfiguration config)
         {
-            _httpClient = new HttpClient();
-            _openAiApiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
+            _http = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            _apiKey = config["OpenAI:ApiKey"] ?? throw new Exception("OpenAI API key is missing");
         }
 
-        // ✅ Sends a request to OpenAI's chat API and returns the response content as string
-        private async Task<string?> SendChatRequestAsync(string prompt)
+        /// <summary>
+        /// Asks the chat model for ad text. Returns null on failure.
+        /// </summary>
+        private async Task<string?> ChatAsync(string prompt)
         {
-            var chatRequest = new
+            var payload = new
             {
-                model = "gpt-4",
-                messages = new[] {
-                    new { role = "user", content = prompt }
-                }
+                model = "gpt-5",
+                messages = new[] { new { role = "user", content = prompt } }
             };
 
-            var chatHttpReq = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
-            chatHttpReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _openAiApiKey);
-            chatHttpReq.Content = new StringContent(JsonSerializer.Serialize(chatRequest), Encoding.UTF8, "application/json");
+            using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/chat/completions");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            var chatResponse = await _httpClient.SendAsync(chatHttpReq);
-            var chatContent = await chatResponse.Content.ReadAsStringAsync();
+            using var res = await _http.SendAsync(req);
+            var body = await res.Content.ReadAsStringAsync();
 
-            if (!chatResponse.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode)
             {
+                LastError = $"Chat failed: {(int)res.StatusCode} | {body}";
                 return null;
             }
 
-            return chatContent;
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                return doc.RootElement
+                          .GetProperty("choices")[0]
+                          .GetProperty("message")
+                          .GetProperty("content")
+                          .GetString()
+                          ?.Trim();
+            }
+            catch (Exception ex)
+            {
+                LastError = $"Chat JSON parse error: {ex.Message}";
+                return null;
+            }
         }
 
-        // ✅ Sends a request to OpenAI's image API and returns the image URL
-        private async Task<string> SendImageRequestAsync(string imagePrompt)
+        /// <summary>
+        /// Generates a wide banner image (1792x1024). Returns placeholder on failure.
+        /// </summary>
+        private async Task<string> ImageAsync(string prompt)
         {
-            var imageRequest = new
+            var payload = new
             {
-                prompt = imagePrompt,
-                n = 1,
-                size = "512x512"
+                model = "dall-e-3",
+                prompt,
+                size = "1792x1024",
+                quality = "standard",
+                n = 1
             };
 
-            var imageHttpReq = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/images/generations");
-            imageHttpReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _openAiApiKey);
-            imageHttpReq.Content = new StringContent(JsonSerializer.Serialize(imageRequest), Encoding.UTF8, "application/json");
+            using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/images/generations");
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            req.Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
-            var imageResponse = await _httpClient.SendAsync(imageHttpReq);
-            var imageContent = await imageResponse.Content.ReadAsStringAsync();
+            using var res = await _http.SendAsync(req);
+            var body = await res.Content.ReadAsStringAsync();
 
-            if (!imageResponse.IsSuccessStatusCode)
+            if (!res.IsSuccessStatusCode)
             {
-                return "/images/news-placeholder.png";
+                LastError = $"Image failed: {(int)res.StatusCode} | {body}";
+                return PlaceholderImage;
             }
 
-            var imageJson = JsonDocument.Parse(imageContent);
-            if (imageJson.RootElement.TryGetProperty("data", out JsonElement dataArray) &&
-                dataArray.GetArrayLength() > 0 &&
-                dataArray[0].TryGetProperty("url", out JsonElement urlElement))
+            try
             {
-                return urlElement.GetString() ?? "/images/news-placeholder.png";
+                using var doc = JsonDocument.Parse(body);
+                var url = doc.RootElement.GetProperty("data")[0].GetProperty("url").GetString();
+                return string.IsNullOrWhiteSpace(url) ? PlaceholderImage : url;
             }
-
-            return "/images/news-placeholder.png";
+            catch (Exception ex)
+            {
+                LastError = $"Image JSON parse error: {ex.Message}";
+                return PlaceholderImage;
+            }
         }
 
-        // ✅ Generates a short ad text and a matching image for a given category
+        /// <summary>
+        /// Public API: returns ad text + image. Returns null if chat fails.
+        /// </summary>
         public async Task<AdResult?> GenerateAdWithImageAsync(string category)
         {
-            string prompt = $"Write a short and engaging ad about: {category}";
+            var adText = await ChatAsync(
+                $"Write a short, direct, and engaging advertisement about: {category}. " +
+                "Address the reader directly, be persuasive, and avoid emojis. " +
+                "Limit the ad to a maximum of 3 short sentences."
+            );
 
-            string? chatContent = await SendChatRequestAsync(prompt);
-            if (string.IsNullOrWhiteSpace(chatContent))
-            {
-                return null;
-            }
+            if (string.IsNullOrWhiteSpace(adText))
+                return null; // No text -> stop (same behavior)
 
-            var chatJson = JsonDocument.Parse(chatContent);
+            var imagePrompt =
+                $"Create a realistic, modern advertisement image for: {category}. " +
+                "No text in the image. Photography-style composition, clean commercial lighting, " +
+                "product-focused subject, minimal background. High-resolution marketing photo.";
 
-            string adText = "";
-            if (chatJson.RootElement.TryGetProperty("choices", out JsonElement choicesArray) &&
-                choicesArray.GetArrayLength() > 0 &&
-                choicesArray[0].TryGetProperty("message", out JsonElement messageElement) &&
-                messageElement.TryGetProperty("content", out JsonElement contentElement))
-            {
-                adText = contentElement.GetString()?.Trim() ?? "";
-            }
+            var imageUrl = await ImageAsync(imagePrompt);
 
-            string imagePrompt = $@"
-                Create a realistic, modern advertisement image for the following product or service: {category}.
-                Avoid text in the image. Focus on photography-style composition, clean commercial lighting, product-focused visual, minimalistic background.
-                Style: high-resolution professional marketing photo or rendered product shot for a real advertisement campaign.";
-
-            string imageUrl = await SendImageRequestAsync(imagePrompt);
-
-            return new AdResult
-            {
-                Text = adText,
-                ImageUrl = imageUrl
-            };
+            return new AdResult { Text = adText, ImageUrl = imageUrl };
         }
     }
 }

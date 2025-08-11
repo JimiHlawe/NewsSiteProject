@@ -64,12 +64,12 @@ namespace NewsSite1.Controllers
         //}
 
         // ✅ Checks if user liked a public thread article
-        [HttpGet("Check/{userId}/{articleId}")]
-        public IActionResult CheckUserLike(int userId, int articleId)
-        {
-            bool liked = _db.CheckIfUserLikedThread(userId, articleId);
-            return Ok(liked);
-        }
+        //[HttpGet("Check/{userId}/{articleId}")]
+        //public IActionResult CheckUserLike(int userId, int articleId)
+        //{
+        //    bool liked = _db.CheckIfUserLikedThread(userId, articleId);
+        //    return Ok(liked);
+        //}
 
         // ✅ Endpoint for triggering test exception
         [HttpGet("fail")]

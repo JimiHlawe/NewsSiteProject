@@ -137,12 +137,12 @@ namespace NewsSite1.Controllers
             }
         }
 
-        [HttpPost("ImportExternal")]
+        [HttpPost("GetFromNewsAPI")] 
         public async Task<IActionResult> ImportExternal()
         {
             try
             {
-                var articles = await newsApiService.GetTopHeadlinesAsync(); // שליפת כתבות מה-API
+                var articles = await newsApiService.GetNewsAPISAsync(); // שליפת כתבות מה-API
                 var importedArticles = new List<Article>();
 
                 foreach (var article in articles)

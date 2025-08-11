@@ -1465,42 +1465,27 @@ namespace NewsSite1.DAL
 
         public List<User> GetUsersInterestedInTags(List<int> tagIds)
         {
-            List<User> interestedUsers = new List<User>();
+            using var con = connect();
+            using var cmd = new SqlCommand("NewsSP_GetUsersInterestedInTags", con)
+            { CommandType = CommandType.StoredProcedure };
 
-            using (SqlConnection con = connect())
-            using (SqlCommand cmd = new SqlCommand("NewsSP_GetUsersInterestedInTags", con))
+            cmd.Parameters.AddWithValue("@TagIdsCsv", string.Join(",", tagIds));
+
+            var users = new List<User>();
+            using var rd = cmd.ExecuteReader();
+            while (rd.Read())
             {
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                // ✅ Create DataTable matching IntList type
-                DataTable tagIdTable = new DataTable();
-                tagIdTable.Columns.Add("Id", typeof(int));
-                foreach (int id in tagIds)
+                users.Add(new User
                 {
-                    tagIdTable.Rows.Add(id);
-                }
-
-                // ✅ Pass tag ID list as table-valued parameter
-                SqlParameter param = cmd.Parameters.AddWithValue("@TagIds", tagIdTable);
-                param.SqlDbType = SqlDbType.Structured;
-                param.TypeName = "IntList";
-
-                SqlDataReader reader = cmd.ExecuteReader();
-                while (reader.Read())
-                {
-                    User u = new User
-                    {
-                        Id = (int)reader["id"],
-                        Name = reader["name"].ToString(),
-                        Email = reader["email"].ToString(),
-                        ReceiveNotifications = Convert.ToBoolean(reader["ReceiveNotifications"])
-                    };
-                    interestedUsers.Add(u);
-                }
+                    Id = rd.GetInt32(rd.GetOrdinal("Id")),
+                    Name = rd["Name"]?.ToString() ?? "",
+                    Email = rd["Email"]?.ToString() ?? "",
+                    ReceiveNotifications = rd.GetBoolean(rd.GetOrdinal("ReceiveNotifications"))
+                });
             }
-
-            return interestedUsers;
+            return users;
         }
+
 
 
 
@@ -1624,6 +1609,44 @@ namespace NewsSite1.DAL
                 };
             }
         }
+
+
+
+
+
+
+        // ============================================
+        // ============== TAGGING ==================
+        // ============================================
+        // 1) כתבות בלי תגיות
+        public List<Article> GetUntaggedArticles()
+        {
+            var list = new List<Article>();
+            using var con = connect();
+            using var cmd = new SqlCommand("NewsSP_GetUntaggedArticles", con) { CommandType = CommandType.StoredProcedure };
+            using var rd = cmd.ExecuteReader();
+            while (rd.Read())
+            {
+                list.Add(new Article
+                {
+                    Id = rd.GetInt32(rd.GetOrdinal("Id")),
+                    Title = rd["Title"]?.ToString() ?? "",
+                    Content = rd["Content"]?.ToString() ?? ""
+                });
+            }
+            return list;
+        }
+
+        // 3) הוסף קשר כתבה-תגית אם לא קיים
+        public void InsertArticleTagIfNotExists(int articleId, int tagId)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("NewsSP_InsertArticleTagIfNotExists", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@articleId", articleId);
+            cmd.Parameters.AddWithValue("@tagId", tagId);
+            cmd.ExecuteNonQuery();
+        }
+
 
     }
 }
