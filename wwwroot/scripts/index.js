@@ -223,25 +223,25 @@ function closeSaveModal() {
 
 // ✅ Submits the share request to the server
 // ✅ Sends private/public article share using usernames (only public doesn't need username)
+// ✅ Submits the share request (private/public)
 function submitShare(articleId) {
     const shareType = document.getElementById("shareType").value;
     const comment = document.getElementById("shareComment").value || "";
-    const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
+    const loggedUser = getLoggedUser();
 
-<<<<<<< Updated upstream
-=======
-    // ✅ חסימת משתמש שחסום משיתוף
->>>>>>> Stashed changes
+    if (!loggedUser) {
+        alert("Please log in first.");
+        return;
+    }
+
+    // ✅ Blocked from sharing?
     if (loggedUser.canShare === false) {
         alert("You are blocked from sharing articles.");
         return;
     }
 
     if (shareType === "public") {
-<<<<<<< Updated upstream
-=======
-        // ✅ תגובה חייבת להיות לא ריקה
->>>>>>> Stashed changes
+        // ✅ Require a non-empty comment for public share
         if (comment.trim().length === 0) {
             alert("Please enter a comment before sharing publicly.");
             return;
@@ -267,7 +267,7 @@ function submitShare(articleId) {
             });
 
     } else {
-        // ✅ Private Share
+        // ✅ Private share
         const targetUsernameRaw = document.getElementById("targetUser").value;
         const targetUsername = (targetUsernameRaw || "").trim();
 
@@ -276,7 +276,7 @@ function submitShare(articleId) {
             return;
         }
 
-        // ✅ לא לשתף לעצמי (בדיקה לאותיות גדולות/קטנות ורווחים)
+        // ✅ Prevent sharing to yourself
         const myUsername = ((loggedUser.username || loggedUser.name || "") + "").trim().toLowerCase();
         if (targetUsername.toLowerCase() === myUsername) {
             alert("You cannot share an article with yourself.");
@@ -287,7 +287,7 @@ function submitShare(articleId) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                senderUsername: loggedUser.name, // או loggedUser.username – לפי מה ששמור אצלך
+                senderUsername: loggedUser.name, // or loggedUser.username if that's your canonical field
                 toUsername: targetUsername,
                 articleId: articleId,
                 comment: comment
@@ -304,6 +304,7 @@ function submitShare(articleId) {
             });
     }
 }
+
 
 
 // Close the share modal

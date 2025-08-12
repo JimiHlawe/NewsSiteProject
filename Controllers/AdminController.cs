@@ -155,7 +155,7 @@ namespace NewsSite1.Controllers
         }
 
         // ======================================
-        // == Article Admin (Add/Import/Fix)   ==
+        // == Article Admin (Add/Import/Fix/DeleteReports)   ==
         // ======================================
 
         /// <summary>
@@ -276,38 +276,48 @@ namespace NewsSite1.Controllers
             }
         }
 
-
+        /// Handles deletion of a reported target (article or comment). 
+        /// Normalizes a PublicArticleId to its ArticleId before deletion and returns 404 if nothing was removed.
         [HttpPost("DeleteReportedTarget")]
         public IActionResult DeleteReportedTarget([FromBody] DeleteReportedTargetRequest req)
         {
-            if (req == null || req.TargetId <= 0) return BadRequest("Invalid request");
+            if (req == null || req.TargetId <= 0) return BadRequest("Invalid request"); // basic guard
             try
             {
-                int ok = 0;
+                int ok = 0; // rows affected / success flag from SP
 
                 if (string.Equals(req.TargetKind, "Article", StringComparison.OrdinalIgnoreCase))
                 {
-                    ok = db.DeleteArticleAndReports(req.TargetId);
+                    // Normalize: if an admin sent a PublicArticleId, resolve to the owning ArticleId
+                    var targetId = req.TargetId;
+                    if (!db.ArticleExists(targetId) && db.PublicArticleExists(targetId))
+                    {
+                        var resolved = db.GetArticleIdByPublicArticle(targetId);
+                        if (resolved > 0) targetId = resolved; // use ArticleId
+                    }
+                    ok = db.DeleteArticleAndReports(targetId); // delete article + all related data
                 }
                 else
                 {
-                    // אין targetKind או שזה Comment – ננסה לזהות:
+                    // Try regular comment first; if not found, try public (threads) comment
                     if (db.CommentExists(req.TargetId))
                         ok = db.DeleteCommentAndReports(req.TargetId);
                     else if (db.PublicCommentExists(req.TargetId))
                         ok = db.DeletePublicCommentAndReports(req.TargetId);
                     else
-                        ok = 0;
+                        ok = 0; // nothing matched
                 }
 
-                if (ok == 0) return NotFound();
-                return Ok(new { deleted = true });
+                if (ok == 0) return NotFound(); // no rows affected
+                return Ok(new { deleted = true }); // success
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = ex.Message }); // unexpected failure
             }
         }
+
+
 
     }
 

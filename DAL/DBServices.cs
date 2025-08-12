@@ -1596,51 +1596,85 @@ namespace NewsSite1.DAL
             }
         }
 
+        /// Deletes an article and all its related reports, tags, likes, saves, comments, and threads data.
         public int DeleteArticleAndReports(int articleId)
         {
             using (SqlConnection con = connect())
             {
                 SqlCommand cmd = new SqlCommand("NewsSP_DeleteArticleAndReports", con) { CommandType = CommandType.StoredProcedure };
-                cmd.Parameters.AddWithValue("@ArticleId", articleId);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.Parameters.AddWithValue("@ArticleId", articleId); // article id
+                return Convert.ToInt32(cmd.ExecuteScalar()); // success flag
             }
         }
 
+        /// Deletes a regular comment and all reports and likes related to it.
         public int DeleteCommentAndReports(int commentId)
         {
             using (SqlConnection con = connect())
             {
                 SqlCommand cmd = new SqlCommand("NewsSP_DeleteCommentAndReports", con) { CommandType = CommandType.StoredProcedure };
-                cmd.Parameters.AddWithValue("@CommentId", commentId);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.Parameters.AddWithValue("@CommentId", commentId); // comment id
+                return Convert.ToInt32(cmd.ExecuteScalar()); // success flag
             }
         }
 
+        /// Deletes a public (threads) comment and all reports and likes related to it.
         public int DeletePublicCommentAndReports(int publicCommentId)
         {
             using (SqlConnection con = connect())
             {
                 SqlCommand cmd = new SqlCommand("NewsSP_DeletePublicCommentAndReports", con) { CommandType = CommandType.StoredProcedure };
-                cmd.Parameters.AddWithValue("@PublicCommentId", publicCommentId);
-                return Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.Parameters.AddWithValue("@PublicCommentId", publicCommentId); // public comment id
+                return Convert.ToInt32(cmd.ExecuteScalar()); // success flag
             }
         }
 
+        /// Checks if a regular comment exists (News_Comments).
         public bool CommentExists(int id)
         {
             using var con = connect();
-            using var cmd = new SqlCommand("SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.News_Comments WHERE id=@id) THEN 1 ELSE 0 END", con);
-            cmd.Parameters.AddWithValue("@id", id);
-            return (int)cmd.ExecuteScalar() == 1;
+            using var cmd = new SqlCommand("dbo.NewsSP_CommentExists", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@Id", id); // comment id
+            return Convert.ToInt32(cmd.ExecuteScalar()) == 1; // 1 exists, 0 not
         }
 
+        /// Checks if a public (threads) comment exists (News_PublicComments).
         public bool PublicCommentExists(int id)
         {
             using var con = connect();
-            using var cmd = new SqlCommand("SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.News_PublicComments WHERE id=@id) THEN 1 ELSE 0 END", con);
-            cmd.Parameters.AddWithValue("@id", id);
-            return (int)cmd.ExecuteScalar() == 1;
+            using var cmd = new SqlCommand("dbo.NewsSP_PublicCommentExists", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@Id", id); // public comment id
+            return Convert.ToInt32(cmd.ExecuteScalar()) == 1; // 1 exists, 0 not
         }
+
+        /// Checks if an article exists (News_Articles)
+        public bool ArticleExists(int id)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("dbo.NewsSP_ArticleExists", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@Id", id); // article id
+            return Convert.ToInt32(cmd.ExecuteScalar()) == 1; // 1 exists, 0 not
+        }
+
+        /// Checks if a public article (thread) exists (News_PublicArticles).
+        public bool PublicArticleExists(int id)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("dbo.NewsSP_PublicArticleExists", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@Id", id); // public article (thread) id
+            return Convert.ToInt32(cmd.ExecuteScalar()) == 1; // 1 exists, 0 not
+        }
+
+        /// Resolves an ArticleId from a public article (thread) Id.
+        public int GetArticleIdByPublicArticle(int publicArticleId)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("dbo.NewsSP_GetArticleIdByPublicArticle", con) { CommandType = CommandType.StoredProcedure };
+            cmd.Parameters.AddWithValue("@PublicArticleId", publicArticleId); // thread id
+            return Convert.ToInt32(cmd.ExecuteScalar()); // returns ArticleId or 0
+        }
+
+
 
         // ============================================
         // ============== STATISTICS ==================
