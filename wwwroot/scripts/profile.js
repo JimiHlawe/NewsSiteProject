@@ -47,12 +47,44 @@ function loadSavedProfileImage() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const img = document.getElementById('profileImage');
     const icon = document.getElementById('avatarIcon');
-    const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
+
+    // בסיס פרונט (tar5) מחושב לפי הנתיב הנוכחי של הדף
+    const path = location.pathname;
+    let frontBase = "";
+    const splitAt = "/html/";
+    const idx = path.indexOf(splitAt);
+    if (idx !== -1) frontBase = path.slice(0, idx); // למשל: /cgroup13/test2/tar5
+
+    // בסיס אפליקציית ה-API (tar1) מחושב מתוך API_BASE
+    const apiAppBase = API_BASE.replace(/\/api\/?$/, "");
+
+    let profileImage;
+
+    if (user && user.profileImagePath) {
+        let p = user.profileImagePath;
+        if (/^https?:\/\//i.test(p)) {
+            // URL מלא – משתמשים כמו שהוא
+            profileImage = p;
+        } else {
+            if (!p.startsWith("/")) p = "/" + p;
+            // uploads/images מגיעים מהשרת של ה-API (tar1)
+            if (p.startsWith("/uploads") || p.startsWith("/images")) {
+                profileImage = apiAppBase + p;
+            } else {
+                // כל השאר – סטטיים של הפרונט (tar5)
+                profileImage = frontBase + p;
+            }
+        }
+    } else {
+        // תמונת ברירת מחדל מהפרונט (tar5)
+        profileImage = frontBase + "/pictures/default-avatar.jpg";
+    }
 
     img.src = profileImage;
     img.style.display = 'block';
-    icon.style.display = 'none';
+    if (icon) icon.style.display = 'none';
 }
+
 
 // ✅ Trigger file upload input (when clicking upload button)
 function triggerImageUpload() {
@@ -68,7 +100,6 @@ function handleImageUpload(event) {
         showNotification("Image size must be under 5MB", "warning");
         return;
     }
-
     if (!file.type.startsWith('image/')) {
         showNotification("Invalid image file", "warning");
         return;
@@ -87,10 +118,38 @@ function handleImageUpload(event) {
             return res.json();
         })
         .then(data => {
-            document.getElementById("profileImage").src = data.imageUrl;
-            document.getElementById("avatarIcon").style.display = "none";
-            user.profileImagePath = data.imageUrl;
-            sessionStorage.setItem("loggedUser", JSON.stringify(user));
+            // חישוב בסיסים (כמו בפונקציה הקודמת)
+            const path = location.pathname;
+            let frontBase = "";
+            const splitAt = "/html/";
+            const idx = path.indexOf(splitAt);
+            if (idx !== -1) frontBase = path.slice(0, idx);
+            const apiAppBase = API_BASE.replace(/\/api\/?$/, "");
+
+            // הנתיב שחזר מהשרת (יכול להיות יחסי או מלא)
+            let p = data.imageUrl || "";
+            let resolved;
+
+            if (/^https?:\/\//i.test(p)) {
+                resolved = p;
+            } else {
+                if (!p.startsWith("/")) p = "/" + p;
+                if (p.startsWith("/uploads") || p.startsWith("/images")) {
+                    resolved = apiAppBase + p;     // קבצים שנשמרים בשרת ה-API
+                } else {
+                    resolved = frontBase + p;      // סטטיים של הפרונט
+                }
+            }
+
+            document.getElementById("profileImage").src = resolved;
+            const icon = document.getElementById("avatarIcon");
+            if (icon) icon.style.display = "none";
+
+            // שמירה ב-sessionStorage את הנתיב המקורי שחזר מהשרת
+            const u = JSON.parse(sessionStorage.getItem("loggedUser"));
+            u.profileImagePath = data.imageUrl || "";
+            sessionStorage.setItem("loggedUser", JSON.stringify(u));
+
             showNotification("Image uploaded!", "success");
             setTimeout(() => window.location.reload(), 1000);
         })
@@ -352,19 +411,26 @@ function unblockUser(blockedUserId) {
 function loadAvatarLevel(level) {
     const avatarLabel = document.getElementById("avatarRank");
     const avatarImage = document.getElementById("avatarRankImage");
-
     if (!avatarLabel || !avatarImage) return;
 
     avatarLabel.innerText = level;
 
+    // בסיס פרונט (tar5) לפי מיקום הדף
+    const path = location.pathname;
+    let frontBase = "";
+    const splitAt = "/html/";
+    const idx = path.indexOf(splitAt);
+    if (idx !== -1) frontBase = path.slice(0, idx);
+
     const avatarIcons = {
-        "BRONZE": "../pictures/avatar_bronze.png",
-        "SILVER": "../pictures/avatar_silver.png",
-        "GOLD": "../pictures/avatar_gold.png"
+        "BRONZE": frontBase + "/pictures/avatar_bronze.png",
+        "SILVER": frontBase + "/pictures/avatar_silver.png",
+        "GOLD": frontBase + "/pictures/avatar_gold.png"
     };
 
-    avatarImage.src = avatarIcons[level] || "../pictures/avatar_bronze.png";
+    avatarImage.src = avatarIcons[level] || (frontBase + "/pictures/avatar_bronze.png");
 }
+
 
 // ✅ Toggle notifications setting and save to server
 function toggleNotifications() {
