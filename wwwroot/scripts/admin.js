@@ -405,16 +405,14 @@ function setupImportExternal() {
         importBtn.innerHTML = 'Importing...';
 
         fetch(`${API_BASE}/Admin/GetFromNewsAPI`, { method: "POST" })
-            .then(async res => {
-                if (!res.ok) {
-                    const txt = await res.text();
-                    throw new Error(txt || `HTTP ${res.status}`);
-                }
+            .then(res => {
+                if (!res.ok) throw new Error();
                 return res.json();
             })
             .then(data => {
                 document.getElementById("importStatus").innerHTML =
                     `<div class='status-message success'>${data.length} new articles were imported successfully!</div>`;
+                // After import, refresh stats (could affect fetch counters)
                 loadAllStats();
             })
             .catch(err => {
@@ -425,7 +423,7 @@ function setupImportExternal() {
                 importBtn.disabled = false;
                 importBtn.innerHTML = 'Import Articles';
             });
-
+    });
 }
 
 // ------------------------------------------------------
