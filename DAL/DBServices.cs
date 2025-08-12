@@ -1388,7 +1388,6 @@ namespace NewsSite1.DAL
             }
         }
 
-
         public List<Tag> GetAllTags()
         {
             List<Tag> tags = new List<Tag>();
@@ -1425,8 +1424,6 @@ namespace NewsSite1.DAL
                 cmd.ExecuteNonQuery();
             }
         }
-
-
 
         public List<string> GetTagsForPublicArticle(int publicArticleId)
         {

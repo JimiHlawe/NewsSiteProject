@@ -4,6 +4,7 @@ using NewsSite1.DAL;
 using NewsSite1.Models;
 using NewsSite1.Models.DTOs.Requests;
 using NewsSite1.Services;
+using System;
 using System.Threading.Tasks;
 
 namespace NewsSite1.Controllers
@@ -30,25 +31,31 @@ namespace NewsSite1.Controllers
             _firebase = firebase;
         }
 
+        // ============================
+        // == Discovery / Fetching   ==
+        // ============================
 
-        // ✅ Gets filtered articles by user's interests (once per day)
+        /// <summary>
+        /// Gets filtered articles for a user (by interest tags); logs fetch (once per day).
+        /// </summary>
         [HttpGet("AllFiltered")]
         public IActionResult GetAllFiltered(int userId)
         {
             try
             {
-                var filtered = _db.GetArticlesFilteredByTags(userId); 
+                var filtered = _db.GetArticlesFilteredByTags(userId);
                 _db.LogArticleFetch(userId);
                 return Ok(filtered);
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Error fetching filtered articles");
             }
         }
 
-
-        // ✅ Gets sidebar articles
+        /// <summary>
+        /// Gets sidebar articles with simple pagination.
+        /// </summary>
         [HttpGet("Sidebar")]
         public IActionResult GetSidebarArticles(int page = 1, int pageSize = 6)
         {
@@ -57,16 +64,15 @@ namespace NewsSite1.Controllers
                 var paged = _db.GetSidebarArticles(page, pageSize);
                 return Ok(paged);
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Error loading sidebar articles");
             }
         }
 
-
-
-
-        // ✅ Returns all public threads (articles shared publicly with comment)
+        /// <summary>
+        /// Returns all public threads (publicly shared articles) visible for the user.
+        /// </summary>
         [HttpGet("Threads/{userId}")]
         public IActionResult GetThreads(int userId)
         {
@@ -75,14 +81,15 @@ namespace NewsSite1.Controllers
                 var threads = _db.GetAllThreads(userId);
                 return Ok(threads);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Failed to load public threads");
             }
         }
 
-
-        // ✅ Returns all articles shared privately with the user (Inbox)
+        /// <summary>
+        /// Returns all articles shared privately with the user (Inbox).
+        /// </summary>
         [HttpGet("Inbox/{userId}")]
         public IActionResult GetInbox(int userId)
         {
@@ -97,20 +104,76 @@ namespace NewsSite1.Controllers
             }
         }
 
+        // ============================
+        // == Saved Articles (MyList) ==
+        // ============================
 
-        // ✅ Shares an article privately using usernames and updates Firebase inbox count
+        /// <summary>
+        /// Saves an article for a user.
+        /// </summary>
+        [HttpPost("SaveArticle")]
+        public IActionResult SaveArticle([FromBody] SaveArticleRequest request)
+        {
+            try
+            {
+                _db.SaveArticle(request.UserId, request.ArticleId);
+                return Ok("Article saved");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Server error while saving article");
+            }
+        }
+
+        /// <summary>
+        /// Gets all saved articles for a specific user.
+        /// </summary>
+        [HttpGet("GetSavedArticles/{userId}")]
+        public IActionResult GetSavedArticles(int userId)
+        {
+            try
+            {
+                var list = _db.GetSavedArticles(userId);
+                return Ok(list);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error loading saved articles");
+            }
+        }
+
+        /// <summary>
+        /// Removes a saved article for a user.
+        /// </summary>
+        [HttpPost("RemoveSavedArticle")]
+        public IActionResult RemoveSavedArticle([FromBody] SaveArticleRequest request)
+        {
+            try
+            {
+                _db.RemoveSavedArticle(request.UserId, request.ArticleId);
+                return Ok("Removed successfully");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error removing article");
+            }
+        }
+
+        // ============================
+        // == Sharing (Private/Public) ==
+        // ============================
+
+        /// <summary>
+        /// Shares an article privately by usernames and updates Firebase inbox count.
+        /// </summary>
         [HttpPost("ShareByUsernames")]
         public async Task<IActionResult> ShareByUsernames([FromBody] SharedArticleRequest req)
         {
             try
             {
-                // Perform DB share action
                 _db.ShareArticleByUsernames(req.SenderUsername, req.ToUsername, req.ArticleId, req.Comment);
 
-                // Get receiver's ID by username
                 int? targetUserId = _db.GetUserIdByUsername(req.ToUsername);
-
-                // Update inbox count in Firebase
                 if (targetUserId != null)
                 {
                     int newCount = _db.GetUnreadSharedArticlesCount(targetUserId.Value);
@@ -125,11 +188,9 @@ namespace NewsSite1.Controllers
             }
         }
 
-
-
-
-
-        // ✅ Shares an article publicly to Threads
+        /// <summary>
+        /// Shares an article publicly to Threads.
+        /// </summary>
         [HttpPost("ShareToThreads")]
         public IActionResult ShareToThreads([FromBody] PublicArticleShareRequest req)
         {
@@ -144,10 +205,13 @@ namespace NewsSite1.Controllers
             }
         }
 
+        // =================
+        // == Reporting   ==
+        // =================
 
-
-       
-
+        /// <summary>
+        /// Reports content (article/comment/thread) with a reason.
+        /// </summary>
         [HttpPost("Report")]
         public IActionResult ReportContent([FromBody] ReportRequest req)
         {
@@ -159,31 +223,10 @@ namespace NewsSite1.Controllers
                 _db.ReportContent(req.UserId, req.ReferenceType, req.ReferenceId, req.Reason);
                 return Ok("Reported");
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Error reporting content");
             }
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

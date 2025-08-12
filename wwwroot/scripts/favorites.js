@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // ✅ Fetch saved articles
-    fetch("/api/Users/GetSavedArticles/" + user.id)
+    fetch("/api/Article/GetSavedArticles/" + user.id)
         .then(function (res) { return res.json(); })
         .then(function (data) {
             allSavedArticles = data;
@@ -132,7 +132,7 @@ function removeFavorite(articleId) {
 
     if (!user || !user.id) return;
 
-    fetch("/api/Users/RemoveSavedArticle", {
+    fetch("/api/Article/RemoveSavedArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId: articleId })

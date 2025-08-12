@@ -166,7 +166,7 @@ function saveArticle(articleId) {
     if (!requireLogin()) return;
     const user = getLoggedUser();
 
-    fetch("/api/Users/SaveArticle", {
+    fetch("/api/Article/SaveArticle", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })

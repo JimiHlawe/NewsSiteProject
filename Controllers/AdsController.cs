@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 namespace NewsSite.Controllers
 {
-    [Route("api/[controller]")]
+    /// <summary>
+    /// Provides endpoints for generating ad creatives (text + image).
+    /// </summary>
     [ApiController]
+    [Route("api/[controller]")]
     public class AdsController : ControllerBase
     {
         private readonly AdsGenerationService _adsService;
@@ -16,7 +19,13 @@ namespace NewsSite.Controllers
             _adsService = adsService;
         }
 
-        // ✅ Generates an ad with an image for a given category
+        // ============================
+        // == Ad Generation ==
+        // ============================
+
+        /// <summary>
+        /// Generates an ad (text + image) for the given category.
+        /// </summary>
         [HttpGet("Generate")]
         public async Task<IActionResult> GenerateAd([FromQuery] string category)
         {
