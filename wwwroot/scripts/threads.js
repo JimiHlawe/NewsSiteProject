@@ -388,7 +388,7 @@ function sendComment(articleId) {
 function loadComments(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    fetch("/api/Comments/GetForThreads/" + articleId)
+    fetch(`${API_BASE}/Comments/GetForThreads/${articleId}`)
         .then(res => res.json())
         .then(comments => {
             const container = document.getElementById("comments-" + articleId);
