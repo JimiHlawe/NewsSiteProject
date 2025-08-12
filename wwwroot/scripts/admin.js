@@ -259,6 +259,9 @@ function toggleCommenting(userId, canComment) {
 // ------------------------------------------------------
 // Reports table
 // ------------------------------------------------------
+// ------------------------------------------------------
+// Reports table (uses articleKind to label THREAD vs ARTICLE)
+// ------------------------------------------------------
 function loadReports() {
     fetch("/api/Admin/AllReports")
         .then(res => {
@@ -300,21 +303,32 @@ function loadReports() {
                     month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
 
-                // If Article, we pass kind explicitly; otherwise empty so server infers comment/public-comment
-                const inferredKind = (r.reportType === 'Article') ? 'Article' : '';
+                // For Articles, decide if it's THREAD or ARTICLE (based on articleKind)
+                const isArticle = (r.reportType === 'Article');
+                const kindLabel = (isArticle && r.articleKind === 'Thread') ? 'THREAD' : 'ARTICLE';
+
+                // What we show in the "Type" column:
+                // - If it's an Article, show THREAD/ARTICLE
+                // - Else show the original type (e.g., Comment)
+                const typeBadgeText = isArticle ? kindLabel : (r.reportType || '').toUpperCase();
+
+                // What we send to server:
+                // - For Articles we send 'Article'
+                // - For comments we leave empty so server infers
+                const inferredKind = isArticle ? 'Article' : '';
 
                 const actionsCell = `
                     <button class="action-btn danger"
                             onclick="deleteReportedTarget('${inferredKind}', ${r.referenceId}, this)">
-                        DELETE ${r.reportType.toUpperCase()}
+                        DELETE ${isArticle ? kindLabel : 'COMMENT'}
                     </button>`;
 
                 html += `
                     <tr>
                         <td><strong>${r.reporterName ?? r.reporterId}</strong></td>
                         <td>${r.targetName || "–"}</td>
-                        <td><span class="report-type-badge">${r.reportType}</span></td>
-                        <td>${r.reason}</td>
+                        <td><span class="report-type-badge">${typeBadgeText}</span></td>
+                        <td>${r.reason || ""}</td>
                         <td class="report-content">${r.content ?? ""}</td>
                         <td class="report-date">${date}</td>
                         <td class="report-actions">${actionsCell}</td>
@@ -338,6 +352,7 @@ function loadReports() {
             }
         });
 }
+
 
 function deleteReportedTarget(targetKind, targetId, btnEl) {
     if (!targetId) return;

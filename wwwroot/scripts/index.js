@@ -166,7 +166,7 @@ function saveArticle(articleId) {
     if (!requireLogin()) return;
     const user = getLoggedUser();
 
-    fetch("/api/Article/SaveArticle", {
+    fetch("/api/Articles/SaveArticle", { 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
@@ -228,18 +228,25 @@ function submitShare(articleId) {
     const comment = document.getElementById("shareComment").value || "";
     const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
 
+<<<<<<< Updated upstream
+=======
+    // ✅ חסימת משתמש שחסום משיתוף
+>>>>>>> Stashed changes
     if (loggedUser.canShare === false) {
         alert("You are blocked from sharing articles.");
         return;
     }
 
     if (shareType === "public") {
+<<<<<<< Updated upstream
+=======
+        // ✅ תגובה חייבת להיות לא ריקה
+>>>>>>> Stashed changes
         if (comment.trim().length === 0) {
             alert("Please enter a comment before sharing publicly.");
             return;
         }
 
-        // ✅ Public Share
         fetch("/api/Articles/ShareToThreads", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -261,9 +268,18 @@ function submitShare(articleId) {
 
     } else {
         // ✅ Private Share
-        const targetUsername = document.getElementById("targetUser").value.trim();
+        const targetUsernameRaw = document.getElementById("targetUser").value;
+        const targetUsername = (targetUsernameRaw || "").trim();
+
         if (!targetUsername) {
             alert("Please enter a target username.");
+            return;
+        }
+
+        // ✅ לא לשתף לעצמי (בדיקה לאותיות גדולות/קטנות ורווחים)
+        const myUsername = ((loggedUser.username || loggedUser.name || "") + "").trim().toLowerCase();
+        if (targetUsername.toLowerCase() === myUsername) {
+            alert("You cannot share an article with yourself.");
             return;
         }
 
@@ -271,7 +287,7 @@ function submitShare(articleId) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                senderUsername: loggedUser.name,
+                senderUsername: loggedUser.name, // או loggedUser.username – לפי מה ששמור אצלך
                 toUsername: targetUsername,
                 articleId: articleId,
                 comment: comment
@@ -288,6 +304,7 @@ function submitShare(articleId) {
             });
     }
 }
+
 
 // Close the share modal
 function closeShareModal() {

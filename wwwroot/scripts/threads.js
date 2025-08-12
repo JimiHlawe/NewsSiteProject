@@ -30,6 +30,7 @@ function loadThreadsArticles() {
             return res.json();
         })
         .then(data => {
+            sortThreadsByNewest(data);
             allThreads = data;
             currentThreadsPage = 1;
             renderVisibleThreads();
@@ -38,6 +39,12 @@ function loadThreadsArticles() {
             showError("threadsContainer", "Failed to load threads");
         });
 }
+
+const dateOf = t => new Date(t.createdAt || t.threadCreatedAt || t.sharedAt || t.publishedAt || 0);
+function sortThreadsByNewest(data) {
+    return data.sort((x, y) => dateOf(y) - dateOf(x));
+}
+
 
 // ✅ Render visible thread articles based on current page
 function renderVisibleThreads() {

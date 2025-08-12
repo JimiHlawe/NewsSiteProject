@@ -1554,36 +1554,35 @@ namespace NewsSite1.DAL
         /// Retrieves all reports in the system for admin review
         public List<ReportEntryDTO> GetAllReports()
         {
-            List<ReportEntryDTO> list = new List<ReportEntryDTO>();
+            var list = new List<ReportEntryDTO>();
 
             using (SqlConnection con = connect())
+            using (SqlCommand cmd = new SqlCommand("NewsSP_GetAllReports", con) { CommandType = CommandType.StoredProcedure })
+            using (SqlDataReader reader = cmd.ExecuteReader())
             {
-                SqlCommand cmd = new SqlCommand("NewsSP_GetAllReports", con);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                SqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
-                    ReportEntryDTO r = new ReportEntryDTO
+                    var r = new ReportEntryDTO
                     {
-                        Id = (int)reader["id"],                                  // Report ID
-                        ReporterId = (int)reader["ReporterId"],                  // ID of user who reported
-                        ReporterName = reader["ReporterName"].ToString(),        // Name of reporting user
-                        ReportType = reader["referenceType"].ToString(),         // "Article" or "Comment"
-                        ReferenceId = (int)reader["referenceId"],                // ID of reported content
-                        Reason = reader["reason"].ToString(),                    // Report reason
-                        ReportedAt = Convert.ToDateTime(reader["reportedAt"]),   // When report was made
-                        Content = reader["ReportedContent"] != DBNull.Value
-                                    ? reader["ReportedContent"].ToString(): null,// The content that was reported
-                        TargetName = reader["TargetName"] != DBNull.Value
-                                    ? reader["TargetName"].ToString(): null // Name of user whose content was reported
+                        Id = (int)reader["id"],                          // Report id
+                        ReporterId = (int)reader["ReporterId"],          // Who reported
+                        ReporterName = reader["ReporterName"]?.ToString(),
+                        ReportType = reader["reportType"]?.ToString(),   // "Article" / "Comment"
+                        ReferenceId = (int)reader["referenceId"],        // Reported entity id
+                        Reason = reader["reason"]?.ToString(),
+                        ReportedAt = Convert.ToDateTime(reader["reportedAt"]),
+                        Content = reader["content"] == DBNull.Value ? null : reader["content"].ToString(),
+                        TargetName = reader["TargetName"] == DBNull.Value ? null : reader["TargetName"].ToString(),
+                        ArticleKind = reader["articleKind"] == DBNull.Value ? null : reader["articleKind"].ToString() // "Thread"/"Article"/null
                     };
+
                     list.Add(r);
                 }
             }
 
             return list;
         }
+
 
         /// Returns the number of article reports submitted today
         public int GetTodayArticleReportsCount()
