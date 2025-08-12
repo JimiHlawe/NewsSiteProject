@@ -5,7 +5,11 @@ import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-
 // --- API BASE ---
 const API_BASE = location.hostname.includes("localhost")
     ? "https://localhost:7084/api"
-    : "https://proj.ruppin.ac.il/cgroup13/test2/tar1/api";
+    : "https://proj.ruppin.ac.il/cgroup13/test2/tar5/api";
+
+// --- WEB/STATIC BASE (לניווט וקבצים סטטיים; בלי helpers) ---
+const WEB_BASE = location.hostname.includes("localhost") ? "/html" : "/cgroup13/test2/tar2/html";
+const STATIC_BASE = location.hostname.includes("localhost") ? "" : "/cgroup13/test2/tar2";
 
 // ✅ On page load – build navbar and load user data
 document.addEventListener("DOMContentLoaded", function () {
@@ -38,35 +42,42 @@ document.addEventListener("DOMContentLoaded", function () {
 function renderNavbarWithUser(container, user) {
     let html = "";
 
+    // בוחר תמונת פרופיל: אם קיבלתי URL מלא – משאיר; אם נתיב יחסי – מצרף STATIC_BASE; אחרת תמונת ברירת מחדל
+    const profileImage =
+        (user && user.profileImagePath)
+            ? (/^https?:\/\//i.test(user.profileImagePath)
+                ? user.profileImagePath
+                : (STATIC_BASE + (user.profileImagePath.startsWith('/') ? user.profileImagePath : '/' + user.profileImagePath)))
+            : (STATIC_BASE + "/pictures/default-avatar.jpg");
+
+    const avatarIcons = {
+        "BRONZE": STATIC_BASE + "/pictures/avatar_bronze.png",
+        "SILVER": STATIC_BASE + "/pictures/avatar_silver.png",
+        "GOLD": STATIC_BASE + "/pictures/avatar_gold.png"
+    };
+    const avatarIcon = avatarIcons[user?.avatarLevel || "BRONZE"];
+
     html += `
     <nav class="navbar">
         <div class="container">
-            <a class="navbar-brand" href="/html/index.html">NEWSPAPER</a>
+            <a class="navbar-brand" href="${WEB_BASE}/index.html">NEWSPAPER</a>
             <ul class="navbar-nav">
     `;
 
     if (user) {
-        const profileImage = user.profileImagePath || "../pictures/default-avatar.jpg";
-        const avatarIcons = {
-            "BRONZE": "../pictures/avatar_bronze.png",
-            "SILVER": "../pictures/avatar_silver.png",
-            "GOLD": "../pictures/avatar_gold.png"
-        };
-        const avatarIcon = avatarIcons[user.avatarLevel || "BRONZE"];
-
         html += `
-            <li><a class="nav-link" href="/html/favorites.html">My Favorites</a></li>
-            <li><a class="nav-link" id="inboxNavItem" href="/html/inbox.html">Inbox</a></li>
-            <li><a class="nav-link" href="/html/threads.html">Threads</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/favorites.html">My Favorites</a></li>
+            <li><a class="nav-link" id="inboxNavItem" href="${WEB_BASE}/inbox.html">Inbox</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/threads.html">Threads</a></li>
         `;
 
         if (user.isAdmin) {
-            html += `<li><a class="nav-link" href="/html/admin.html">Admin</a></li>`;
+            html += `<li><a class="nav-link" href="${WEB_BASE}/admin.html">Admin</a></li>`;
         }
 
         html += `
             <li class="nav-profile-image">
-                <a href="/html/profile.html">
+                <a href="${WEB_BASE}/profile.html">
                     <img src="${profileImage}" alt="Profile" class="profile-img-nav">
                     <img src="${avatarIcon}" alt="Rank" class="avatar-rank-icon">
                 </a>
@@ -74,7 +85,7 @@ function renderNavbarWithUser(container, user) {
             <li><a id="logoutBtn" href="#" class="nav-link logout-link">Logout</a></li>
         `;
     } else {
-        html += `<li><a class="nav-link" href="/html/login.html">Sign In</a></li>`;
+        html += `<li><a class="nav-link" href="${WEB_BASE}/login.html">Sign In</a></li>`;
     }
 
     html += `
@@ -87,26 +98,31 @@ function renderNavbarWithUser(container, user) {
     <div class="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
     <div class="mobile-menu">
         <ul class="mobile-nav">
-            <li><a class="nav-link" href="/html/index.html" onclick="closeMobileMenu()">Home</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/index.html" onclick="closeMobileMenu()">Home</a></li>
     `;
 
     if (user) {
-        const profileImage = user.profileImagePath || "../pictures/default-avatar.png";
+        const profileImageMobile =
+            (user && user.profileImagePath)
+                ? (/^https?:\/\//i.test(user.profileImagePath)
+                    ? user.profileImagePath
+                    : (STATIC_BASE + (user.profileImagePath.startsWith('/') ? user.profileImagePath : '/' + user.profileImagePath)))
+                : (STATIC_BASE + "/pictures/default-avatar.png");
 
         html += `
-            <li><a class="nav-link" href="/html/favorites.html" onclick="closeMobileMenu()">My Favorites</a></li>
-            <li><a class="nav-link" href="/html/inbox.html" onclick="closeMobileMenu()">Inbox</a></li>
-            <li><a class="nav-link" href="/html/threads.html" onclick="closeMobileMenu()">Threads</a></li>
-            <li><a class="nav-link" href="/html/profile.html" onclick="closeMobileMenu()">Profile</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/favorites.html" onclick="closeMobileMenu()">My Favorites</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/inbox.html" onclick="closeMobileMenu()">Inbox</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/threads.html" onclick="closeMobileMenu()">Threads</a></li>
+            <li><a class="nav-link" href="${WEB_BASE}/profile.html" onclick="closeMobileMenu()">Profile</a></li>
         `;
 
         if (user.isAdmin) {
-            html += `<li><a class="nav-link" href="/html/admin.html" onclick="closeMobileMenu()">Admin</a></li>`;
+            html += `<li><a class="nav-link" href="${WEB_BASE}/admin.html" onclick="closeMobileMenu()">Admin</a></li>`;
         }
 
         html += `<li><a id="mobileLogoutBtn" class="nav-link logout-link" href="#">Logout</a></li>`;
     } else {
-        html += `<li><a class="nav-link" href="/html/login.html" onclick="closeMobileMenu()">Sign In</a></li>`;
+        html += `<li><a class="nav-link" href="${WEB_BASE}/login.html" onclick="closeMobileMenu()">Sign In</a></li>`;
     }
 
     html += `
@@ -137,7 +153,7 @@ function bindNavbarEvents() {
 // ✅ Clear session and redirect to home
 function logout() {
     sessionStorage.clear();
-    window.location.href = "/html/index.html";
+    window.location.href = `${WEB_BASE}/index.html`;
 }
 
 // ✅ Listen to real-time inbox count using Firebase
@@ -156,7 +172,7 @@ function listenToInboxCount(userId) {
 function initMobileMenu() {
     const hamburger = document.querySelector('.hamburger');
     const overlay = document.querySelector('.mobile-menu-overlay');
-    const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav a');
 
     if (hamburger) {
         hamburger.addEventListener('click', toggleMobileMenu);
@@ -209,7 +225,7 @@ function toggleMobileMenu() {
             overlay.classList.add('active');
             hamburger.classList.add('active');
             document.body.style.overflow = 'hidden';
-            document.body.classList.add('mobile-menu-open'); 
+            document.body.classList.add('mobile-menu-open');
         }
     }
 }
@@ -225,7 +241,7 @@ function closeMobileMenu() {
         overlay.classList.remove('active');
         hamburger.classList.remove('active');
         document.body.style.overflow = '';
-        document.body.classList.remove('mobile-menu-open'); 
+        document.body.classList.remove('mobile-menu-open');
     }
 }
 
