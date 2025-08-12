@@ -405,14 +405,17 @@ function setupImportExternal() {
         importBtn.innerHTML = 'Importing...';
 
         fetch(`${API_BASE}/Admin/GetFromNewsAPI`, { method: "POST" })
-            .then(res => {
-                if (!res.ok) throw new Error();
+            .then(async res => {
+                if (!res.ok) {
+                    const txt = await res.text().catch(() => "");
+                    // מציגים את מה שהשרת החזיר (למשל: "Error importing articles: ....")
+                    throw new Error(txt || `HTTP ${res.status}`);
+                }
                 return res.json();
             })
             .then(data => {
                 document.getElementById("importStatus").innerHTML =
-                    `<div class='status-message success'>${data.length} new articles were imported successfully!</div>`;
-                // After import, refresh stats (could affect fetch counters)
+                    `<div class='status-message success'>${data.length ?? 0} new articles were imported successfully!</div>`;
                 loadAllStats();
             })
             .catch(err => {
