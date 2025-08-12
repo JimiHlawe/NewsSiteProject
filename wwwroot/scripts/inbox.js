@@ -1,7 +1,7 @@
 ﻿// --- API BASE ---
 const API_BASE = location.hostname.includes("localhost")
     ? "https://localhost:7084/api"
-    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
+    : "https://proj.ruppin.ac.il/cgroup13/test2/tar1/api";
 
 // ✅ On page load – fetch shared articles and handle login redirect
 document.addEventListener("DOMContentLoaded", function () {
