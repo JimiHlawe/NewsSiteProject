@@ -51,7 +51,7 @@ public class TaggingRunner
                 {
                     int tagId = _db.GetOrAddTagId(name);
                     tagIds.Add(tagId);
-                    _db.InsertArticleTagIfNotExists(article.Id, tagId);
+                    _db.InsertArticleTag(article.Id, tagId);
                 }
 
                 // 3) Notify users who are interested in any of these tags
