@@ -436,28 +436,92 @@ function setupTagging() {
     const taggingBtn = document.getElementById("taggingBtn");
     if (!taggingBtn) return;
 
-    taggingBtn.addEventListener("click", () => {
+    taggingBtn.addEventListener("click", async () => {
         taggingBtn.disabled = true;
         taggingBtn.innerHTML = 'Tagging...';
 
-        fetch(`${API_BASE}/Tagging/RunTagging`, { method: "POST" })
-            .then(res => {
-                if (!res.ok) throw new Error();
-                return res.text();
-            })
-            .then(() => {
+        try {
+            const res = await fetch(`${API_BASE}/Tagging/RunTagging`, { method: "POST" });
+            const text = await res.text(); // נקרא טקסט כדי לא ליפול אם זה לא JSON
+            if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+
+            // ננסה לפרסר JSON; אם נכשל – עדיין מציגים הודעת הצלחה בסיסית
+            let data = null;
+            try { data = JSON.parse(text); } catch { }
+
+            if (data) {
+                renderTaggingResults(data); // רנדר טבלה/תגיות
+            } else {
                 document.getElementById("taggingStatus").innerHTML =
                     `<div class='status-message success'>Tagging completed successfully!</div>`;
-            })
-            .catch(err => {
-                document.getElementById("taggingStatus").innerHTML =
-                    `<div class='status-message error'> Error: ${err.message}</div>`;
-            })
-            .finally(() => {
-                taggingBtn.disabled = false;
-                taggingBtn.innerHTML = 'Tag Articles';
-            });
+            }
+        } catch (err) {
+            document.getElementById("taggingStatus").innerHTML =
+                `<div class='status-message error'>Error: ${err.message}</div>`;
+        } finally {
+            taggingBtn.disabled = false;
+            taggingBtn.innerHTML = 'Tag Articles';
+        }
     });
+}
+
+// מצפה לאובייקט עם items = מערך תוצאות. כל איבר יכול להכיל:
+// { articleId, title, tagsAdded: [...], finalTags: [...] }  // שמות שדות גמישים מטה
+function renderTaggingResults(result) {
+    const container = document.getElementById("taggingStatus");
+    const items = Array.isArray(result.items) ? result.items
+        : Array.isArray(result) ? result
+            : [];
+
+    const totalArticles = items.length;
+    const totalTags = items.reduce((sum, it) => {
+        const added = it.tagsAdded || it.added || it.tags || [];
+        return sum + (Array.isArray(added) ? added.length : 0);
+    }, 0);
+
+    let html = `
+        <div class="status-message success">
+            Tagged ${totalArticles} article(s), ${totalTags} tag(s) added.
+        </div>
+        <div class="table-container" style="margin-top:10px;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Tags Added</th>
+                        <th>All/Final Tags</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    items.forEach(it => {
+        const title = esc(it.title || it.articleTitle || `#${it.articleId ?? ''}`);
+        const tagsAddedArr = it.tagsAdded || it.added || it.tags || [];
+        const finalTagsArr = it.finalTags || it.allTags || it.tags || [];
+
+        const tagsAdded = (Array.isArray(tagsAddedArr) ? tagsAddedArr : [])
+            .map(t => `<span class="tag-chip">${esc(t)}</span>`).join(' ') || '—';
+
+        const finalTags = (Array.isArray(finalTagsArr) ? finalTagsArr : [])
+            .map(t => `<span class="tag-chip tag-chip--muted">${esc(t)}</span>`).join(' ') || '—';
+
+        html += `
+            <tr>
+                <td>${title}</td>
+                <td>${tagsAdded}</td>
+                <td>${finalTags}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table></div>`;
+    container.innerHTML = html;
+}
+
+// עזר קטן לאסקייפ
+function esc(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ------------------------------------------------------
