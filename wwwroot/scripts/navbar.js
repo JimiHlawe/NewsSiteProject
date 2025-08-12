@@ -8,8 +8,8 @@ const API_BASE = location.hostname.includes("localhost")
     : "https://proj.ruppin.ac.il/cgroup13/test2/tar5/api";
 
 // --- WEB/STATIC BASE (לניווט וקבצים סטטיים; בלי helpers) ---
-const WEB_BASE = location.hostname.includes("localhost") ? "/html" : "/cgroup13/test2/tar2/html";
-const STATIC_BASE = location.hostname.includes("localhost") ? "" : "/cgroup13/test2/tar2";
+const WEB_BASE = location.hostname.includes("localhost") ? "/html" : "/cgroup13/test2/tar5/html";
+const STATIC_BASE = location.hostname.includes("localhost") ? "" : "/cgroup13/test2/tar5";
 
 // ✅ On page load – build navbar and load user data
 document.addEventListener("DOMContentLoaded", function () {
