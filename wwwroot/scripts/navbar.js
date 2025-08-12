@@ -2,6 +2,11 @@
 import { db } from './firebase-config.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
+// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
+
 // ✅ On page load – build navbar and load user data
 document.addEventListener("DOMContentLoaded", function () {
     const container = document.getElementById("navbar");
@@ -11,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!container) return;
 
     if (user) {
-        fetch(`/api/Users/GetUserById/${user.id}`)
+        fetch(`${API_BASE}/Users/GetUserById/${user.id}`)
             .then(res => res.json())
             .then(updatedUser => {
                 sessionStorage.setItem("loggedUser", JSON.stringify(updatedUser));

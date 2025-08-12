@@ -1,4 +1,9 @@
-﻿// ✅ On page load – fetch shared articles and handle login redirect
+﻿// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
+
+// ✅ On page load – fetch shared articles and handle login redirect
 document.addEventListener("DOMContentLoaded", function () {
     var userJson = sessionStorage.getItem("loggedUser");
     if (!userJson) {
@@ -7,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     var user = JSON.parse(userJson);
-    var url = "https://localhost:7084/api/Articles/Inbox/" + user.id;
+    var url = `${API_BASE}/Articles/Inbox/${user.id}`;
 
     fetch(url)
         .then(function (res) {
@@ -128,7 +133,7 @@ function renderSharedArticles(articles) {
 function removeSharedArticle(sharedId, cardElement) {
     if (!confirm("Are you sure you want to remove this shared article?")) return;
 
-    fetch("/api/Users/RemoveShared/" + sharedId, {
+    fetch(`${API_BASE}/Users/RemoveShared/${sharedId}`, {
         method: "DELETE"
     })
         .then(function (res) {
@@ -143,7 +148,7 @@ function removeSharedArticle(sharedId, cardElement) {
 
 // ✅ Mark all shared articles as read for this user
 function markAllSharedAsRead(userId) {
-    fetch(`/api/Users/MarkSharedAsRead/${userId}`, {
+    fetch(`${API_BASE}/Users/MarkSharedAsRead/${userId}`, {
         method: "POST"
     });
 }

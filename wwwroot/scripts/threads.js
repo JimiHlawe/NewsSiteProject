@@ -3,6 +3,12 @@ let allThreads = [];
 let currentThreadsPage = 1;
 const threadsPageSize = 5;
 
+// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
+
+
 // ✅ On page load – verify login and load threads
 document.addEventListener("DOMContentLoaded", function () {
     const rawUser = sessionStorage.getItem("loggedUser");
@@ -24,7 +30,7 @@ function getLoggedUser() {
 // ✅ Load all public thread articles from server
 function loadThreadsArticles() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    fetch("/api/Articles/Threads/" + user.id)
+    fetch(`${API_BASE}/Articles/Threads/${user.id}`)
         .then(res => {
             if (!res.ok) throw new Error("Failed to fetch threads");
             return res.json();
@@ -243,7 +249,8 @@ function showCommentsModal(articleId) {
 function loadCommentsForModal(articleId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    fetch("/api/Comments/GetForThreads/" + articleId)
+
+    fetch(`${API_BASE}/Comments/GetForThreads/${articleId}`)
         .then(res => res.json())
         .then(comments => {
             const container = document.getElementById("modal-comments-" + articleId);
@@ -286,7 +293,8 @@ function sendCommentFromModal(articleId) {
         comment: commentText
     };
 
-    fetch("/api/Comments/AddToThreads", {
+
+    fetch(`${API_BASE}/Comments/AddToThreads`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -323,7 +331,8 @@ function closeCommentsModalOnOutsideClick(event) {
 
 // ✅ Update like count for public comment
 function updatePublicLikeCount(publicCommentId) {
-    fetch(`/api/Comments/ThreadsCommentLikeCount/${publicCommentId}`)
+
+    fetch(`${API_BASE}/Comments/ThreadsCommentLikeCount/${publicCommentId}`)
         .then(res => res.json())
         .then(count => {
             const countSpan = document.getElementById(`public-like-count-${publicCommentId}`);
@@ -334,7 +343,7 @@ function updatePublicLikeCount(publicCommentId) {
 // ✅ Toggle like for a public comment
 function togglePublicCommentLike(publicCommentId) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    fetch('/api/Comments/ToggleLikeForThreads', {
+    fetch(`${API_BASE}/Comments/ToggleLikeForThreads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, publicCommentId })
@@ -359,7 +368,8 @@ function sendComment(articleId) {
         comment: commentText
     };
 
-    fetch("/api/Comments/AddPublic", {
+
+    fetch(`${API_BASE}/Comments/AddPublic`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -420,7 +430,7 @@ function blockUser(senderName) {
 
     if (!confirm(`Are you sure you want to block ${senderName}?`)) return;
 
-    fetch("/api/Users/BlockUser", {
+    fetch(`${API_BASE}/Users/BlockUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -470,7 +480,8 @@ function toggleThreadLike(article) {
 
     const likeBtn = document.getElementById(`like-thread-btn-${article.publicArticleId}`);
 
-    fetch("/api/Likes/ToggleThreadLike", {
+
+    fetch(`${API_BASE}/Likes/ToggleThreadLike`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, publicArticleId: article.publicArticleId })
@@ -547,7 +558,8 @@ function submitReport(referenceType, referenceId) {
         return;
     }
 
-    fetch("/api/Articles/Report", {
+
+    fetch(`${API_BASE}/Articles/Report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

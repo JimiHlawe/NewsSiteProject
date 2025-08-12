@@ -1,5 +1,7 @@
-﻿// ✅ Base API URL
-var apiBase = "https://localhost:7084/api";
+﻿// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
 
 // ✅ DOM elements
 const container = document.getElementById("container");
@@ -49,7 +51,7 @@ function showNotification(message, type = "error") {
 
 // ✅ Load interest tags for signup
 function loadTags() {
-    fetch(apiBase + "/Users/AllTags")
+    fetch(`${API_BASE}/Users/AllTags`)
         .then(res => res.json())
         .then(tags => {
             const container = document.getElementById("signupTagsContainer");
@@ -116,7 +118,7 @@ $(document).ready(function () {
         const originalText = submitBtn.text();
         submitBtn.text('Signing In...').prop('disabled', true);
 
-        fetch("/api/Users/Login", {
+        fetch(`${API_BASE}/Users/Login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password })
@@ -181,7 +183,7 @@ $(document).ready(function () {
         const originalText = submitBtn.text();
         submitBtn.text('Creating Account...').prop('disabled', true);
 
-        fetch("/api/Users/Register", {
+        fetch(`${API_BASE}/Users/Register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ name, email, password, tags: selectedTags })
@@ -218,7 +220,7 @@ function saveUserTags() {
     const checked = document.querySelectorAll("#tagsContainer input:checked");
 
     checked.forEach(chk => {
-        fetch(apiBase + "/Users/AddTag", {
+        fetch(`${API_BASE}/Users/AddTag`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, tagId: chk.value })

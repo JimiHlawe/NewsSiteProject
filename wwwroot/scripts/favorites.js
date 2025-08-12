@@ -1,6 +1,12 @@
 ﻿// Holds all saved articles for filtering/rendering
 var allSavedArticles = [];
 
+// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
+
+
 // On page load: validate session, fetch saved articles, wire search form
 document.addEventListener("DOMContentLoaded", function () {
     // Check login
@@ -18,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Fetch saved articles (simple handling)
-    fetch("/api/Articles/GetSavedArticles/" + user.id)
+    fetch(`${API_BASE}/Articles/GetSavedArticles/${user.id}`)
         .then(function (res) {
             if (!res.ok) return [];            
             return res.json().catch(function () {  
@@ -135,7 +141,7 @@ function removeFavorite(articleId) {
     var user = userJson ? JSON.parse(userJson) : null;
     if (!user || !user.id) return;
 
-    fetch("/api/Articles/RemoveSavedArticle", {
+    fetch(`${API_BASE}/Articles/RemoveSavedArticle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId: articleId })

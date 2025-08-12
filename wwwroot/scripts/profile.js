@@ -1,4 +1,8 @@
-﻿const apiBase = "/api/Users";
+﻿// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
+
 
 // ✅ On page load – fetch updated user and load profile
 document.addEventListener("DOMContentLoaded", () => {
@@ -10,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const user = JSON.parse(rawUser);
 
-    fetch(`${apiBase}/GetUserById/${user.id}`)
+    fetch(`${API_BASE}/Users/GetUserById/${user.id}`)
         .then(res => res.json())
         .then(updatedUser => {
             sessionStorage.setItem("loggedUser", JSON.stringify(updatedUser));
@@ -74,7 +78,7 @@ function handleImageUpload(event) {
     const formData = new FormData();
     formData.append("file", file);
 
-    fetch(`/api/Users/UploadProfileImage?userId=${user.id}`, {
+    fetch(`${API_BASE}/Users/UploadProfileImage?userId=${user.id}`, {
         method: "POST",
         body: formData
     })
@@ -101,7 +105,7 @@ function loadUserTags() {
     const container = document.getElementById("userTags");
     container.innerHTML = '<div class="loading-placeholder">Loading your interests...</div>';
 
-    fetch(`${apiBase}/GetTags/${user.id}`)
+    fetch(`${API_BASE}/Users/GetTags/${user.id}`)
         .then(res => res.json())
         .then(tags => {
             container.innerHTML = "";
@@ -134,7 +138,7 @@ function loadAllTags() {
     const container = document.getElementById("allTagsContainer");
     container.innerHTML = '<div class="loading-placeholder">Loading available interests...</div>';
 
-    fetch(`${apiBase}/AllTags`)
+    fetch(`${API_BASE}/Users/AllTags`)
         .then(res => res.json())
         .then(tags => {
             container.innerHTML = "";
@@ -163,7 +167,7 @@ function removeTag(tagId) {
     const tagElement = event.target.closest('.user-tag');
     tagElement.style.opacity = '0.5';
 
-    fetch(`${apiBase}/RemoveTag`, {
+    fetch(`${API_BASE}/Users/RemoveTag`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, tagId })
@@ -199,7 +203,7 @@ function addSelectedTags() {
     button.innerHTML = '<span>⏳</span><span>Adding...</span>';
 
     const promises = Array.from(selected).map(checkbox => {
-        return fetch(`${apiBase}/AddTag`, {
+        return fetch(`${API_BASE}/Users/AddTag`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: user.id, tagId: parseInt(checkbox.value) })
@@ -249,7 +253,7 @@ function updatePassword() {
     button.disabled = true;
     button.innerHTML = '<span>⏳</span><span>Updating...</span>';
 
-    fetch(`${apiBase}/UpdatePassword`, {
+    fetch(`${API_BASE}/Users/UpdatePassword`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, newPassword })
@@ -280,7 +284,7 @@ function loadBlockedUsers() {
 
     container.innerHTML = "<div class='loading-placeholder'>Loading blocked users...</div>";
 
-    fetch(`/api/Users/BlockedByUser/${user.id}`)
+    fetch(`${API_BASE}/Users/BlockedByUser/${user.id}`)
         .then(res => res.json())
         .then(data => {
             if (data.length === 0) {
@@ -315,7 +319,7 @@ function unblockUser(blockedUserId) {
     const userItem = event.target.closest('.blocked-user-item');
     userItem.style.opacity = '0.5';
 
-    fetch("/api/Users/UnblockUser", {
+    fetch(`${API_BASE}/Users/UnblockUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -367,7 +371,7 @@ function toggleNotifications() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
     const isEnabled = document.getElementById("notificationToggle").checked;
 
-    fetch(`${apiBase}/ToggleNotifications`, {
+    fetch(`${API_BASE}/Users/ToggleNotifications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, enable: isEnabled })

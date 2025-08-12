@@ -2,6 +2,10 @@
 // Admin Page Script – simple, clean, student-friendly
 // Shows users, reports, site stats, and a small chart
 // ======================================================
+// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
 
 // ✅ Keep a reference to the chart so we can update/destroy it
 let _dailyChart = null;
@@ -38,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Users table
 // ------------------------------------------------------
 function loadUsers() {
-    fetch("/api/Users/AllUsers")
+    fetch(`${API_BASE}/Users/AllUsers`)
         .then(res => res.json())
         .then(users => {
             const tbody = document.querySelector("#usersTable tbody");
@@ -88,7 +92,7 @@ function loadUsers() {
 
 // ✅ Set user active/inactive status
 function setStatus(userId, isActive) {
-    fetch("/api/Admin/SetActiveStatus", {
+    fetch(`${API_BASE}/Admin/SetActiveStatus`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, isActive })
@@ -100,8 +104,10 @@ function setStatus(userId, isActive) {
 // ------------------------------------------------------
 function loadAllStats() {
     Promise.all([
-        fetch("/api/Admin/GetStatistics").then(res => res.json()),
-        fetch("/api/Admin/LikesStats").then(res => res.json())
+        fetch(`${API_BASE}/Admin/GetStatistics`)
+        .then(res => res.json()),
+        fetch(`${API_BASE}/Admin/LikesStats`)
+        .then(res => res.json())
     ])
         .then(async ([stats, likes]) => {
             const container = document.getElementById("statsContainer");
@@ -241,7 +247,7 @@ function renderDailyActivityChart(threadLikes, fetches, logins) {
 // Sharing / Commenting toggles
 // ------------------------------------------------------
 function toggleSharing(userId, canShare) {
-    fetch("/api/Admin/SetSharingStatus", {
+    fetch(`${API_BASE}/Admin/SetSharingStatus`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, canShare })
@@ -249,7 +255,7 @@ function toggleSharing(userId, canShare) {
 }
 
 function toggleCommenting(userId, canComment) {
-    fetch("/api/Admin/SetCommentingStatus", {
+    fetch(`${API_BASE}/Admin/SetCommentingStatus`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, canComment })
@@ -263,7 +269,7 @@ function toggleCommenting(userId, canComment) {
 // Reports table (uses articleKind to label THREAD vs ARTICLE)
 // ------------------------------------------------------
 function loadReports() {
-    fetch("/api/Admin/AllReports")
+    fetch(`${API_BASE}/Admin/AllReports`)
         .then(res => {
             if (!res.ok) throw new Error();
             return res.json();
@@ -364,7 +370,7 @@ function deleteReportedTarget(targetKind, targetId, btnEl) {
         btnEl.innerHTML = '⏳';
     }
 
-    fetch("/api/Admin/DeleteReportedTarget", {
+    fetch(`${API_BASE}/Admin/DeleteReportedTarget`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ targetKind, targetId })
@@ -397,7 +403,7 @@ function setupImportExternal() {
         importBtn.disabled = true;
         importBtn.innerHTML = 'Importing...';
 
-        fetch("/api/Admin/GetFromNewsAPI", { method: "POST" })
+        fetch(`${API_BASE}/Admin/GetFromNewsAPI`, { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error();
                 return res.json();
@@ -430,7 +436,7 @@ function setupTagging() {
         taggingBtn.disabled = true;
         taggingBtn.innerHTML = 'Tagging...';
 
-        fetch("/api/Tagging/RunTagging", { method: "POST" })
+        fetch(`${API_BASE}/Tagging/RunTagging`, { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error();
                 return res.text();
@@ -461,7 +467,7 @@ function setupFixMissingImages() {
         fixBtn.disabled = true;
         fixBtn.innerHTML = 'Fixing...';
 
-        fetch("/api/Admin/FixMissingImages", { method: "POST" })
+        fetch(`${API_BASE}/Admin/FixMissingImages`, { method: "POST" })
             .then(res => {
                 if (!res.ok) throw new Error();
                 return res.json();

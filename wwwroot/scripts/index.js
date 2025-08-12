@@ -8,6 +8,10 @@ let currentSlide = 0;
 let slideInterval;
 let isSearchActive = false;
 let adLoaded = false;
+// --- API BASE ---
+const API_BASE = location.hostname.includes("localhost")
+    ? "https://localhost:7084/api"
+    : "https://proj.ruppin.ac.il/igroup113_test2/tar1/api";
 
 /**
  * ✅ Returns the currently logged-in user from sessionStorage
@@ -35,7 +39,7 @@ function loadAllArticlesAndSplit() {
     const user = getLoggedUser();
     const userId = user ? user.id : 3;
 
-    fetch(`/api/Articles/AllFiltered?userId=${userId}`)
+    fetch(`${API_BASE}/Articles/AllFiltered?userId=${userId}`)
         .then(res => res.json())
         .then(data => {
             if (!data || data.length === 0) return;
@@ -166,7 +170,7 @@ function saveArticle(articleId) {
     if (!requireLogin()) return;
     const user = getLoggedUser();
 
-    fetch("/api/Articles/SaveArticle", { 
+    fetch(`${API_BASE}/Articles/SaveArticle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
@@ -247,7 +251,7 @@ function submitShare(articleId) {
             return;
         }
 
-        fetch("/api/Articles/ShareToThreads", {
+        fetch(`${API_BASE}/Articles/ShareToThreads`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -283,7 +287,7 @@ function submitShare(articleId) {
             return;
         }
 
-        fetch("/api/Articles/ShareByUsernames", {
+        fetch(`${API_BASE}/Articles/ShareByUsernames`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -371,7 +375,7 @@ function sendComment(articleId, isModal = false) {
         return;
     }
 
-    fetch("/api/Comments/AddToArticle", {
+    fetch(`${API_BASE}/Comments/AddToArticle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -399,7 +403,7 @@ function loadComments(articleId, isModal = false) {
 
     const user = getLoggedUser();
 
-    fetch(`/api/Comments/GetForArticle/${articleId}`)
+    fetch(`${API_BASE}/Comments/GetForArticle/${articleId}`)
         .then(res => res.json())
         .then(comments => {
             container.innerHTML = "";
@@ -462,7 +466,7 @@ function closeCommentsModal(articleId) {
 // Toggle like for a comment
 function toggleCommentLike(commentId) {
     const user = getLoggedUser();
-    fetch('/api/Comments/ToggleLikeForArticles', {
+    fetch(`${API_BASE}/Comments/ToggleLikeForArticles`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id, commentId })
@@ -471,7 +475,7 @@ function toggleCommentLike(commentId) {
 
 // Update like count display for a comment
 function updateLikeCount(commentId) {
-    fetch(`/api/Comments/ArticleCommentLikeCount/${commentId}`)
+    fetch(`${API_BASE}/Comments/ArticleCommentLikeCount/${commentId}`)
         .then(res => res.json())
         .then(count => {
             document.getElementById(`like-count-${commentId}`).innerText = count;
@@ -540,7 +544,7 @@ function submitReport(referenceType, referenceId) {
         return;
     }
 
-    fetch("/api/Articles/Report", {
+    fetch(`${API_BASE}/Articles/Report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -580,7 +584,7 @@ function toggleLike(articleId) {
 
     const user = getLoggedUser();
 
-    fetch("/api/Likes/ToggleArticleLike", {
+    fetch(`${API_BASE}/Likes/ToggleArticleLike`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id, articleId })
@@ -683,7 +687,7 @@ function stopAutoSlide() {
 
 // Load sidebar sections: hot news, editor's pick, must see
 function loadSidebarSections() {
-    fetch("/api/Articles/Sidebar?page=1&pageSize=9")
+    fetch(`${API_BASE}/Articles/Sidebar?page=1&pageSize=9`)
         .then(res => res.json())
         .then(articles => {
             const hot = document.getElementById("hotNews");
@@ -786,7 +790,7 @@ function submitNewArticle(event) {
         tags
     };
 
-    fetch("/api/Admin/AddUserArticle", {
+    fetch(`${API_BASE}/Admin/AddUserArticle`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newArticle)
@@ -877,7 +881,7 @@ function loadAdBanner() {
     if (adLoaded) return;
     adLoaded = true;
 
-    fetch("/api/Ads/Generate?category=breaking news")
+    fetch(`${API_BASE}/Ads/Generate?category=breaking news`)
         .then(res => res.json())
         .then(ad => {
             document.getElementById("adImage").src = ad.imageUrl;
