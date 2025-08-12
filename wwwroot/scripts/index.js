@@ -228,14 +228,12 @@ function submitShare(articleId) {
     const comment = document.getElementById("shareComment").value || "";
     const loggedUser = JSON.parse(sessionStorage.getItem("loggedUser"));
 
-    // ✅ בדיקה אם המשתמש חסום לשיתוף
     if (loggedUser.canShare === false) {
         alert("You are blocked from sharing articles.");
         return;
     }
 
     if (shareType === "public") {
-        // ✅ בדיקה שהתגובה לא ריקה
         if (comment.trim().length === 0) {
             alert("Please enter a comment before sharing publicly.");
             return;
