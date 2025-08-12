@@ -2,14 +2,15 @@
 import { db } from './firebase-config.js';
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
 
-// --- API BASE ---
+// --- API BASE (שרת ה-API = tar1) ---
 const API_BASE = location.hostname.includes("localhost")
     ? "https://localhost:7084/api"
-    : "https://proj.ruppin.ac.il/cgroup13/test2/tar5/api";
+    : "https://proj.ruppin.ac.il/cgroup13/test2/tar1/api";
 
-// --- WEB/STATIC BASE (לניווט וקבצים סטטיים; בלי helpers) ---
+// --- WEB/STATIC BASE (קבצי פרונט = tar5) ---
 const WEB_BASE = location.hostname.includes("localhost") ? "/html" : "/cgroup13/test2/tar5/html";
 const STATIC_BASE = location.hostname.includes("localhost") ? "" : "/cgroup13/test2/tar5";
+
 
 // ✅ On page load – build navbar and load user data
 document.addEventListener("DOMContentLoaded", function () {
