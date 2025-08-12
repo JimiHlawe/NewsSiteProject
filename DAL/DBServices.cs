@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data;
 using NewsSite1.Models.DTOs;
 using NewsSite1.Models.DTOs.Requests;
+using System.ComponentModel.Design;
 
 
 namespace NewsSite1.DAL
@@ -17,57 +18,60 @@ namespace NewsSite1.DAL
         // ============================================
         // ========== BASE CONNECTION ================
         // ============================================
-
-        // ===== BASE CONNECTION (No DI, Lazy static) =====
         public DBServices() { }
 
+        // ===== BASE CONNECTION (No DI, Lazy static) =====
         private static readonly Lazy<string> _connStr = new(() =>
         {
+            // Get the base directory where the application is running
             var basePath = AppContext.BaseDirectory;
+
+            // Get the current environment (e.g., Development, Production)
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
+            // Build configuration from appsettings.json and environment-specific file
             var config = new ConfigurationBuilder()
                 .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables()
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true) // Main settings file
+                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true) // Environment-specific settings
+                .AddEnvironmentVariables() // Include environment variables
                 .Build();
 
-            var cs = config.GetConnectionString("myProjDB")
-                     ?? Environment.GetEnvironmentVariable("MYPROJ_CONNSTR");
+            // Retrieve the connection string by name
+            var cs = config.GetConnectionString("myProjDB");
 
+            // Throw an error if the connection string is missing
             if (string.IsNullOrWhiteSpace(cs))
                 throw new InvalidOperationException(
-                    $"Missing connection string. Looked for ConnectionStrings:myProjDB in appsettings(.{env}).json and env MYPROJ_CONNSTR");
+                    $"Missing connection string. Looked for ConnectionStrings:myProjDB in appsettings(.{env}).json");
 
-            return cs;
+            return cs; // Return the connection string
         });
 
+        // Opens and returns a SQL connection
         public SqlConnection connect()
         {
             try
             {
-                var con = new SqlConnection(_connStr.Value);
-                con.Open();
-                return con;
+                var con = new SqlConnection(_connStr.Value); // Use the lazy-loaded connection string
+                con.Open(); // Open the connection
+                return con; // Return the open connection
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("SQL open failed: " + ex);
-                throw new InvalidOperationException("Failed to open SQL connection", ex);
+                Console.Error.WriteLine("SQL open failed: " + ex); // Log the error
+                throw new InvalidOperationException("Failed to open SQL connection", ex); // Rethrow with context
             }
         }
 
-
-
-
+        // Executes a stored procedure without parameters
         public void ExecuteStoredProcedure(string spName)
         {
-            using (SqlConnection con = connect())
+            using (SqlConnection con = connect()) // Open connection
             {
-                SqlCommand cmd = new SqlCommand(spName, con);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.ExecuteNonQuery();
+                SqlCommand cmd = new SqlCommand(spName, con); // Create SQL command
+                cmd.CommandType = CommandType.StoredProcedure; // Set command type
+                cmd.ExecuteNonQuery(); // Execute without returning rows
             }
         }
 
@@ -1591,6 +1595,52 @@ namespace NewsSite1.DAL
 
                 return (int)cmd.ExecuteScalar();
             }
+        }
+
+        public int DeleteArticleAndReports(int articleId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_DeleteArticleAndReports", con) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@ArticleId", articleId);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        public int DeleteCommentAndReports(int commentId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_DeleteCommentAndReports", con) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@CommentId", commentId);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        public int DeletePublicCommentAndReports(int publicCommentId)
+        {
+            using (SqlConnection con = connect())
+            {
+                SqlCommand cmd = new SqlCommand("NewsSP_DeletePublicCommentAndReports", con) { CommandType = CommandType.StoredProcedure };
+                cmd.Parameters.AddWithValue("@PublicCommentId", publicCommentId);
+                return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        public bool CommentExists(int id)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.News_Comments WHERE id=@id) THEN 1 ELSE 0 END", con);
+            cmd.Parameters.AddWithValue("@id", id);
+            return (int)cmd.ExecuteScalar() == 1;
+        }
+
+        public bool PublicCommentExists(int id)
+        {
+            using var con = connect();
+            using var cmd = new SqlCommand("SELECT CASE WHEN EXISTS (SELECT 1 FROM dbo.News_PublicComments WHERE id=@id) THEN 1 ELSE 0 END", con);
+            cmd.Parameters.AddWithValue("@id", id);
+            return (int)cmd.ExecuteScalar() == 1;
         }
 
         // ============================================

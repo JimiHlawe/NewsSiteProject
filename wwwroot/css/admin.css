@@ -789,3 +789,46 @@ body {
         font-size: 0.75rem !important;
     }
 }
+
+/* 1) Site Statistics – גובה יציב + אין גדילה אינסופית */
+/* --- FIX: Site Statistics must not clip the chart --- */
+.admin-section:has(#statsContainer) {
+    height: auto !important; /* שיגדל לפי התוכן */
+    min-height: 620px;
+    max-height: none !important; /* לא להגביל למקסימום */
+    overflow: visible !important; /* לא לחתוך תוכן שיוצא */
+    padding-bottom: 2.5rem !important; /* קצת מרווח מתחת לגרף */
+}
+#dailyChartContainer {
+    margin-top: 1rem;
+}
+
+/* כרטיס הגרף עצמו */
+#dailyChartContainer .card {
+    min-height: 380px;
+    max-height: 420px; /* תקרה לגרף */
+    padding: 20px;
+}
+
+#dailyActivityChart {
+    width: 100% !important;
+    height: 320px !important;
+    display: block;
+}
+
+/* 2) Users Management – ההורה קבוע, הטבלה עושה סקרול */
+.admin-section:has(.admin-table) {
+    height: clamp(650px, 70vh, 800px) !important; /* גובה נעים, עם תקרה */
+    overflow: hidden; /* לא לגדול מעבר */
+    padding: 2.5rem !important;
+    display: flex; /* לוודא שהילד יכול לתפוס מקום */
+    flex-direction: column;
+}
+
+    /* תן לטבלה "לתפוס" את הגובה הפנוי בתוך הכרטיס ולעשות סקרול */
+    .admin-section:has(.admin-table) .table-container {
+        flex: 1 1 auto; /* ממלאת את המקום הפנוי */
+        min-height: 0; /* חשוב כדי לא לשבור flex */
+        height: auto; /* נטרל גבהים קודמים */
+        overflow-y: auto; /* הסקרול על הטבלה, לא על הכרטיס */
+    }

@@ -275,5 +275,42 @@ namespace NewsSite1.Controllers
                 return StatusCode(500, "Error fixing missing images: " + ex.Message);
             }
         }
+
+
+        [HttpPost("DeleteReportedTarget")]
+        public IActionResult DeleteReportedTarget([FromBody] DeleteReportedTargetRequest req)
+        {
+            if (req == null || req.TargetId <= 0) return BadRequest("Invalid request");
+            try
+            {
+                int ok = 0;
+
+                if (string.Equals(req.TargetKind, "Article", StringComparison.OrdinalIgnoreCase))
+                {
+                    ok = db.DeleteArticleAndReports(req.TargetId);
+                }
+                else
+                {
+                    // אין targetKind או שזה Comment – ננסה לזהות:
+                    if (db.CommentExists(req.TargetId))
+                        ok = db.DeleteCommentAndReports(req.TargetId);
+                    else if (db.PublicCommentExists(req.TargetId))
+                        ok = db.DeletePublicCommentAndReports(req.TargetId);
+                    else
+                        ok = 0;
+                }
+
+                if (ok == 0) return NotFound();
+                return Ok(new { deleted = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
     }
+
+
+
 }
