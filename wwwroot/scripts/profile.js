@@ -356,9 +356,10 @@ function loadBlockedUsers() {
                 const div = document.createElement("div");
                 div.className = "blocked-user-item";
                 div.innerHTML = `
-                    <strong>${u.name}</strong>
-                    <button class="btn btn-danger" onclick="unblockUser(${u.id})">Unblock</button>
-                `;
+                                <strong>${u.name}</strong>
+                                <button class="btn btn-danger" onclick="unblockUser(${u.id}, event)">Unblock</button>
+                            `;
+
                 container.appendChild(div);
             });
         })
@@ -369,14 +370,18 @@ function loadBlockedUsers() {
 }
 
 // ✅ Sends a request to unblock a user
-function unblockUser(blockedUserId) {
+// ✅ Sends a request to unblock a user
+function unblockUser(blockedUserId, ev) {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
+    if (!user?.id) {
+        alert("Please login first.");
+        return;
+    }
     if (!confirm("Are you sure you want to unblock this user?")) return;
-    console.log("userId:", user.id);
-    console.log("enable:", isEnabled);
-    console.log("Sending to:", `${apiBase}/ToggleNotifications`);
-    const userItem = event.target.closest('.blocked-user-item');
-    userItem.style.opacity = '0.5';
+
+    // תופסים את ה־DOM של הפריט באופן בטוח: קודם ev, ואז ניסיון fallback (כרום)
+    const userItem = (ev && ev.target ? ev.target : (window.event && window.event.target))?.closest('.blocked-user-item');
+    if (userItem) userItem.style.opacity = '0.5';
 
     fetch(`${API_BASE}/Users/UnblockUser`, {
         method: "POST",
@@ -385,24 +390,18 @@ function unblockUser(blockedUserId) {
             blockerUserId: user.id,
             blockedUserId: blockedUserId
         })
-
     })
-
-
-        .then(async res => {
-            const data = await res.json();
-            if (res.ok) {
-                showNotification(data.message || "User unblocked", "success");
-                loadBlockedUsers(); // ריענון הרשימה
-            } else {
-                throw new Error(data.message || "Unblock failed");
-            }
+        .then(res => res.ok ? res.json() : res.text().then(t => { throw new Error(t || "Unblock failed"); }))
+        .then(data => {
+            showNotification((data && data.message) ? data.message : "User unblocked", "success");
+            loadBlockedUsers(); // ריענון הרשימה
         })
         .catch(err => {
-            userItem.style.opacity = '1';
-            showNotification(err.message, "error");
+            if (userItem) userItem.style.opacity = '1';
+            showNotification(err.message || "Failed to unblock user", "error");
         });
 }
+
 
 
 
