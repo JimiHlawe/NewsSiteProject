@@ -1,4 +1,12 @@
-﻿// ✅ On page load – initialize admin featuress
+﻿// ======================================================
+// Admin Page Script – simple, clean, student-friendly
+// Shows users, reports, site stats, and a small chart
+// ======================================================
+
+// ✅ Keep a reference to the chart so we can update/destroy it
+let _dailyChart = null;
+
+// ✅ On page load – initialize admin features
 document.addEventListener("DOMContentLoaded", () => {
     // ✅ Check if user is logged in
     const rawUser = sessionStorage.getItem("loggedUser");
@@ -9,13 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // ✅ Load admin data
     loadUsers();
-    loadAllStats();
+    loadAllStats();      // this will also render the chart
     loadReports();
     setupImportExternal();
     setupTagging();
     setupFixMissingImages();
 
-    // ✅ Add fade-in animations
+    // ✅ Add fade-in animations (nice touch)
     setTimeout(() => {
         document.querySelectorAll('.fade-in').forEach((el, index) => {
             setTimeout(() => {
@@ -26,13 +34,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
 });
 
-
-// ✅ Load and display all users in admin table
+// ------------------------------------------------------
+// Users table
+// ------------------------------------------------------
 function loadUsers() {
     fetch("/api/Users/AllUsers")
         .then(res => res.json())
         .then(users => {
             const tbody = document.querySelector("#usersTable tbody");
+            if (!tbody) return;
             tbody.innerHTML = "";
             users.forEach(u => {
                 const activeStatus = u.active
@@ -70,7 +80,9 @@ function loadUsers() {
         })
         .catch(() => {
             const tbody = document.querySelector("#usersTable tbody");
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Failed to load users</td></tr>';
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Failed to load users</td></tr>';
+            }
         });
 }
 
@@ -83,26 +95,65 @@ function setStatus(userId, isActive) {
     }).then(() => loadUsers());
 }
 
-// ✅ Load admin statistics: users, articles, likes, etc.
+// ------------------------------------------------------
+// Stats + Daily Activity Chart
+// ------------------------------------------------------
 function loadAllStats() {
     Promise.all([
         fetch("/api/Admin/GetStatistics").then(res => res.json()),
         fetch("/api/Admin/LikesStats").then(res => res.json())
     ])
-        .then(([stats, likes]) => {
+        .then(async ([stats, likes]) => {
             const container = document.getElementById("statsContainer");
             if (!container) return;
 
+            // ✅ Render the stat cards
             container.innerHTML = `
-            <div class="stat-card"><span class="stat-value">${stats.totalUsers || 0}</span><span class="stat-label"> Total Users</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.totalArticles || 0}</span><span class="stat-label"> Total Articles</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.totalSaved || 0}</span><span class="stat-label"> Saved Articles</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.todayLogins || 0}</span><span class="stat-label"> Today's Logins</span></div>
-            <div class="stat-card"><span class="stat-value">${stats.todayFetches || 0}</span><span class="stat-label"> Today's Fetches</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.articleLikes || 0}</span><span class="stat-label"> Article Likes</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.articleLikesToday || 0}</span><span class="stat-label"> Today's Article Likes</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.threadLikes || 0}</span><span class="stat-label"> Thread Likes</span></div>
-            <div class="stat-card"><span class="stat-value">${likes.threadLikesToday || 0}</span><span class="stat-label"> Today's Thread Likes</span></div>`;
+                <div class="stat-card"><span class="stat-value">${stats.totalUsers || 0}</span><span class="stat-label"> Total Users</span></div>
+                <div class="stat-card"><span class="stat-value">${stats.totalArticles || 0}</span><span class="stat-label"> Total Articles</span></div>
+                <div class="stat-card"><span class="stat-value">${stats.totalSaved || 0}</span><span class="stat-label"> Saved Articles</span></div>
+                <div class="stat-card"><span class="stat-value">${stats.todayLogins || 0}</span><span class="stat-label"> Today's Logins</span></div>
+                <div class="stat-card"><span class="stat-value">${likes.articleLikes || 0}</span><span class="stat-label"> Article Likes</span></div>
+                <div class="stat-card"><span class="stat-value">${likes.threadLikes || 0}</span><span class="stat-label"> Thread Likes</span></div>
+                <div class="stat-card"><span class="stat-value">${stats.todayFetches || 0}</span><span class="stat-label"> Today's Fetches</span></div>
+                <div class="stat-card"><span class="stat-value">${likes.articleLikesToday || 0}</span><span class="stat-label"> Today's Article Likes</span></div>
+                <div class="stat-card"><span class="stat-value">${likes.threadLikesToday || 0}</span><span class="stat-label"> Today's Thread Likes</span></div>
+            `;
+
+            // ✅ Ensure we have a chart container right after the stats
+            const chartHostId = "dailyChartContainer";
+            let chartHost = document.getElementById(chartHostId);
+            if (!chartHost) {
+                chartHost = document.createElement("div");
+                chartHost.id = chartHostId;
+                chartHost.style.marginTop = "16px";
+                chartHost.innerHTML = `
+                      <div class="card">
+                        <h3 style="margin:0 0 12px 0;">Today Overview</h3>
+                        <canvas id="dailyActivityChart"></canvas>
+                      </div>`;
+
+                // Insert **after** statsContainer
+                container.parentNode.insertBefore(chartHost, container.nextSibling);
+            } else {
+                // If exists, make sure canvas exists
+                if (!chartHost.querySelector("#dailyActivityChart")) {
+                    chartHost.innerHTML = `
+                        <div class="card" style="padding:16px;">
+                            <h3 style="margin:0 0 12px 0;">Today Overview</h3>
+                            <canvas id="dailyActivityChart" height="120"></canvas>
+                        </div>`;
+                }
+            }
+
+            // ✅ Prepare data for the requested chart (exactly these three)
+            const todayThreadLikes = Number(likes.threadLikesToday || 0);
+            const todayFetches = Number(stats.todayFetches || 0);
+            const todayLogins = Number(stats.todayLogins || 0);
+
+            // ✅ Make sure Chart.js is available, then render the chart
+            await ensureChartJsLoaded();
+            renderDailyActivityChart(todayThreadLikes, todayFetches, todayLogins);
         })
         .catch(() => {
             const container = document.getElementById("statsContainer");
@@ -116,7 +167,79 @@ function loadAllStats() {
         });
 }
 
-// ✅ Toggle user's sharing permission
+// ✅ Loads Chart.js from CDN only if it isn't already on the page
+function ensureChartJsLoaded() {
+    return new Promise((resolve) => {
+        // Already loaded
+        if (window.Chart) {
+            resolve();
+            return;
+        }
+        // Look for existing script tag
+        if (document.querySelector('script[data-chartjs-cdn]')) {
+            // Wait a little and resolve (script will finish loading)
+            const checkReady = () => {
+                if (window.Chart) resolve();
+                else setTimeout(checkReady, 100);
+            };
+            checkReady();
+            return;
+        }
+        // Inject script tag
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/chart.js";
+        s.async = true;
+        s.setAttribute("data-chartjs-cdn", "1");
+        s.onload = () => resolve();
+        document.head.appendChild(s);
+    });
+}
+
+// ✅ Draw/Update the "Today Overview" bar chart
+function renderDailyActivityChart(threadLikes, fetches, logins) {
+    const canvas = document.getElementById("dailyActivityChart");
+    if (!canvas) return;
+
+    // If a chart already exists on this canvas, destroy it first
+    if (_dailyChart) {
+        _dailyChart.destroy();
+        _dailyChart = null;
+    }
+
+    // Small, readable labels; values are integers
+    const data = {
+        labels: ["Today's Thread Likes", "Today's Fetches", "Today's Logins"],
+        datasets: [{
+            label: "Count",
+            data: [threadLikes, fetches, logins],
+            // Let Chart.js pick default colors; keep it simple
+        }]
+    };
+
+    // Simple bar chart with basic options
+    _dailyChart = new Chart(canvas.getContext("2d"), {
+        type: "bar",
+        data,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: true }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 } // show integers
+                }
+            }
+        }
+    });
+}
+
+// ------------------------------------------------------
+// Sharing / Commenting toggles
+// ------------------------------------------------------
 function toggleSharing(userId, canShare) {
     fetch("/api/Admin/SetSharingStatus", {
         method: "POST",
@@ -125,7 +248,6 @@ function toggleSharing(userId, canShare) {
     }).then(() => loadUsers());
 }
 
-// ✅ Toggle user's commenting permission
 function toggleCommenting(userId, canComment) {
     fetch("/api/Admin/SetCommentingStatus", {
         method: "POST",
@@ -134,7 +256,9 @@ function toggleCommenting(userId, canComment) {
     }).then(() => loadUsers());
 }
 
-// ✅ Load all user-generated reports for admin
+// ------------------------------------------------------
+// Reports table
+// ------------------------------------------------------
 function loadReports() {
     fetch("/api/Admin/AllReports")
         .then(res => {
@@ -145,7 +269,7 @@ function loadReports() {
             const container = document.getElementById("reportsContainer");
             if (!container) return;
 
-            if (reports.length === 0) {
+            if (!Array.isArray(reports) || reports.length === 0) {
                 container.innerHTML = `
                     <div class="no-data-state">
                         <span class="icon">🎉</span>
@@ -166,30 +290,42 @@ function loadReports() {
                                 <th>Reason</th>
                                 <th>Content</th>
                                 <th>Date</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>`;
 
             reports.forEach(r => {
                 const date = new Date(r.reportedAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
+
+                // If Article, we pass kind explicitly; otherwise empty so server infers comment/public-comment
+                const inferredKind = (r.reportType === 'Article') ? 'Article' : '';
+
+                const actionsCell = `
+                    <button class="action-btn danger"
+                            onclick="deleteReportedTarget('${inferredKind}', ${r.referenceId}, this)">
+                        DELETE ${r.reportType.toUpperCase()}
+                    </button>`;
 
                 html += `
                     <tr>
-                      <td><strong>${r.reporterName}</strong></td>
-                      <td>${r.targetName || "–"}</td>
-                      <td><span class="report-type-badge">${r.reportType}</span></td>
-                      <td>${r.reason}</td>
-                      <td class="report-content">${r.content}</td>
-                      <td class="report-date">${date}</td>
+                        <td><strong>${r.reporterName ?? r.reporterId}</strong></td>
+                        <td>${r.targetName || "–"}</td>
+                        <td><span class="report-type-badge">${r.reportType}</span></td>
+                        <td>${r.reason}</td>
+                        <td class="report-content">${r.content ?? ""}</td>
+                        <td class="report-date">${date}</td>
+                        <td class="report-actions">${actionsCell}</td>
                     </tr>`;
             });
 
-            html += "</tbody></table></div>";
+            html += `
+                        </tbody>
+                    </table>
+                </div>`;
+
             container.innerHTML = html;
         })
         .catch(() => {
@@ -203,10 +339,43 @@ function loadReports() {
         });
 }
 
-// ✅ Setup import of external articles
+function deleteReportedTarget(targetKind, targetId, btnEl) {
+    if (!targetId) return;
+    if (!confirm(`Delete this ${targetKind || 'comment'}? This cannot be undone.`)) return;
+
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.dataset.old = btnEl.innerHTML;
+        btnEl.innerHTML = '⏳';
+    }
+
+    fetch("/api/Admin/DeleteReportedTarget", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetKind, targetId })
+    })
+        .then(res => { if (!res.ok) throw new Error('Delete failed'); return res.json(); })
+        .then(() => {
+            loadReports();
+            // Recompute stats after deleting an article (counts may change)
+            if (targetKind === 'Article' && typeof loadAllStats === "function") {
+                loadAllStats();
+            }
+        })
+        .catch(err => {
+            alert("Error: " + (err.message || 'Delete failed'));
+            if (btnEl) {
+                btnEl.disabled = false;
+                btnEl.innerHTML = btnEl.dataset.old || 'DELETE';
+            }
+        });
+}
+
+// ------------------------------------------------------
+// Import external articles
+// ------------------------------------------------------
 function setupImportExternal() {
     const importBtn = document.getElementById("importBtn");
-
     if (!importBtn) return;
 
     importBtn.addEventListener("click", () => {
@@ -221,6 +390,8 @@ function setupImportExternal() {
             .then(data => {
                 document.getElementById("importStatus").innerHTML =
                     `<div class='status-message success'>${data.length} new articles were imported successfully!</div>`;
+                // After import, refresh stats (could affect fetch counters)
+                loadAllStats();
             })
             .catch(err => {
                 document.getElementById("importStatus").innerHTML =
@@ -233,10 +404,11 @@ function setupImportExternal() {
     });
 }
 
-// ✅ Setup AI-based article tagging
+// ------------------------------------------------------
+// AI Tagging
+// ------------------------------------------------------
 function setupTagging() {
     const taggingBtn = document.getElementById("taggingBtn");
-
     if (!taggingBtn) return;
 
     taggingBtn.addEventListener("click", () => {
@@ -263,10 +435,11 @@ function setupTagging() {
     });
 }
 
-// ✅ Setup fix for missing article images
+// ------------------------------------------------------
+// Fix missing images
+// ------------------------------------------------------
 function setupFixMissingImages() {
     const fixBtn = document.getElementById("fixImagesBtn");
-
     if (!fixBtn) return;
 
     fixBtn.addEventListener("click", () => {
@@ -295,6 +468,10 @@ function setupFixMissingImages() {
     });
 }
 
+// ------------------------------------------------------
+// Small UX helpers
+// ------------------------------------------------------
+
 // ✅ Visual feedback for all admin action buttons
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('action-btn')) {
@@ -302,7 +479,6 @@ document.addEventListener('click', (e) => {
         const originalText = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = '⏳';
-
         setTimeout(() => {
             btn.disabled = false;
             btn.innerHTML = originalText;
@@ -310,7 +486,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// ✅ Global error listener
+// ✅ Global error listener – logs errors for debugging
 window.addEventListener('error', (e) => {
     console.error('Global error:', e.error);
 });

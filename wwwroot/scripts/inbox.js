@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 // ✅ Render shared articles in card layout
-// ✅ Render shared articles in card layout
 function renderSharedArticles(articles) {
     var container = document.getElementById("sharedContainer");
     container.innerHTML = "";

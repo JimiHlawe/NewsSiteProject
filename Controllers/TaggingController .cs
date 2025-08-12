@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System.Threading.Tasks;
 
 namespace NewsSite1.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
     public class TaggingController : ControllerBase
@@ -14,14 +16,22 @@ namespace NewsSite1.Controllers
             _config = config;
         }
 
-        // ✅ Triggers the article tagging process and sends notifications
+        /// <summary>
+        /// Triggers the article-tagging process and sends notifications.
+        /// </summary>
         [HttpPost("RunTagging")]
         public async Task<IActionResult> RunTagging()
         {
-            TaggingRunner runner = new TaggingRunner(_config);
-            await runner.RunAsync();
-            return Ok("Tagging completed and notifications sent.");
+            try
+            {
+                TaggingRunner runner = new TaggingRunner(_config);
+                await runner.RunAsync();
+                return Ok("Tagging completed and notifications sent.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Error running tagging: " + ex.Message);
+            }
         }
-
     }
 }

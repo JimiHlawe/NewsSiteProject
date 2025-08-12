@@ -427,32 +427,30 @@ function blockUser(senderName) {
 }
 
 
-// ✅ Listen to real-time thread like count from Firebase
+// Real-time like counter (Firebase)
+// Tracks which threads already have a listener to avoid duplicate subscriptions.
+const _threadLikeSubscriptions = new Set();
+
 function loadThreadLikeCount(articleId) {
+    // Find the counter element; bail if not rendered yet.
     const likeCountSpan = document.getElementById(`like-thread-count-${articleId}`);
     if (!likeCountSpan) return;
 
+    // Prevent multiple Firebase listeners for the same thread.
+    if (_threadLikeSubscriptions.has(articleId)) return;
+    _threadLikeSubscriptions.add(articleId);
+
+    // Subscribe to live like count updates for this thread.
     const ref = firebase.database().ref(`likes/article_${articleId}`);
     ref.on("value", (snapshot) => {
+        // Update UI with the latest count (fallback to 0 if null/undefined).
         const count = snapshot.val();
-        if (count !== null) {
-            likeCountSpan.textContent = `${count}`;
-        }
+        likeCountSpan.textContent = (count ?? 0).toString();
     });
-
-    // ✅ Check if user liked the thread (as before)
-    const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    if (user?.id) {
-        fetch(`/api/Likes/Check/${articleId}/${user.id}`)
-            .then(res => res.json())
-            .then(hasLiked => {
-                const likeBtn = document.getElementById(`like-thread-btn-${articleId}`);
-                if (likeBtn) {
-                    likeBtn.classList.toggle('liked', hasLiked);
-                }
-            });
-    }
 }
+
+
+
 
 
 // ✅ Toggle like/unlike for a thread
@@ -465,21 +463,15 @@ function toggleThreadLike(article) {
 
     const likeBtn = document.getElementById(`like-thread-btn-${article.publicArticleId}`);
 
-    const payload = {
-        userId: user.id,
-        publicArticleId: article.publicArticleId
-    };
-
     fetch("/api/Likes/ToggleThreadLike", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ userId: user.id, publicArticleId: article.publicArticleId })
     })
         .then(res => {
             if (!res.ok) throw new Error("Failed to toggle like");
-            if (likeBtn) {
-                likeBtn.classList.toggle('liked');
-            }
+            if (likeBtn) likeBtn.classList.toggle('liked');
+            // הקריאה הזו לא תפתח מאזין כפול בזכות ה-Set בפונקציה שלמעלה
             loadThreadLikeCount(article.publicArticleId);
         })
         .catch(() => {

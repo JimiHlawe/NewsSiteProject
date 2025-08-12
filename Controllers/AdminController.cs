@@ -3,11 +3,12 @@ using NewsSite1.DAL;
 using NewsSite1.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using NewsSite1.Models.DTOs;
 using NewsSite1.Models.DTOs.Requests;
 using NewsSite1.Services;
 using NewsSite.Services;
-
 
 namespace NewsSite1.Controllers
 {
@@ -26,9 +27,13 @@ namespace NewsSite1.Controllers
             this.imageGen = imageGen;
         }
 
+        // ============================
+        // == Stats & Reports (GET)  ==
+        // ============================
 
-
-        // ✅ Returns like statistics for the site
+        /// <summary>
+        /// Returns like statistics for the site.
+        /// </summary>
         [HttpGet("LikesStats")]
         public IActionResult GetLikesStats()
         {
@@ -37,12 +42,15 @@ namespace NewsSite1.Controllers
                 var stats = db.GetLikesStats();
                 return Ok(stats);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Failed to load like statistics");
             }
         }
 
+        /// <summary>
+        /// Returns the number of article reports created today.
+        /// </summary>
         [HttpGet("Reports/TodayCount")]
         public IActionResult GetTodayReportsCount()
         {
@@ -51,13 +59,15 @@ namespace NewsSite1.Controllers
                 int count = db.GetTodayArticleReportsCount();
                 return Ok(count);
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Failed to get report count");
             }
         }
 
-        // ✅ Returns all reports (articles and comments)
+        /// <summary>
+        /// Returns all reports (articles and comments).
+        /// </summary>
         [HttpGet("AllReports")]
         public IActionResult GetAllReports()
         {
@@ -66,44 +76,91 @@ namespace NewsSite1.Controllers
                 var reports = db.GetAllReports();
                 return Ok(reports ?? new List<ReportEntryDTO>());
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Failed to load all reports");
             }
         }
 
-        // ✅ Sets active status of a user
-        [HttpPost("SetActiveStatus")]
-        public IActionResult SetActiveStatus([FromBody] SetStatusRequest req)
-        {
-            db.SetUserActiveStatus(req.UserId, req.IsActive);
-            return Ok("User status updated");
-        }
-
-        // ✅ Sets whether user can share articles
-        [HttpPost("SetSharingStatus")]
-        public IActionResult SetSharingStatus([FromBody] SharingStatusRequest req)
-        {
-            db.SetUserSharingStatus(req.UserId, req.CanShare);
-            return Ok("Sharing status updated");
-        }
-
-        // ✅ Sets whether user can comment on articles
-        [HttpPost("SetCommentingStatus")]
-        public IActionResult SetCommentingStatus([FromBody] SharingStatusRequest req)
-        {
-            db.SetUserCommentingStatus(req.UserId, req.CanComment);
-            return Ok("Commenting status updated");
-        }
-
-        // ✅ Gets overall site statistics
+        /// <summary>
+        /// Returns overall site statistics.
+        /// </summary>
         [HttpGet("GetStatistics")]
         public IActionResult GetStatistics()
         {
-            return Ok(db.GetSiteStatistics());
+            try
+            {
+                var stats = db.GetSiteStatistics();
+                return Ok(stats);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Failed to load site statistics");
+            }
         }
 
-        // ✅ Adds a new user article
+        // ======================================
+        // == User Moderation Flags (POST)     ==
+        // ======================================
+
+        /// <summary>
+        /// Sets a user's active status (enable/disable login).
+        /// </summary>
+        [HttpPost("SetActiveStatus")]
+        public IActionResult SetActiveStatus([FromBody] SetStatusRequest req)
+        {
+            try
+            {
+                db.SetUserActiveStatus(req.UserId, req.IsActive);
+                return Ok("User status updated");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Failed to update user active status");
+            }
+        }
+
+        /// <summary>
+        /// Sets whether a user can share articles.
+        /// </summary>
+        [HttpPost("SetSharingStatus")]
+        public IActionResult SetSharingStatus([FromBody] SharingStatusRequest req)
+        {
+            try
+            {
+                db.SetUserSharingStatus(req.UserId, req.CanShare);
+                return Ok("Sharing status updated");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Failed to update sharing status");
+            }
+        }
+
+        /// <summary>
+        /// Sets whether a user can comment on articles.
+        /// </summary>
+        [HttpPost("SetCommentingStatus")]
+        public IActionResult SetCommentingStatus([FromBody] SharingStatusRequest req)
+        {
+            try
+            {
+                db.SetUserCommentingStatus(req.UserId, req.CanComment);
+                return Ok("Commenting status updated");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Failed to update commenting status");
+            }
+        }
+
+        // ======================================
+        // == Article Admin (Add/Import/Fix)   ==
+        // ======================================
+
+        /// <summary>
+        /// Adds a new user-submitted article.
+        /// </summary>
         [HttpPost("AddUserArticle")]
         public IActionResult AddUserArticle([FromBody] Article article)
         {
@@ -131,18 +188,21 @@ namespace NewsSite1.Controllers
                 article.Id = newId;
                 return Ok(article);
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Error adding user article");
             }
         }
 
-        [HttpPost("GetFromNewsAPI")] 
+        /// <summary>
+        /// Imports external articles from NewsAPI and saves new ones.
+        /// </summary>
+        [HttpPost("GetFromNewsAPI")]
         public async Task<IActionResult> ImportExternal()
         {
             try
             {
-                var articles = await newsApiService.GetNewsAPISAsync(); // שליפת כתבות מה-API
+                var articles = await newsApiService.GetNewsAPISAsync();
                 var importedArticles = new List<Article>();
 
                 foreach (var article in articles)
@@ -163,47 +223,94 @@ namespace NewsSite1.Controllers
             }
         }
 
+        /// <summary>
+        /// Generates images for articles missing an image (skips default/policy-blocked results).
+        /// </summary>
         [HttpPost("FixMissingImages")]
         public async Task<IActionResult> FixMissingImages()
         {
-            var allArticles = db.GetAllArticles(); // שלוף את כל הכתבות
-            int success = 0, failed = 0, skippedDueToContentPolicy = 0;
-
-            foreach (var article in allArticles.Where(a => string.IsNullOrWhiteSpace(a.ImageUrl)))
+            try
             {
-                try
-                {
-                    var imageUrl = await imageGen.GenerateImageUrlFromPrompt(article.Title, article.Content);
+                var allArticles = db.GetAllArticles();
+                int success = 0, failed = 0, skippedDueToContentPolicy = 0;
 
-                    if (imageUrl == null)
+                foreach (var article in allArticles.Where(a => string.IsNullOrWhiteSpace(a.ImageUrl)))
+                {
+                    try
+                    {
+                        var imageUrl = await imageGen.GenerateImageUrlFromPrompt(article.Title, article.Content);
+
+                        if (imageUrl == null)
+                        {
+                            failed++;
+                            continue;
+                        }
+
+                        // Skip default placeholder (treated as policy-violation/placeholder)
+                        if (imageUrl.Contains("News1.jpg"))
+                        {
+                            skippedDueToContentPolicy++;
+                            continue;
+                        }
+
+                        article.ImageUrl = imageUrl;
+                        db.UpdateArticleImageUrl(article.Id, imageUrl);
+                        success++;
+                    }
+                    catch
                     {
                         failed++;
-                        continue;
                     }
-
-                    if (imageUrl.Contains("News1.jpg")) // מזהה את ברירת המחדל -> content policy violation
-                    {
-                        skippedDueToContentPolicy++;
-                        continue;
-                    }
-
-                    article.ImageUrl = imageUrl;
-                    db.UpdateArticleImageUrl(article.Id, imageUrl); // מימוש בצד DB
-                    success++;
                 }
-                catch
+
+                return Ok(new
                 {
-                    failed++;
-                }
+                    success,
+                    skippedDueToContentPolicy,
+                    failed
+                });
             }
-
-            return Ok(new
+            catch (Exception ex)
             {
-                success,
-                skippedDueToContentPolicy,
-                failed
-            });
+                return StatusCode(500, "Error fixing missing images: " + ex.Message);
+            }
+        }
+
+
+        [HttpPost("DeleteReportedTarget")]
+        public IActionResult DeleteReportedTarget([FromBody] DeleteReportedTargetRequest req)
+        {
+            if (req == null || req.TargetId <= 0) return BadRequest("Invalid request");
+            try
+            {
+                int ok = 0;
+
+                if (string.Equals(req.TargetKind, "Article", StringComparison.OrdinalIgnoreCase))
+                {
+                    ok = db.DeleteArticleAndReports(req.TargetId);
+                }
+                else
+                {
+                    // אין targetKind או שזה Comment – ננסה לזהות:
+                    if (db.CommentExists(req.TargetId))
+                        ok = db.DeleteCommentAndReports(req.TargetId);
+                    else if (db.PublicCommentExists(req.TargetId))
+                        ok = db.DeletePublicCommentAndReports(req.TargetId);
+                    else
+                        ok = 0;
+                }
+
+                if (ok == 0) return NotFound();
+                return Ok(new { deleted = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
     }
+
+
+
 }

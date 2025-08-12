@@ -17,7 +17,14 @@ namespace NewsSite1.Controllers
             _db = db;
         }
 
-        [HttpPost("AddToArticle")] 
+        // ===============================
+        // == Article Comments (regular) ==
+        // ===============================
+
+        /// <summary>
+        /// Adds a comment to a regular article (validates user can comment).
+        /// </summary>
+        [HttpPost("AddToArticle")]
         public IActionResult AddComment([FromBody] CommentRequest comment)
         {
             if (comment == null || comment.ArticleId <= 0 || comment.UserId <= 0 || string.IsNullOrWhiteSpace(comment.Comment))
@@ -31,13 +38,15 @@ namespace NewsSite1.Controllers
                 _db.AddCommentToArticle(comment.ArticleId, comment.UserId, comment.Comment);
                 return Ok("Comment added successfully");
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Error adding comment");
             }
         }
 
-        // ✅ Gets comments for an article
+        /// <summary>
+        /// Gets all comments for a specific regular article.
+        /// </summary>
         [HttpGet("GetForArticle/{articleId}")]
         public IActionResult GetComments(int articleId)
         {
@@ -46,12 +55,19 @@ namespace NewsSite1.Controllers
                 var comments = _db.GetCommentsForArticle(articleId);
                 return Ok(comments);
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, "Error loading comments");
             }
         }
 
+        // ============================
+        // == Public Threads Comments ==
+        // ============================
+
+        /// <summary>
+        /// Adds a comment to a public thread article.
+        /// </summary>
         [HttpPost("AddToThreads")]
         public IActionResult AddCommentToThreads([FromBody] PublicComment comment)
         {
@@ -63,12 +79,15 @@ namespace NewsSite1.Controllers
                 _db.AddCommentToThreads(comment.PublicArticleId, comment.UserId, comment.Comment);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Error adding comment to thread");
             }
         }
 
+        /// <summary>
+        /// Loads all comments for a public thread article.
+        /// </summary>
         [HttpGet("GetForThreads/{articleId}")]
         public IActionResult LoadThreadsComments(int articleId)
         {
@@ -77,60 +96,86 @@ namespace NewsSite1.Controllers
                 var comments = _db.LoadThreadsComments(articleId);
                 return Ok(comments);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Error retrieving thread comments");
             }
         }
 
-        // ✅ Toggles like on a regular comment
+        // ======================
+        // == Comment Like/Unlike ==
+        // ======================
+
+        /// <summary>
+        /// Toggles like on a regular article comment.
+        /// </summary>
         [HttpPost("ToggleLikeForArticles")]
         public IActionResult ToggleCommentLike([FromBody] CommentLikeRequest req)
         {
-            _db.ToggleCommentLike(req.UserId, req.CommentId);
-            return Ok();
+            try
+            {
+                _db.ToggleCommentLike(req.UserId, req.CommentId);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error toggling like for article comment");
+            }
         }
 
+        /// <summary>
+        /// Toggles like on a public thread comment.
+        /// </summary>
         [HttpPost("ToggleLikeForThreads")]
         public IActionResult TogglePublicCommentLike([FromBody] PublicCommentLikeRequest req)
         {
-            _db.TogglePublicCommentLike(req.UserId, req.PublicCommentId);
-            return Ok();
+            try
+            {
+                _db.TogglePublicCommentLike(req.UserId, req.PublicCommentId);
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error toggling like for thread comment");
+            }
         }
 
-        // ✅ Gets like count for a regular comment
+        // =================
+        // == Like Counts ==
+        // =================
+
+        /// <summary>
+        /// Gets like count for a regular article comment.
+        /// </summary>
         [HttpGet("ArticleCommentLikeCount/{commentId}")]
         public IActionResult GetArticleCommentLikeCount(int commentId)
         {
-            int count = _db.GetArticleCommentLikeCount(commentId);
-            return Ok(count);
+            try
+            {
+                int count = _db.GetArticleCommentLikeCount(commentId);
+                return Ok(count);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error getting like count for article comment");
+            }
         }
 
-        // ✅ Get total likes for a public comment
+        /// <summary>
+        /// Gets total likes for a public thread comment.
+        /// </summary>
         [HttpGet("ThreadsCommentLikeCount/{publicCommentId}")]
         public IActionResult GetPublicCommentLikeCount(int publicCommentId)
         {
-            int count = _db.GetPublicCommentLikeCount(publicCommentId);
-            return Ok(count);
+            try
+            {
+                int count = _db.GetPublicCommentLikeCount(publicCommentId);
+                return Ok(count);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Error getting like count for thread comment");
+            }
         }
-
-
-
-
-
-
-
-
-
-
-
-        // ✅ Endpoint for triggering test exception
-        [HttpGet("fail")]
-        public IActionResult Fail()
-        {
-            throw new Exception("Simulated failure from CommentsController");
-        }
-
     }
-
 }
