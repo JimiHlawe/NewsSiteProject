@@ -27,23 +27,76 @@ function getLoggedUser() {
     return raw ? JSON.parse(raw) : null;
 }
 
-// ✅ Load all public thread articles from server
-function loadThreadsArticles() {
+// ✅ Load all public thread articles from server (filters out blocked users)
+async function loadThreadsArticles() {
     const user = JSON.parse(sessionStorage.getItem("loggedUser"));
-    fetch(`${API_BASE}/Articles/Threads/${user.id}`)
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to fetch threads");
-            return res.json();
-        })
-        .then(data => {
-            sortThreadsByNewest(data);
-            allThreads = data;
-            currentThreadsPage = 1;
-            renderVisibleThreads();
-        })
-        .catch(() => {
-            showError("threadsContainer", "Failed to load threads");
-        });
+    const container = document.getElementById("threadsContainer");
+    if (!user || !user.id) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    // מצב טעינה קצר
+    if (container) container.innerHTML = "<div class='loading-placeholder'>Loading threads…</div>";
+
+    try {
+        // מביאים במקביל: threads + רשימת חסומים
+        const [threadsRes, blockedRes] = await Promise.all([
+            fetch(`${API_BASE}/Articles/Threads/${user.id}`),
+            fetch(`${API_BASE}/Users/BlockedByUser/${user.id}`)
+        ]);
+
+        if (!threadsRes.ok) throw new Error("Failed to fetch threads");
+        if (!blockedRes.ok) throw new Error("Failed to fetch blocked users");
+
+        const [threads, blockedUsers] = await Promise.all([
+            threadsRes.json(),
+            blockedRes.json()
+        ]);
+
+        // סינון לפי חסומים
+        const filtered = filterOutBlockedThreads(threads, blockedUsers);
+
+        sortThreadsByNewest(filtered);
+        allThreads = filtered;
+        currentThreadsPage = 1;
+        renderVisibleThreads();
+    } catch (e) {
+        showError("threadsContainer", "Failed to load threads");
+    }
+}
+
+// ✅ Helper: remove any thread whose sender is blocked
+function filterOutBlockedThreads(threads, blockedUsers) {
+    if (!Array.isArray(threads) || !Array.isArray(blockedUsers)) return threads || [];
+
+    // מכינים מפות מהירות להשוואה לפי id ולפי שם (case-insensitive)
+    const blockedIds = new Set(
+        blockedUsers
+            .map(u => u?.id)
+            .filter(x => Number.isInteger(x))
+    );
+
+    const blockedNames = new Set(
+        blockedUsers
+            .map(u => (u?.name || "").trim().toLowerCase())
+            .filter(s => s.length > 0)
+    );
+
+    // פונקציה שמנסה לזהות מזהה משתמש מה־article (תמיכה בשמות שדות שונים)
+    const getSenderId = (a) =>
+        a.senderId ?? a.senderUserId ?? a.ownerUserId ?? a.userId ?? null;
+
+    const getSenderName = (a) =>
+        (a.senderName || a.ownerName || a.authorName || "").trim().toLowerCase();
+
+    return threads.filter(a => {
+        const sid = getSenderId(a);
+        const sname = getSenderName(a);
+        const blockedById = sid != null && blockedIds.has(sid);
+        const blockedByName = sname && blockedNames.has(sname);
+        return !(blockedById || blockedByName);
+    });
 }
 
 const dateOf = t => new Date(t.createdAt || t.threadCreatedAt || t.sharedAt || t.publishedAt || 0);
