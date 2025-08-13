@@ -23,30 +23,30 @@ namespace NewsSite1.DAL
         // ===== BASE CONNECTION (No DI, Lazy static) =====
         private static readonly Lazy<string> _connStr = new(() =>
         {
-            // Get the base directory where the application is running
-            var basePath = AppContext.BaseDirectory;
-
-            // Get the current environment (e.g., Development, Production)
+            var basePath = Directory.GetCurrentDirectory();
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            // Build configuration from appsettings.json and environment-specific file
             var config = new ConfigurationBuilder()
                 .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true) // Main settings file
-                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: true) // Environment-specific settings
-                .AddEnvironmentVariables() // Include environment variables
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)            
+                .AddJsonFile("appsettings.Production.json", optional: true, reloadOnChange: false) 
+                .AddJsonFile($"appsettings.{env}.json", optional: true, reloadOnChange: false)     
+                .AddEnvironmentVariables()
                 .Build();
 
-            // Retrieve the connection string by name
-            var cs = config.GetConnectionString("myProjDB");
+            var cs =
+                config.GetConnectionString("myProjDB") ??
+                Environment.GetEnvironmentVariable("MYPROJ_CONNSTR");
 
-            // Throw an error if the connection string is missing
             if (string.IsNullOrWhiteSpace(cs))
                 throw new InvalidOperationException(
-                    $"Missing connection string. Looked for ConnectionStrings:myProjDB in appsettings(.{env}).json");
+                    $"Missing connection string 'myProjDB'. BasePath={basePath}, ENV={env}. " +
+                    $"Ensure appsettings.json is deployed next to the DLL, or set MYPROJ_CONNSTR.");
 
-            return cs; // Return the connection string
+            return cs;
         });
+
+
 
         // Opens and returns a SQL connection
         public SqlConnection connect()
