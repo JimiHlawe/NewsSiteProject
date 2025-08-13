@@ -92,7 +92,7 @@ public class TaggingRunner
 Hello {user.Name},<br/><br/>
 A new article has been published that matches your interest:<br/>
 <b>{article.Title}</b><br/><br/>
-<a href='https://your-site-url.com'>Click here to read it on our website</a>";
+<a href='https://proj.ruppin.ac.il/cgroup13/test2/tar5/html/index.html'>Click here to read it on our website</a>";
 
             try
             {
