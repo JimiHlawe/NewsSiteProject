@@ -232,7 +232,7 @@ namespace NewsSite1.Controllers
             try
             {
                 var allArticles = db.GetAllArticles();
-                int success = 0, failed = 0, skippedDueToContentPolicy = 0;
+                int success = 0, failed = 0, skippedDueToContentPolicy = 0, skippedDefault = 0;
 
                 foreach (var article in allArticles.Where(a => string.IsNullOrWhiteSpace(a.ImageUrl)))
                 {
@@ -240,14 +240,21 @@ namespace NewsSite1.Controllers
                     {
                         var imageUrl = await imageGen.GenerateImageUrlFromPrompt(article.Title, article.Content);
 
-                        if (imageUrl == null)
+                        if (string.IsNullOrWhiteSpace(imageUrl))
                         {
                             failed++;
                             continue;
                         }
 
-                        // Skip default placeholder (treated as policy-violation/placeholder)
-                        if (imageUrl.Contains("News1.jpg"))
+                        // אל תשמור אם זו התמונה הדיפולטיבית שלך
+                        if (imageUrl == ImageGenerationService.GetDefaultImageUrl())
+                        {
+                            skippedDefault++;
+                            continue;
+                        }
+
+                        // דוגמת “דיפולט ישן” שהיית משתמש
+                        if (imageUrl.Contains("News1.jpg", StringComparison.OrdinalIgnoreCase))
                         {
                             skippedDueToContentPolicy++;
                             continue;
@@ -263,18 +270,14 @@ namespace NewsSite1.Controllers
                     }
                 }
 
-                return Ok(new
-                {
-                    success,
-                    skippedDueToContentPolicy,
-                    failed
-                });
+                return Ok(new { success, skippedDefault, skippedDueToContentPolicy, failed });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "Error fixing missing images: " + ex.Message);
             }
         }
+
 
         /// Handles deletion of a reported target (article or comment). 
         /// Normalizes a PublicArticleId to its ArticleId before deletion and returns 404 if nothing was removed.
