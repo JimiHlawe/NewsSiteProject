@@ -143,7 +143,7 @@ NewsSiteProject/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/JimiHlawe/NewsSiteProject.git
+git clone <repository-url>
 cd NewsSiteProject
 ```
 
@@ -151,9 +151,12 @@ cd NewsSiteProject
    - Update the connection string in `appsettings.json` or `appsettings.Development.json`
 
 3. Add your API keys:
-   - Configure NewsAPI key in `Services/NewsApiService.cs`
-   - Configure OpenAI keys in the respective services
-   - Set up Firebase configuration in your frontend scripts
+   - **Important**: Never commit API keys to source control
+   - Store API keys in environment variables or secure configuration files
+   - Use `appsettings.Development.json` (excluded from source control) for local development
+   - For production, use Azure Key Vault, environment variables, or your hosting provider's secrets management
+   - Configure NewsAPI key, OpenAI API keys, and Firebase credentials securely
+   - Update the services to read keys from configuration instead of hardcoded values
 
 4. Restore dependencies:
 ```bash
@@ -184,7 +187,19 @@ Access Swagger UI at: `https://localhost:5001/swagger`
 ## Configuration
 
 ### CORS
-The application is configured to allow all origins, headers, and methods. Adjust CORS policy in `Program.cs` for production deployments.
+⚠️ **Security Warning**: The application is currently configured to allow all origins, headers, and methods. This configuration is insecure for production environments.
+
+**For production deployments**, you MUST:
+- Restrict CORS to specific trusted origins
+- Update the CORS policy in `Program.cs` to only allow requests from your frontend domain(s)
+- Example:
+  ```csharp
+  app.UseCors(policy =>
+      policy.WithOrigins("https://your-domain.com")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+  );
+  ```
 
 ### Static Files
 Static files are served from the `wwwroot` directory. The application is configured to serve static HTML, CSS, JavaScript, and uploaded images.
