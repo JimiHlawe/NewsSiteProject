@@ -287,15 +287,3 @@ Users can opt-in to receive email notifications for various events like new comm
 
 ### Avatar Progression
 Users earn avatar levels (Bronze → Silver → Gold → Platinum → Diamond) based on their activity and engagement on the platform.
-
-## Contributing
-
-This is a personal project. If you'd like to contribute or have suggestions, please reach out to the repository owner.
-
-## License
-
-This project is private and not currently licensed for public use.
-
-## Contact
-
-For questions or issues, please contact the repository owner through GitHub.
