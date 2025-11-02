@@ -103,32 +103,99 @@ NewsSiteProject/
 
 ## API Endpoints
 
-### Articles
-- `GET /api/articles/AllFiltered?userId={id}` - Get personalized articles
-- `GET /api/articles/GetNewsApis` - Fetch latest news from NewsAPI
-- `POST /api/articles/Create` - Create a new article
-- `PUT /api/articles/Update` - Update an article
+### Articles Controller
+**Discovery & Fetching**
+- `GET /api/articles/AllFiltered?userId={id}` - Get filtered articles for a user based on their interest tags, logs fetch once per day
+- `GET /api/articles/Sidebar?page={page}&pageSize={pageSize}` - Get paginated sidebar articles (default: page=1, pageSize=6)
+- `GET /api/articles/Threads/{userId}` - Get all public threads (publicly shared articles) visible for the user
+- `GET /api/articles/Inbox/{userId}` - Get all articles shared privately with the user (Inbox)
 
-### Users
-- `POST /api/users/Register` - Register a new user
-- `POST /api/users/Login` - User authentication
-- `GET /api/users/{id}` - Get user profile
-- `PUT /api/users/Update` - Update user profile
-- `POST /api/users/UploadProfileImage` - Upload profile picture
+**Saved Articles (MyList)**
+- `POST /api/articles/SaveArticle` - Save an article for a user (requires: UserId, ArticleId in body)
+- `GET /api/articles/GetSavedArticles/{userId}` - Get all saved articles for a specific user
+- `POST /api/articles/RemoveSavedArticle` - Remove a saved article for a user (requires: UserId, ArticleId in body)
 
-### Comments
-- `GET /api/comments?articleId={id}` - Get article comments
-- `POST /api/comments/Create` - Add a comment
-- `DELETE /api/comments/{id}` - Delete a comment
+**Sharing**
+- `POST /api/articles/ShareByUsernames` - Share an article privately by usernames and update Firebase inbox count (requires: SenderUsername, ToUsername, ArticleId, Comment in body)
+- `POST /api/articles/ShareToThreads` - Share an article publicly to Threads (requires: UserId, ArticleId, Comment in body)
 
-### Likes
-- `POST /api/likes/Toggle` - Like/unlike an article
-- `GET /api/likes/User?userId={id}` - Get user's liked articles
+**Reporting**
+- `POST /api/articles/Report` - Report content (article/comment/thread) with a reason (requires: UserId, ReferenceType, ReferenceId, Reason in body)
 
-### Admin
-- `GET /api/admin/statistics` - Get site statistics
-- `PUT /api/admin/user/activate` - Activate/deactivate users
-- `PUT /api/admin/user/permissions` - Manage user permissions
+### Users Controller
+**Authentication & User Management**
+- `POST /api/users/Register` - Register a new user with optional interest tags
+- `POST /api/users/Login` - Authenticate a user by email and password
+- `GET /api/users/GetUserById/{id}` - Get a user by ID (refreshes avatar levels first)
+- `POST /api/users/UpdatePassword` - Update user's password (requires: UserId, NewPassword in body)
+- `POST /api/users/ToggleNotifications` - Toggle email notifications on/off for a user (requires: UserId, Enable in body)
+- `GET /api/users/AllUsers` - Get all registered users
+
+**Tags Management**
+- `GET /api/users/AllTags` - Get the full list of available tags
+- `GET /api/users/GetTags/{userId}` - Get all tags assigned to a specific user
+- `POST /api/users/AddTag` - Add a tag to a user (requires: UserId, TagId in body)
+- `POST /api/users/RemoveTag` - Remove a tag from a user (requires: UserId, TagId in body)
+
+**User Blocking**
+- `POST /api/users/BlockUser` - Block another user by username (requires: BlockerUserId, BlockedUsername in body)
+- `POST /api/users/UnblockUser` - Unblock a previously blocked user (requires: BlockerUserId, BlockedUserId in body)
+- `GET /api/users/BlockedByUser/{userId}` - Get all users blocked by the given user
+
+**Shared Articles & Inbox**
+- `POST /api/users/MarkSharedAsRead/{userId}` - Mark all shared articles for a user as read and update Firebase inbox count
+- `DELETE /api/users/RemoveShared/{sharedId}` - Remove a shared article by its sharedId
+
+**Media Upload**
+- `POST /api/users/UploadProfileImage?userId={userId}` - Upload a profile image (multipart/form-data file upload)
+
+### Comments Controller
+**Article Comments**
+- `POST /api/comments/AddToArticle` - Add a comment to a regular article (validates user can comment, requires: ArticleId, UserId, Comment in body)
+- `GET /api/comments/GetForArticle/{articleId}` - Get all comments for a specific regular article
+
+**Public Thread Comments**
+- `POST /api/comments/AddToThreads` - Add a comment to a public thread article (requires: PublicArticleId, UserId, Comment in body)
+- `GET /api/comments/GetForThreads/{articleId}` - Get all comments for a public thread article
+
+**Comment Likes**
+- `POST /api/comments/ToggleLikeForArticles` - Toggle like on a regular article comment (requires: UserId, CommentId in body)
+- `POST /api/comments/ToggleLikeForThreads` - Toggle like on a public thread comment (requires: UserId, PublicCommentId in body)
+
+**Like Counts**
+- `GET /api/comments/ArticleCommentLikeCount/{commentId}` - Get like count for a regular article comment
+- `GET /api/comments/ThreadsCommentLikeCount/{publicCommentId}` - Get like count for a public thread comment
+
+### Likes Controller
+**Article Likes**
+- `POST /api/likes/ToggleArticleLike` - Toggle like on a regular article and update Firebase like count (requires: UserId, ArticleId in body)
+- `POST /api/likes/ToggleThreadLike` - Toggle like on a public thread article and update Firebase like count (requires: UserId, PublicArticleId in body)
+
+### Admin Controller
+**Statistics & Reports**
+- `GET /api/admin/LikesStats` - Get like statistics for the site
+- `GET /api/admin/Reports/TodayCount` - Get the number of article reports created today
+- `GET /api/admin/AllReports` - Get all reports (articles and comments)
+- `GET /api/admin/GetStatistics` - Get overall site statistics
+
+**User Moderation**
+- `POST /api/admin/SetActiveStatus` - Set a user's active status to enable/disable login (requires: UserId, IsActive in body)
+- `POST /api/admin/SetSharingStatus` - Set whether a user can share articles (requires: UserId, CanShare in body)
+- `POST /api/admin/SetCommentingStatus` - Set whether a user can comment on articles (requires: UserId, CanComment in body)
+
+**Article Management**
+- `POST /api/admin/AddUserArticle` - Add a new user-submitted article (requires: Title, Description, Content, Author, SourceUrl, ImageUrl, PublishedAt in body)
+- `POST /api/admin/GetFromNewsAPI` - Import external articles from NewsAPI and save new ones
+- `POST /api/admin/FixMissingImages` - Generate images for articles missing an image using AI
+- `POST /api/admin/DeleteReportedTarget` - Delete a reported target (article or comment) and its associated reports (requires: TargetId, TargetKind in body)
+
+### Ads Controller
+**Ad Generation**
+- `GET /api/ads/Generate?category={category}` - Generate an ad (text + image) for the given category using AI
+
+### Tagging Controller
+**AI Tagging**
+- `POST /api/tagging/RunTagging` - Trigger the article-tagging process using OpenAI and send notifications
 
 ## Getting Started
 
